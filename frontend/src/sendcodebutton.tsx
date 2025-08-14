@@ -3,24 +3,39 @@ import React from 'react';
 interface SendCodeButtonProps {
     barcode: string;
     addLog: (log: string) => void;
-    url?: string; // Optional, default to google.com
+    url?: string; // Optional, default to local backend
 }
 
-const SendCodeButton: React.FC<SendCodeButtonProps> = ({ barcode, addLog, url = "https://www.google.com" }) => {
+const SendCodeButton: React.FC<SendCodeButtonProps> = ({ barcode, addLog, url = "http://127.0.0.1:8000/get-item-from-qr" }) => {
+
     const handleSend = async () => {
         if (!barcode || barcode === "No result") {
             addLog("Send: No barcode data to send.");
             return;
         }
+
         addLog(`Send: Sending barcode "${barcode}" to ${url}...`);
+
         try {
-            // Example POST request, adjust as needed for your API
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ barcode }),
+                body: JSON.stringify({ qr_id: barcode }), // <-- use qr_id
             });
-            addLog(`Send: Request sent. Status: ${response.status}`);
+
+            if (!response.ok) {
+                const text = await response.text();
+                addLog(`Send: Error from server - ${text}`);
+                return;
+            }
+
+            const data = await response.json();
+            addLog(`Send: Response received - ${JSON.stringify(data)}`);
+
+            // Optional: if the backend returns item name, log it
+            if (data.response?.item?.name) {
+                addLog(`Send: Item name - ${data.response.item.name}`);
+            }
         } catch (error) {
             addLog(`Send: Error - ${error}`);
         }
