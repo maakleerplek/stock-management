@@ -2,12 +2,14 @@ import { useState } from 'react';
 import BarcodeScanner from 'react-qr-barcode-scanner';
 import { Result } from '@zxing/library';
 import TestingTerminal from './testing-terminal';
+import SendCodeButton from './sendcodebutton';
 
 function Scanner() {
     const [isScanning, setIsScanning] = useState(false);
     const [barcode, setBarcode] = useState('No result');
     const [stopStream, setStopStream] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
+
 
     const startScan = () => {
         setBarcode('No result');
@@ -34,6 +36,7 @@ function Scanner() {
         // You can optionally handle it here. e.g. if (err) { console.error(err); }
     };
 
+
     return (
         <div className="scanner-container">
             {!isScanning ? (
@@ -44,6 +47,7 @@ function Scanner() {
 
             {isScanning && <BarcodeScanner width={500} height={500} onUpdate={handleUpdate} stopStream={stopStream} />}
             <p>Last Scanned: {barcode}</p>
+            <SendCodeButton barcode={barcode} addLog={log => setLogs(prev => [...prev, log])} />
             <TestingTerminal logs={logs} />
         </div>
     );

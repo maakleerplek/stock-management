@@ -1,4 +1,3 @@
-import React from "react";
 
 interface TerminalProps {
     logs: string[];
@@ -6,7 +5,7 @@ interface TerminalProps {
 
 function TestingTerminal({ logs }: TerminalProps) {
     return (
-        <div className="terminal-container" style={{ background: "#222", color: "#eee", padding: "1em", minHeight: "150px" }}>
+        <div className="terminal-container" style={{ background: "#046737ff", color: "#eee", padding: "1em", minHeight: "150px" }}>
             <div>
                 {logs.length === 0 ? (
                     <span>No data yet.</span>
