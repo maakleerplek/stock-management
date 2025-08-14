@@ -1,5 +1,6 @@
 import './App.css'
 import Scanner from './barcodescanner'
+
 function App() {
   return (
     <div className="App">
