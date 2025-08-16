@@ -24,12 +24,26 @@ def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API"):
 
 def get_item_details(item_id: int):
     """
-    Fetches a stock item and returns only essential fields.
+    Fetches a stock item and returns only essential fields,
+    including linked part name and description.
     """
     try:
         stock_item = api.get(f"/stock/{item_id}/")
         if not stock_item:
             return {"status": "error", "item_id": item_id, "message": "Stock item not found"}
+
+        # Fetch linked part details for name and description
+        part_id = stock_item.get("part")
+        part_details = {}
+        if part_id:
+            try:
+                part = api.get(f"/part/{part_id}/")
+                part_details = {
+                    "name": part.get("name"),
+                    "description": part.get("description"),
+                }
+            except Exception:
+                part_details = {"name": None, "description": None}
 
         return {
             "status": "ok",
@@ -38,12 +52,19 @@ def get_item_details(item_id: int):
                 "quantity": stock_item.get("quantity"),
                 "serial": stock_item.get("serial"),
                 "location": stock_item.get("location"),
-                "status": stock_item.get("status_text")
+                "status": stock_item.get("status_text"),
+                "name": part_details.get("name"),
+                "description": part_details.get("description"),
             }
         }
 
     except Exception:
         return {"status": "error", "item_id": item_id, "message": "Error fetching stock item details"}
+
+
+    except Exception:
+        return {"status": "error", "item_id": item_id, "message": "Error fetching stock item details"}
+
 
 
 
