@@ -2,7 +2,8 @@ import { useState } from 'react';
 import BarcodeScanner from 'react-qr-barcode-scanner';
 import { Result } from '@zxing/library';
 import TestingTerminal from './testing-terminal';
-import SendCodeButton from './sendcodebutton';
+import SendCodeButton from './sendCodeHandler';
+import { handleSend } from './sendCodeHandler';
 
 function Scanner() {
     const [isScanning, setIsScanning] = useState(false);
@@ -24,11 +25,17 @@ function Scanner() {
         // allowing the state update to propagate before unmounting the component.
         setTimeout(() => setIsScanning(false), 0);
     };
+
+    const addLog = (msg: string) => {
+        setLogs((prev) => [...prev, msg]);
+    };
+
     const handleUpdate = (err: any, result?: Result) => {
         if (result) {
             const code = result.getText();
             setBarcode(code);
             setLogs((prev) => [...prev, `Scanned: ${code}`]);
+            handleSend(code, addLog);
             stopScan();
         }
 
