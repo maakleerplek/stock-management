@@ -7,7 +7,7 @@ export interface ItemData {
     name: string;
     description: string;
     price: number;
-    image: string | null;
+    thumbnail: string | null;
 }
 
 interface ApiResponse {
@@ -55,7 +55,7 @@ export async function handleSend(
                 serial,
                 location,
                 status: itemStatus, // rename to avoid conflict with ApiResponse status
-                image
+                thumbnail
             } = data.item;
 
             // Log the details in a structured way
@@ -67,7 +67,7 @@ export async function handleSend(
             addLog(`Description: ${description}`);
             addLog(`Serial: ${serial || 'N/A'}`);
             addLog(`Location: ${location || 'N/A'}`);
-            addLog(`Image URL: ${image || 'N/A'}`);
+            addLog(`Image URL: ${thumbnail || 'N/A'}`);
             addLog(`Status: ${itemStatus}`);
             addLog("--------------------");
 

@@ -81,7 +81,7 @@ function Scanner() {
 
             {isScanning && <BarcodeScanner width={500} height={500} onUpdate={handleUpdate} stopStream={stopStream} />}
             <p>Last Scanned: {barcode}</p>
-            <ItemDisplay item={item} />
+            <ItemDisplay item={item} addLog={addLog} />
             <TestingTerminal logs={logs} />
         </div>
     );

@@ -37,3 +37,46 @@
     margin-bottom: 1rem;
     object-fit: cover;
 }
+
+.quantity-selector {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #444;
+    text-align: center;
+}
+
+.quantity-selector h3 {
+    margin-top: 1rem;
+    color: #eee;
+}
+
+.counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+}
+
+.counter button {
+    padding: 0.5rem 1rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background-color: #04a24eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.counter button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.counter span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 50px;
+    text-align: center;
+}
