@@ -4,30 +4,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; /* Ensure it takes full viewport height */
+  min-height: 100vh;
   width: 100%;
 }
 
 .App-header {
-  background-color: #ffffff; /* White background for header */
+  background-color: #FFFFFF;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  margin-bottom: 20px;
-  width: 90%; /* Adjust width as needed */
-  max-width: 800px; /* Max width for larger screens */
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 25px;
+  width: 90%;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  border: 1px solid #C19A6B;
 }
 
 .App-header h1 {
-  color: #2c3e50; /* Darker text for heading */
+  color: #5C4033;
   margin-bottom: 20px;
+  font-family: 'Cormorant Garamond', serif; /* Changed to Cormorant Garamond */
+  font-size: 2.5em;
 }
 
 footer {
-  margin-top: 20px;
-  color: #7f8c8d; /* Lighter text for footer */
+  margin-top: 30px;
+  color: #8B7355;
+  font-size: 0.9em;
 }

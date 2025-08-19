@@ -1,23 +1,24 @@
 .terminal-container {
-  background-color: #2c3e50; /* Dark background for terminal */
-  color: #ecf0f1; /* Light text color */
-  padding: 15px;
-  border-radius: 8px;
-  font-family: 'Courier New', Courier, monospace;
+  background-color: #4A3728; /* Dark brown for terminal background */
+  color: #FDF5E6; /* Old Lace for text color */
+  padding: 20px;
+  border-radius: 10px;
+  font-family: 'Fira Code', monospace;
   font-size: 14px;
   width: 100%;
-  max-width: 600px;
-  height: 200px; /* Fixed height for scrollability */
-  overflow-y: auto; /* Enable vertical scrolling */
+  max-width: 650px;
+  height: 220px;
+  overflow-y: auto;
   text-align: left;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3); /* Deeper inset shadow */
+  border: 1px solid #5C4033; /* Subtle border */
 }
 
 .terminal-container div {
-  margin-bottom: 5px;
-  word-wrap: break-word; /* Break long words */
+  margin-bottom: 8px;
+  word-wrap: break-word;
 }
 
 .terminal-container span {
-  color: #7f8c8d; /* Lighter color for 'No data yet' */
+  color: #C19A6B; /* Muted brown for 'No data yet' */
 }
