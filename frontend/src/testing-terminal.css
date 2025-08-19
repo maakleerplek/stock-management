@@ -1,0 +1,24 @@
+.terminal-container {
+  background-color: #4A3728; /* Dark brown for terminal background */
+  color: #FDF5E6; /* Old Lace for text color */
+  padding: 20px;
+  border-radius: 10px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  width: 100%;
+  max-width: 650px;
+  height: 220px;
+  overflow-y: auto;
+  text-align: left;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3); /* Deeper inset shadow */
+  border: 1px solid #5C4033; /* Subtle border */
+}
+
+.terminal-container div {
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+.terminal-container span {
+  color: #C19A6B; /* Muted brown for 'No data yet' */
+}

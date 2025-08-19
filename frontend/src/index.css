@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Inconsolata&family=Lora:wght@400;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Lora', serif; /* New body font */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #D2B48C;
+  color: #4A3728;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+code {
+  font-family: 'Inconsolata', monospace; /* New code font */
+}
