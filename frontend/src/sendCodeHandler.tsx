@@ -1,21 +1,28 @@
-import React from 'react';
+export interface ItemData {
+    id: number;
+    quantity: number;
+    serial: string | null;
+    location: string | null;
+    status: string;
+    name: string;
+    description: string;
+    price: number;
+}
 
-interface SendCodeButtonProps {
-    barcode: string;
-    addLog: (log: string) => void;
-    url?: string; // Optional, default to local backend
+interface ApiResponse {
+    status: string;
+    item: ItemData;
 }
 
 // --- Extracted function ---
 export async function handleSend(
     code: string,
     addLog: (log: string) => void,
-    
-) {
+): Promise<ItemData | null> {
     const url = "http://127.0.0.1:8000/get-item-from-qr"
     if (!code || code === "No result") {
         addLog("Send: No barcode data to send.");
-        return;
+        return null;
     }
 
     addLog(`Send: Sending barcode "${code}" to ${url}...`);
@@ -30,28 +37,43 @@ export async function handleSend(
         if (!response.ok) {
             const text = await response.text();
             addLog(`Send: Error from server - ${text}`);
-            return;
+            return null;
         }
 
-        const data = await response.json();
+        const data: ApiResponse = await response.json();
         addLog(`Send: Response received - ${JSON.stringify(data)}`);
 
-        // Optional: if the backend returns item name, log it
-        if (data?.item?.name) {
-            addLog(`Send: Item name - ${data.item.name}`);
+        if (data && data.item) {
+            // Destructure the item object into constants
+            const {
+                id,
+                name,
+                quantity,
+                price,
+                description,
+                serial,
+                location,
+                status: itemStatus // rename to avoid conflict with ApiResponse status
+            } = data.item;
+
+            // Log the details in a structured way
+            addLog("--- Item Details ---");
+            addLog(`ID: ${id}`);
+            addLog(`Name: ${name}`);
+            addLog(`Quantity: ${quantity}`);
+            addLog(`Price: ${price}`);
+            addLog(`Description: ${description}`);
+            addLog(`Serial: ${serial || 'N/A'}`);
+            addLog(`Location: ${location || 'N/A'}`);
+            addLog(`Status: ${itemStatus}`);
+            addLog("--------------------");
+
+            return data.item;
         }
+        return null;
     } catch (error) {
-        addLog(`Send: Error - ${error}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        addLog(`Send: Error - ${errorMessage}`);
+        return null;
     }
 }
-
-// --- Button component ---
-const SendCodeButton: React.FC<SendCodeButtonProps> = ({ barcode, addLog }) => {
-    return (
-        <button onClick={() => handleSend(barcode, addLog)}>
-            Send code
-        </button>
-    );
-};
-
-export default SendCodeButton;

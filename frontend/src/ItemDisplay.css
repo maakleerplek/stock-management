@@ -1,0 +1,31 @@
+.item-display-container {
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    background-color: #333;
+    color: #eee;
+    text-align: left;
+    max-width: 500px;
+    width: 100%;
+}
+
+.item-display-container h2 {
+    margin-top: 0;
+    color: #04a24eff;
+    border-bottom: 2px solid #046737ff;
+    padding-bottom: 0.5rem;
+}
+
+.item-details-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.item-details-list li {
+    margin-bottom: 0.5rem;
+}
+
+.item-details-list strong {
+    color: #04c75eff;
+}
