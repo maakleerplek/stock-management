@@ -20,7 +20,8 @@ export async function handleSend(
     code: string,
     addLog: (log: string) => void,
 ): Promise<ItemData | null> {
-    const url = "http://127.0.0.1:8000/get-item-from-qr"
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const url = `${baseUrl}/get-item-from-qr`;
     if (!code || code === "No result") {
         addLog("Send: No barcode data to send.");
         return null;

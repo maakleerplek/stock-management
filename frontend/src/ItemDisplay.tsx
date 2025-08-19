@@ -22,7 +22,8 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
             return;
         }
 
-        const url = "http://127.0.0.1:8000/take-item";
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const url = `${baseUrl}/take-item`;
         const payload = {
             itemId: item.id,
             quantity: takeQuantity,
