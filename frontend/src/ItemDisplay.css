@@ -1,82 +1,101 @@
 .item-display-container {
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-    background-color: #333;
-    color: #eee;
-    text-align: left;
-    max-width: 500px;
-    width: 100%;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
 }
 
 .item-display-container h2 {
-    margin-top: 0;
-    color: #04a24eff;
-    border-bottom: 2px solid #046737ff;
-    padding-bottom: 0.5rem;
-}
-
-.item-details-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-.item-details-list li {
-    margin-bottom: 0.5rem;
-}
-
-.item-details-list strong {
-    color: #04c75eff;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 .item-image {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-    object-fit: cover;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px auto; /* Center image and add space below */
+  border-radius: 4px;
+}
+
+.item-details-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.item-details-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+.item-details-list li:last-child {
+  border-bottom: none;
 }
 
 .quantity-selector {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #444;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
 }
 
 .quantity-selector h3 {
-    margin-top: 1rem;
-    color: #eee;
+  color: #28a745;
+  margin: 0;
 }
 
 .counter {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .counter button {
-    padding: 0.5rem 1rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    background-color: #04a24eff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  background-color: #007bff; /* Blue for quantity buttons */
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+.counter button:hover:not(:disabled) {
+  background-color: #0056b3;
 }
 
 .counter button:disabled {
-    background-color: #555;
-    cursor: not-allowed;
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .counter span {
-    font-size: 1.5rem;
-    font-weight: bold;
-    min-width: 50px;
-    text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #34495e;
+}
+
+.quantity-selector button {
+  background-color: #dc3545; /* Red for remove button */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.quantity-selector button:hover {
+  background-color: #c82333;
 }

@@ -1,10 +1,9 @@
 import logo from './assets/HTL.png';
-
-
+import "./logo.css"
 function Logo(){
     return(
         <a href="https://maakleerplek.be/" target="_blank" rel="noopener noreferrer">
-            <img src={logo} alt="logo" style={{width: "100px", height: "100px"}}/>
+            <img src={logo} alt="logo" className="app-logo"/>
         </a>
     )
 }

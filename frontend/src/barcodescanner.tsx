@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import BarcodeScanner from 'react-qr-barcode-scanner';
+import './barcodescanner.css'
 import { Result, NotFoundException, ChecksumException, FormatException } from '@zxing/library';
 import TestingTerminal from './testing-terminal';
 import { handleSend, type ItemData } from './sendCodeHandler';
@@ -80,6 +81,7 @@ function Scanner() {
             )}
 
             {isScanning && <BarcodeScanner width={500} height={500} onUpdate={handleUpdate} stopStream={stopStream} />}
+            {isProcessing && !item && <div className="loading-spinner"></div>}
             <p>Last Scanned: {barcode}</p>
             <ItemDisplay item={item} addLog={addLog} />
             <TestingTerminal logs={logs} />

@@ -73,7 +73,7 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
     return (
         <div className="item-display-container">
             <h2>{item.name}</h2>
-            <img src="" alt={item.name} />
+            {item.thumbnail && <img src={item.thumbnail} alt={item.name} className="item-image" referrerPolicy="no-referrer" />}
             <ul className="item-details-list">
                 <li><strong>ID:</strong> {item.id}</li>
                 <li><strong>Available Quantity:</strong> {item.quantity}</li>

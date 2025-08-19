@@ -1,0 +1,33 @@
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Ensure it takes full viewport height */
+  width: 100%;
+}
+
+.App-header {
+  background-color: #ffffff; /* White background for header */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  margin-bottom: 20px;
+  width: 90%; /* Adjust width as needed */
+  max-width: 800px; /* Max width for larger screens */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.App-header h1 {
+  color: #2c3e50; /* Darker text for heading */
+  margin-bottom: 20px;
+}
+
+footer {
+  margin-top: 20px;
+  color: #7f8c8d; /* Lighter text for footer */
+}
