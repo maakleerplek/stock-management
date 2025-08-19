@@ -3,6 +3,7 @@ import Scanner from './barcodescanner'
 import Qrcode from './qrcode'
 import Logo from './logo'
 
+
 function App() {
   return (
     <div className="App">

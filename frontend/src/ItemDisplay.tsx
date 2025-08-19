@@ -22,8 +22,7 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
             return;
         }
 
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const url = `${baseUrl}/take-item`;
+        const url = `http://127.0.0.1:8000/take-item`;
         const payload = {
             itemId: item.id,
             quantity: takeQuantity,
@@ -74,14 +73,12 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
     return (
         <div className="item-display-container">
             <h2>{item.name}</h2>
-           <img src={`http://127.0.0.1:8000/api/proxy${item.thumbnail}`} alt={item.name} />
+           <img src={`http://127.0.0.1:8000/api/proxy${item.thumbnail}`} alt={item.name} className="item-image" />
             <ul className="item-details-list">
                 <li><strong>ID:</strong> {item.id}</li>
                 <li><strong>Available Quantity:</strong> {item.quantity}</li>
                 <li><strong>Price per item:</strong> ${item.price.toFixed(2)}</li>
                 <li><strong>Description:</strong> {item.description}</li>
-                <li><strong>Serial:</strong> {item.serial || 'N/A'}</li>
-                <li><strong>Location:</strong> {item.location || 'N/A'}</li>
                 <li><strong>Status:</strong> {item.status}</li>
             </ul>
             <div className="quantity-selector">

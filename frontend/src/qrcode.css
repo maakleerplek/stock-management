@@ -10,7 +10,6 @@
   margin-top: 25px;
   width: 100%;
   max-width: 320px;
-  border: 1px solid #D2B48C;
 }
 
 .payconiq-container h2 {
@@ -30,7 +29,6 @@
   width: 200px;
   height: auto;
   cursor: pointer;
-  border: 2px solid #C19A6B;
   border-radius: 6px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
