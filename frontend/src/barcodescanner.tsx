@@ -80,7 +80,7 @@ function Scanner() {
                 <button onClick={stopScan}>Stop Scan</button>
             )}
 
-            {isScanning && <BarcodeScanner width={300} height={300} onUpdate={handleUpdate} stopStream={stopStream} />}
+            {isScanning && <BarcodeScanner width={500} height={500} onUpdate={handleUpdate} stopStream={stopStream} />}
             {isProcessing && !item && <div className="loading-spinner"></div>}
             <p>Last Scanned: {barcode}</p>
             <ItemDisplay item={item} addLog={addLog} />
