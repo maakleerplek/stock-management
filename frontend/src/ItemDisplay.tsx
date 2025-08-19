@@ -18,6 +18,7 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item }) => {
     return (
         <div className="item-display-container">
             <h2>{item.name}</h2>
+            {item.image && <img src={item.image} alt={item.name} className="item-image" />}
             <ul className="item-details-list">
                 <li><strong>ID:</strong> {item.id}</li>
                 <li><strong>Quantity:</strong> {item.quantity}</li>

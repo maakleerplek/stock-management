@@ -2,6 +2,7 @@ import './App.css'
 import Scanner from './barcodescanner'
 import Qrcode from './qrcode'
 import Logo from './logo'
+import ItemContainer from './itemcontainer'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <h1>Inventree Assistant</h1>
         <Logo />
         <Scanner />
+        <ItemContainer />
         <Qrcode />
       </header>
       <footer>

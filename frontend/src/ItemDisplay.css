@@ -29,3 +29,11 @@
 .item-details-list strong {
     color: #04c75eff;
 }
+
+.item-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    object-fit: cover;
+}
