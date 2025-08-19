@@ -74,7 +74,7 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
     return (
         <div className="item-display-container">
             <h2>{item.name}</h2>
-            {item.thumbnail && <img src={item.thumbnail} alt={item.name} className="item-image" referrerPolicy="no-referrer" />}
+           <img src={`http://127.0.0.1:8000/api/proxy${item.thumbnail}`} alt={item.name} />
             <ul className="item-details-list">
                 <li><strong>ID:</strong> {item.id}</li>
                 <li><strong>Available Quantity:</strong> {item.quantity}</li>

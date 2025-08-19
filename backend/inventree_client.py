@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 api = InvenTreeAPI(
-    host=os.getenv("INVENTREE_URL"),
+    host=os.getenv("INVENTREE_URL")+"/api",
     token=os.getenv("INVENTREE_TOKEN")
 )
 
@@ -34,14 +34,14 @@ def get_item_details(item_id: int):
 
         # Fetch linked part details (name, description, image)
         part_id = stock_item.get("part")
-        print("stock_item:")
-        print(stock_item)
+        # print("stock_item:")
+        # print(stock_item)
         part_details = {}
         if part_id:
             try:
                 part = api.get(f"/part/{part_id}/")
-                print("part:")
-                print(part)
+                # print("part:")
+                # print(part)
                 part_details = {
                     "name": part.get("name"),
                     "description": part.get("description"),
@@ -63,7 +63,7 @@ def get_item_details(item_id: int):
                 "name": part_details.get("name"),
                 "description": part_details.get("description"),
                 "price": part_details.get("price"),
-                "thumbnail": part_details.get("thumbnail")
+                "thumbnail": part_details.get("thumbnail"),
             }
         }
 

@@ -1,8 +1,16 @@
 # main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from inventree_client import remove_stock, get_stock_from_qrid, get_item_details
+import requests
+import os
+from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = FastAPI()
 
@@ -53,3 +61,26 @@ def get_item_name(data: ItemDetailsRequest):
     """
     response = get_item_details(data.item_id)
     return response
+
+@app.get("/api/proxy/{image_url:path}")
+def part_image(image_url: str):
+    """
+    Proxy for InvenTree images.
+    Frontend calls /api/proxy/<media/...>, FastAPI fetches from InvenTree with auth.
+    """
+    headers = {"Authorization": f"Token {os.getenv('INVENTREE_TOKEN')}"}
+    print(image_url)
+    image_url = image_url.removesuffix("/api/")
+    full_image_url = f"{os.getenv('INVENTREE_URL')}/{image_url.lstrip('/')}"  # ensure no double slashes
+
+    print("Fetching:", full_image_url)  # <-- debug print
+
+    img_resp = requests.get(full_image_url, headers=headers, stream=True)
+
+    if img_resp.status_code != 200:
+        raise HTTPException(status_code=img_resp.status_code, detail="Image not found")
+
+    return StreamingResponse(
+        BytesIO(img_resp.content),
+        media_type=img_resp.headers.get("Content-Type", "image/png")
+    )
