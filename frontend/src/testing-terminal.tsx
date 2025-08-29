@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import './testing-terminal.css';
 
 interface TerminalProps {
@@ -27,4 +27,4 @@ function TestingTerminal({ logs }: TerminalProps) {
     );
 }
 
-export default TestingTerminal;
+export default memo(TestingTerminal);

@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react'; // Keep this import as it's used for React.FC
-import type { ItemData } from './sendCodeHandler'; // Keep this import as it's used for ItemData
+import React, { useState, useEffect } from 'react';
+import type { ItemData } from './sendCodeHandler';
 import './ItemDisplay.css';
 
 interface ItemDisplayProps {
     item: ItemData | null;
     addLog: (log: string) => void;
+    onItemRemoved: () => void; // Add the new prop
 }
 
 
-const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
+const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog, onItemRemoved }) => { // Destructure the new prop
     const [takeQuantity, setTakeQuantity] = useState(1);
 
-    // Reset quantity to 1 whenever a new item is displayed
     useEffect(() => {
         setTakeQuantity(1);
     }, [item]);
@@ -22,7 +22,7 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
             return;
         }
 
-        const url = `http://127.0.0.1:8000/take-item`;
+        const url = `${import.meta.env.VITE_BACKEND_URL}/take-item`;
         const payload = {
             itemId: item.id,
             quantity: takeQuantity,
@@ -41,6 +41,11 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
             const responseBody = await response.text();
 
             addLog(`Remove: Response from server (${response.status}): ${responseBody}`);
+
+            if (response.ok) {
+                // If the API call was successful, call the callback to reset the display
+                onItemRemoved();
+            }
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -73,11 +78,11 @@ const ItemDisplay: React.FC<ItemDisplayProps> = ({ item, addLog }) => {
     return (
         <div className="item-display-container">
             <h2>{item.name}</h2>
-           <img src={`http://127.0.0.1:8000/api/proxy${item.thumbnail}`} alt={item.name} className="item-image" />
+           <img src={`${import.meta.env.VITE_BACKEND_URL}/api/proxy${item.thumbnail}`} alt={item.name} className="item-image" />
             <ul className="item-details-list">
                 <li><strong>ID:</strong> {item.id}</li>
                 <li><strong>Available Quantity:</strong> {item.quantity}</li>
-                <li><strong>Price per item:</strong> ${item.price.toFixed(2)}</li>
+                <li><strong>Price per item:</strong> €{item.price.toFixed(2)}</li>
                 <li><strong>Description:</strong> {item.description}</li>
                 <li><strong>Status:</strong> {item.status}</li>
             </ul>
