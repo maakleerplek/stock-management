@@ -5,9 +5,11 @@ inventree stock management and frontend
 - barcode scanning
 - item display
 - item removing
+- make it work on phone
 
 #### to be implemented:
 - better website reliability
-#### to fix for showcase
-- make it work on phone
+- shopping cart feature
+- better payment system
+- better phone reliablility
 
