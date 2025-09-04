@@ -3,7 +3,6 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import './barcodescanner.css';
 import TestingTerminal from './testing-terminal';
 import { handleSend, type ItemData } from './sendCodeHandler';
-import ItemDisplay from './ItemDisplay';
 
 const qrcodeRegionId = "reader";
 
@@ -30,13 +29,7 @@ function Scanner() {
     const stopScan = useCallback(() => {
         setIsScanning(false);
     }, []);
-
-    // Add the new callback function to reset the item state
-    const handleItemRemoved = useCallback(() => {
-        setItem(null);
-        addLog("Item display has been reset.");
-    }, [addLog]);
-
+    
     useEffect(() => {
         if (!isScanning) {
             return;
@@ -95,8 +88,6 @@ function Scanner() {
 
             {showLoading && !item && <div className="loading-spinner"></div>}
             <p>Last Scanned: {barcode}</p>
-            {/* Pass the new function as a prop to ItemDisplay */}
-            <ItemDisplay item={item} addLog={addLog} onItemRemoved={handleItemRemoved} />
             <TestingTerminal logs={logs} />
         </div>
     );
