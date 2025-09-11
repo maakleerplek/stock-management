@@ -1,18 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Inconsolata&family=Lora:wght@400;700&display=swap');
+/* Global reset + fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Inconsolata&display=swap');
 
-body {
-  margin: 0;
-  font-family: 'Lora', serif; /* New body font */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #D2B48C;
-  color: #4A3728;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+:root{
+  --bg: #f7f5f1;
+  --card: #ffffff;
+  --accent: #046737;
+  --muted: #6b5a4a;
+  --shadow: 0 6px 20px rgba(16,24,40,0.06);
+  --radius: 12px;
 }
 
-code {
-  font-family: 'Inconsolata', monospace; /* New code font */
+*{box-sizing:border-box}
+html,body,#root{height:100%;margin:0;padding:0}
+
+body{
+  font-family: 'Lora', serif;
+  background: var(--bg);
+  color: var(--muted);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding: 2rem;
 }
+code, pre { font-family: 'Inconsolata', monospace; }

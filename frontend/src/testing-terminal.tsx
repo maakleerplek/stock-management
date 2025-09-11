@@ -16,7 +16,7 @@ function TestingTerminal({ logs }: TerminalProps) {
 
     return (
         <div className="terminal-container" ref={terminalRef}>
-            <div>
+            <div className="terminal-inner">
                 {logs.length === 0 ? (
                     <span>No data yet.</span>
                 ) : (

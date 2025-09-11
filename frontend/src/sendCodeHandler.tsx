@@ -130,3 +130,38 @@ export function handleItemRemove(
     setItem(null);
     addLog("Item display has been reset.");
 }
+
+/**
+ * @function handleTakeItem
+ * @description Sends a request to the backend to "take" a quantity of an item from stock.
+ *
+ * @param {number} itemId - The ID of the item to update.
+ * @param {number} quantity - The quantity to take.
+ * @param {(log: string) => void} addLog - A callback function to log messages.
+ * @returns {Promise<boolean>} A promise that resolves with true if the update was successful, false otherwise.
+ */
+export async function handleTakeItem(
+    itemId: number,
+    quantity: number,
+    addLog: (log: string) => void,
+): Promise<boolean> {
+    const url = `${import.meta.env.VITE_BACKEND_URL}/take-item`;
+    const payload = { itemId, quantity };
+    addLog(`Take Item: Sending request for item ${itemId}, quantity ${quantity}...`);
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const responseBody = await response.text();
+        addLog(`Take Item: Response from server (${response.status}): ${responseBody}`);
+        return response.ok;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        addLog(`Take Item: Network or other error - ${errorMessage}`);
+        return false;
+    }
+}

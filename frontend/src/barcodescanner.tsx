@@ -1,26 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import './barcodescanner.css';
-import TestingTerminal from './testing-terminal';
 import { handleSend, type ItemData } from './sendCodeHandler';
 
 const qrcodeRegionId = "reader";
 
-function Scanner() {
+interface ScannerProps {
+    logs: string[];
+    addLog: (msg: string) => void;
+    onItemScanned?: (item: ItemData) => void;
+}
+
+function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
     const [isScanning, setIsScanning] = useState(false);
     const [barcode, setBarcode] = useState('No result');
-    const [item, setItem] = useState<ItemData | null>(null);
-    const [logs, setLogs] = useState<string[]>([]);
+    const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
     const isProcessing = useRef(false);
     const [showLoading, setShowLoading] = useState(false);
 
-    const addLog = useCallback((msg: string) => {
-        setLogs((prev) => [...prev, msg]);
-    }, []);
-
     const startScan = useCallback(() => {
-        setBarcode('No result');
-        setItem(null);
+        setScannedItem(null);
         isProcessing.current = false;
         setShowLoading(false);
         setIsScanning(true);
@@ -52,7 +51,8 @@ function Scanner() {
                 addLog(`Scanned: ${decodedText}`);
                 setBarcode(decodedText);
                 const fetchedItem = await handleSend(decodedText, addLog);
-                setItem(fetchedItem);
+                setScannedItem(fetchedItem);
+                if (fetchedItem) onItemScanned(fetchedItem);
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 addLog(`Error during scan processing: ${errorMessage}`);
@@ -74,7 +74,7 @@ function Scanner() {
                 // Ignore cleanup errors
             });
         };
-    }, [isScanning, addLog, stopScan]);
+    }, [isScanning, addLog, stopScan, onItemScanned]);
 
     return (
         <div className="scanner-container">
@@ -86,9 +86,8 @@ function Scanner() {
 
             {isScanning && <div id={qrcodeRegionId} className="scanner-view"></div>}
 
-            {showLoading && !item && <div className="loading-spinner"></div>}
+            {showLoading && !scannedItem && <div className="loading-spinner"></div>}
             <p>Last Scanned: {barcode}</p>
-            <TestingTerminal logs={logs} />
         </div>
     );
 }

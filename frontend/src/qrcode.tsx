@@ -6,7 +6,7 @@ function PayconiqQrCode() {
     };
 
     return (
-        <div className="payconiq-container" style={{ width: '200px' }}>
+        <div className="payconiq-container">
             <h2>Pay with Payconiq</h2>
             <p>Click the QR code to open the payment link.</p>
             <img
