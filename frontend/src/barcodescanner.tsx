@@ -5,21 +5,23 @@ import { handleSend, type ItemData } from './sendCodeHandler';
 
 const qrcodeRegionId = "reader";
 
+// A stable empty function for the default prop value.
+const noop = () => {};
+
 interface ScannerProps {
     logs: string[];
     addLog: (msg: string) => void;
     onItemScanned?: (item: ItemData) => void;
 }
 
-function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
+function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
     const [isScanning, setIsScanning] = useState(false);
     const [barcode, setBarcode] = useState('No result');
-    const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
     const isProcessing = useRef(false);
+    const onItemScannedRef = useRef(onItemScanned);
     const [showLoading, setShowLoading] = useState(false);
 
     const startScan = useCallback(() => {
-        setScannedItem(null);
         isProcessing.current = false;
         setShowLoading(false);
         setIsScanning(true);
@@ -29,6 +31,10 @@ function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
         setIsScanning(false);
     }, []);
     
+    useEffect(() => {
+        onItemScannedRef.current = onItemScanned;
+    }, [onItemScanned]);
+
     useEffect(() => {
         if (!isScanning) {
             return;
@@ -51,8 +57,9 @@ function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
                 addLog(`Scanned: ${decodedText}`);
                 setBarcode(decodedText);
                 const fetchedItem = await handleSend(decodedText, addLog);
-                setScannedItem(fetchedItem);
-                if (fetchedItem) onItemScanned(fetchedItem);
+                if (fetchedItem) {
+                    onItemScannedRef.current(fetchedItem);
+                }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 addLog(`Error during scan processing: ${errorMessage}`);
@@ -63,7 +70,7 @@ function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
             }
         };
 
-        const onScanFailure = (error: any) => {
+        const onScanFailure = () => {
             // Ignore frequent "no code found" errors
         };
 
@@ -71,10 +78,11 @@ function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
 
         return () => {
             html5QrcodeScanner.clear().catch(error => {
-                // Ignore cleanup errors
+                // This can fail if the scanner is already closed.
+                addLog(`Scanner cleanup error (ignoring): ${error}`);
             });
         };
-    }, [isScanning, addLog, stopScan, onItemScanned]);
+    }, [isScanning, addLog, stopScan]);
 
     return (
         <div className="scanner-container">
@@ -86,7 +94,7 @@ function Scanner({ logs, addLog, onItemScanned = () => {} }: ScannerProps) {
 
             {isScanning && <div id={qrcodeRegionId} className="scanner-view"></div>}
 
-            {showLoading && !scannedItem && <div className="loading-spinner"></div>}
+            {showLoading && <div className="loading-spinner"></div>}
             <p>Last Scanned: {barcode}</p>
         </div>
     );
