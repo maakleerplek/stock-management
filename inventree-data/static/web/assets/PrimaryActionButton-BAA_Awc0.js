@@ -1,0 +1,2 @@
+import{j as n,aa as a,O as m}from"./index-DjOBj_Ai.js";import{z as u}from"./ThemeContext-BjJu0IKI.js";function p({title:r,tooltip:o,icon:t,color:s,hidden:e,onClick:i}){return e?null:n.jsx(a,{label:o??r,position:"bottom",hidden:!o,children:n.jsx(m,{leftSection:t&&n.jsx(u,{icon:t}),color:s,radius:"sm",p:"xs",onClick:i,children:r})})}export{p as P};
+//# sourceMappingURL=PrimaryActionButton-BAA_Awc0.js.map
