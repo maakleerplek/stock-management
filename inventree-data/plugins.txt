@@ -1,2 +1,0 @@
-# InvenTree Plugins (uses PIP framework to install)
-
