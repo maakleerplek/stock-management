@@ -6,11 +6,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api = InvenTreeAPI(
-    host=os.getenv("INVENTREE_URL")+"/api",
-    token=os.getenv("INVENTREE_TOKEN")
-)
+# try to get env variables
+try:
+    host = os.getenv("INVENTREE_URL")
+    token = os.getenv("INVENTREE_TOKEN")
+except Exception as e:  
+    print(f"Error: {e}")
+    exit(1)
+print("InvenTree Host:", host)
+print("InvenTree Token:", "****" if token else "Not Set")
 
+try: 
+    api = InvenTreeAPI(
+        host=host+"/api",
+        token=token
+    )
+except Exception as e:  
+    print(f"Error: {e}")
+    exit(1)
 
 def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API"):
     """Remove stock and return simplified response."""
