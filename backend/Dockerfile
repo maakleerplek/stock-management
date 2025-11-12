@@ -25,7 +25,7 @@ RUN pip install --no-index --find-links=/wheels /wheels/*
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 8000
+EXPOSE 8001
 
 # Run the application
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8001", "main:app"]
