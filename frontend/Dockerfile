@@ -9,14 +9,9 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve the application with a lightweight server
-FROM nginx:stable-alpine
+# Install serve to act as a static file server
+RUN npm install -g serve
 
-COPY --from=build /app/dist /usr/share/nginx/html
+# Start the server
+CMD ["serve", "-s", "dist", "-l", "80"]
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]

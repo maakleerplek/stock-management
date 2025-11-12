@@ -46,7 +46,7 @@ export async function handleSend(
     addLog: (log: string) => void,
 ): Promise<ItemData | null> {
     // Construct the full URL for the API endpoint from environment variables.
-    const url = `${import.meta.env.VITE_BACKEND_URL}/get-item-from-qr`;
+    const url = `http://localhost:8001/get-item-from-qr`;
 
     // Validate the barcode before sending.
     if (!code || code === "No result") {
@@ -145,7 +145,7 @@ export async function handleTakeItem(
     quantity: number,
     addLog: (log: string) => void,
 ): Promise<boolean> {
-    const url = `${import.meta.env.VITE_BACKEND_URL}/take-item`;
+    const url = `http://localhost:8001/take-item`;
     const payload = { itemId, quantity };
     addLog(`Take Item: Sending request for item ${itemId}, quantity ${quantity}...`);
 

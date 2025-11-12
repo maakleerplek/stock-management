@@ -14,7 +14,7 @@ except Exception as e:
     print(f"Error: {e}")
     exit(1)
 print("InvenTree Host:", host)
-print("InvenTree Token:", "****" if token else "Not Set")
+print("InvenTree Token:", token if token else "Not Set")
 
 try: 
     api = InvenTreeAPI(

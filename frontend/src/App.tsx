@@ -5,6 +5,7 @@ import Qrcode from './qrcode'
 import Logo from './logo'
 import ShoppingCart, { type CartItem } from './shoppingcart'
 import { type ItemData, handleTakeItem } from './sendCodeHandler';
+import TestingTerminal from './testing-terminal';
 
 function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -78,6 +79,7 @@ function App() {
       <div className="main-layout">
         <div className="content-area">
           <Logo />
+          <TestingTerminal logs={logs} />
           <Scanner logs={logs} addLog={addLog} onItemScanned={handleAddItemToCart} />
           <Qrcode />
         </div>
