@@ -147,8 +147,6 @@ services:
         - .env
       environment:
           - TZ=Europe/Brussels
-          # Override INVENTREE_URL to use Docker's internal networking.
-          - INVENTREE_URL=http://inventree-server:8000
           # Force python to run in unbuffered mode, so print() statements appear in logs.
           - PYTHONUNBUFFERED=1
 
