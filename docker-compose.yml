@@ -79,6 +79,8 @@ services:
         expose:
             - 8000
         environment:
+            # Add the internal service name to the list of allowed hosts.
+            - INVENTREE_ALLOWED_HOSTS=inventree-server,${INVENTREE_SITE_URL}
             - TZ=Europe/Brussels
         depends_on:
             - inventree-db
@@ -136,12 +138,19 @@ services:
     backend:
       build:
         context: ./backend
-      ports: # Maps host port 8001 to the backend container's internal port 8001
-        - "8001:8001" # Maps host port 8001 to the backend container's internal port 8000
+      depends_on:
+        - inventree-server
+      ports:
+        # Maps host port 8001 to the backend container's internal port 8001
+        - "8001:8001"
       env_file:
         - .env
       environment:
           - TZ=Europe/Brussels
+          # Override INVENTREE_URL to use Docker's internal networking.
+          - INVENTREE_URL=http://inventree-server:8000
+          # Force python to run in unbuffered mode, so print() statements appear in logs.
+          - PYTHONUNBUFFERED=1
 
     frontend:
       build:

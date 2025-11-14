@@ -3,8 +3,22 @@
 from inventree.api import InvenTreeAPI
 import os
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
+
+# Create the FastAPI app instance
+app = FastAPI()
+
+# Add CORS middleware to allow requests from your frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 # try to get env variables
 try:
@@ -25,16 +39,18 @@ except Exception as e:
     print(f"Error: {e}")
     exit(1)
 
+@app.post("/remove-stock")
 def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API"):
     """Remove stock and return simplified response."""
     try:
         payload = {"items": [{"pk": item_id, "quantity": quantity}], "notes": notes}
         api.post("/stock/remove/", payload)
         return {"status": "ok", "item_id": item_id, "quantity": quantity}
-    except Exception as e:
-        return {"status": "error", "item_id": item_id, "message": str(e) or "Error removing stock"}
+    except Exception as e: 
+        print(f"Error in remove_stock: {e}")
+        return {"status": "error", "item_id": item_id, "message": str(e) or "An unknown error occurred while removing stock"}
 
-
+@app.get("/item-details/{item_id}")
 def get_item_details(item_id: int):
     """
     Fetches a stock item and returns only essential fields,
@@ -63,6 +79,7 @@ def get_item_details(item_id: int):
                 }
 
             except Exception:
+                print("Error fetching part details")
                 pass
 
         return {
@@ -80,15 +97,11 @@ def get_item_details(item_id: int):
             }
         }
 
-    except Exception:
-        return {"status": "error", "item_id": item_id, "message": "Error fetching stock item details"}
+    except Exception as e:
+        print(f"Error in get_item_details for item_id {item_id}: {e}")
+        return {"status": "error", "item_id": item_id, "message": "An error occurred while fetching stock item details"}
 
-
-
-
-
-
-
+@app.get("/get-item-from-qr/{qr_id}")
 def get_stock_from_qrid(qr_id: str):
     try:
         barcode_resp = api.post("/barcode/", {"barcode": qr_id})
@@ -96,7 +109,20 @@ def get_stock_from_qrid(qr_id: str):
         if not stock_id:
             return {"status": "error", "qr_id": qr_id, "message": "No stock item found"}
 
-        return get_item_details(stock_id)
+        return get_item_details(stock_id)  
 
-    except Exception:
-        return {"status": "error", "qr_id": qr_id, "message": "Error occurred during API request"}
+    except Exception as e:
+        error_message = f"An error occurred during the API request: {e}"
+        if hasattr(e, 'response') and e.response is not None:
+            response = e.response  # Access the response object from the exception
+            if response is not None:
+                status_code = response.status_code
+                try:
+                    error_detail = response.json()
+                    error_message = f"API request failed with status code {status_code}: {error_detail}"
+                except:
+                    error_message = f"API request failed with status code {status_code} and could not parse error detail."
+        else:
+            error_message = f"API request failed: No response received. {e}"
+        print(f"Error in get_stock_from_qrid for qr_id '{qr_id}': {error_message}")
+        return {"status": "error", "qr_id": qr_id, "message": error_message}
