@@ -1,10 +1,11 @@
 # inventree_client.py
 
-from inventree.api import InvenTreeAPI
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import requests
+from urllib.parse import urljoin
 
 load_dotenv()
 
@@ -24,17 +25,49 @@ app.add_middleware(
 try:
     host = os.getenv("INVENTREE_URL")
     token = os.getenv("INVENTREE_TOKEN")
+    site_url = os.getenv("INVENTREE_SITE_URL")
 except Exception as e:  
     print(f"Error: {e}")
     exit(1)
 print("InvenTree Host:", host)
 print("InvenTree Token:", token if token else "Not Set")
 
+# Create custom API client using raw requests with Host header spoofing
+class InvenTreeClient:
+    def __init__(self, host, token, site_url):
+        self.base_url = host + "/api"
+        self.token = token
+        self.host_header = site_url.replace("http://", "").replace("https://", "")
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Authorization": f"Token {token}",
+            "Host": self.host_header
+        })
+    
+    def get(self, endpoint):
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+        try:
+            response = self.session.get(url, params={"format": "json"})
+            if response.status_code == 200:
+                return response.json()
+            else:
+                raise Exception(f"API error: {response.status_code} - {response.text}")
+        except Exception as e:
+            raise Exception(f"Failed to GET {endpoint}: {e}")
+    
+    def post(self, endpoint, data):
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+        try:
+            response = self.session.post(url, json=data, params={"format": "json"})
+            if response.status_code in [200, 201]:
+                return response.json()
+            else:
+                raise Exception(f"API error: {response.status_code} - {response.text}")
+        except Exception as e:
+            raise Exception(f"Failed to POST {endpoint}: {e}")
+
 try: 
-    api = InvenTreeAPI(
-        host=host+"/api",
-        token=token
-    )
+    api = InvenTreeClient(host, token, site_url)
 except Exception as e:  
     print(f"Error: {e}")
     exit(1)
