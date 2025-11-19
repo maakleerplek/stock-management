@@ -38,14 +38,6 @@ function ShoppingCart({
                     <ul>
                         {cartItems.map((item) => (
                             <li key={item.id}>
-                                <img
-                                    src={
-                                        item.part_id && item.thumbnail
-                                            ? `${import.meta.env.VITE_BACKEND_URL}/api/proxy/part/${item.part_id}`
-                                            : 'placeholder.png'
-                                    }
-                                    alt={item.name}
-                                />
                                 <div className="item-details">
                                     <h3>{item.name}</h3>
                                     <p>{item.description}</p>

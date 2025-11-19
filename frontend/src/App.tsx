@@ -6,6 +6,8 @@ import Logo from './logo';
 import ShoppingCart, { type CartItem } from './shoppingcart';
 import { type ItemData, handleTakeItem } from './sendCodeHandler';
 import TestingTerminal from './testing-terminal';
+import Thumbnail from './thumbnail';
+
 
 function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
