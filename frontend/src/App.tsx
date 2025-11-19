@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import './App.css'
-import Scanner from './barcodescanner'
-import Qrcode from './qrcode'
-import Logo from './logo'
-import ShoppingCart, { type CartItem } from './shoppingcart'
+import './App.css';
+import Scanner from './barcodescanner';
+import Qrcode from './qrcode';
+import Logo from './logo';
+import ShoppingCart, { type CartItem } from './shoppingcart';
 import { type ItemData, handleTakeItem } from './sendCodeHandler';
 import TestingTerminal from './testing-terminal';
 
@@ -12,12 +12,14 @@ function App() {
   const [logs, setLogs] = useState<string[]>([]);
   const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
 
+  /** Add a log message to the terminal */
   const addLog = useCallback((msg: string) => {
     setLogs((prev) => [...prev, msg]);
   }, []);
 
+  /** Add or increment an item in the shopping cart */
   const handleAddItemToCart = (item: ItemData) => {
-    setCheckedOutTotal(null); // Reset checked out total on new scan
+    setCheckedOutTotal(null);
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === item.id);
       if (existingItem) {
@@ -30,6 +32,7 @@ function App() {
     });
   };
 
+  /** Update the quantity of an item in the cart, removing it if quantity reaches 0 */
   const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
     setCartItems((prevItems) =>
       prevItems
@@ -40,24 +43,28 @@ function App() {
     );
   };
 
-  const handleRemoveItem = async (itemId: number) => {
-    const itemToRemove = cartItems.find(item => item.id === itemId);
-    if (!itemToRemove) return;
-
-    const quantityToTake = itemToRemove.cartQuantity;
-    const success = await handleTakeItem(itemId, quantityToTake, addLog);
-
-    if (success) {
-      setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-      addLog(`Item ${itemId} with quantity ${quantityToTake} successfully taken from stock and removed from cart.`);
-    } else {
-      addLog(`Failed to take item ${itemId} from stock. Item not removed from cart.`);
+  /** Remove an item from the cart (local only, no inventory change) */
+  const handleRemoveItem = (itemId: number) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    const item = cartItems.find((i) => i.id === itemId);
+    if (item) {
+      addLog(`Removed "${item.name}" from cart.`);
     }
   };
 
   const handleCheckout = async () => {
-    addLog("Checking out all items in the cart...");
     const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0);
+    
+    // Show confirmation popup
+    const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
+    const confirmMessage = `Are you sure you want to checkout?\n\n${itemsSummary}\n\nTotal: €${checkoutTotal.toFixed(2)}`;
+    
+    if (!window.confirm(confirmMessage)) {
+      addLog("Checkout cancelled.");
+      return;
+    }
+
+    addLog("Checking out all items in the cart...");
 
     for (const item of cartItems) {
       const success = await handleTakeItem(item.id, item.cartQuantity, addLog);
@@ -80,7 +87,7 @@ function App() {
         <div className="content-area">
           <Logo />
           <TestingTerminal logs={logs} />
-          <Scanner logs={logs} addLog={addLog} onItemScanned={handleAddItemToCart} />
+          <Scanner addLog={addLog} onItemScanned={handleAddItemToCart} />
           <Qrcode />
         </div>
         <ShoppingCart
@@ -91,9 +98,8 @@ function App() {
           checkedOutTotal={checkedOutTotal}
         />
       </div>
-      <footer>
-      </footer>
     </div>
-  )
+  );
 }
-export default App
+
+export default App;

@@ -1,119 +1,183 @@
-# inventree_client.py
+"""
+InvenTree API client for stock management operations.
+Handles communication with InvenTree server with proper host header spoofing
+to bypass SITE_URL validation from internal Docker containers.
+"""
 
 import os
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import requests
 from urllib.parse import urljoin
+
+import requests
+from dotenv import load_dotenv
 
 load_dotenv()
 
-# Create the FastAPI app instance
-app = FastAPI()
+# ==================== Environment Configuration ====================
 
-# Add CORS middleware to allow requests from your frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+INVENTREE_URL = os.getenv("INVENTREE_URL")
+INVENTREE_TOKEN = os.getenv("INVENTREE_TOKEN")
+INVENTREE_SITE_URL = os.getenv("INVENTREE_SITE_URL")
 
-# try to get env variables
-try:
-    host = os.getenv("INVENTREE_URL")
-    token = os.getenv("INVENTREE_TOKEN")
-    site_url = os.getenv("INVENTREE_SITE_URL")
-except Exception as e:  
-    print(f"Error: {e}")
-    exit(1)
-print("InvenTree Host:", host)
-print("InvenTree Token:", token if token else "Not Set")
+if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL]):
+    raise RuntimeError(
+        "Missing required environment variables: "
+        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL"
+    )
 
-# Create custom API client using raw requests with Host header spoofing
+print(f"InvenTree Host: {INVENTREE_URL}")
+print(f"InvenTree Token: {'*' * 10}{'*' * (len(INVENTREE_TOKEN) - 10) if INVENTREE_TOKEN else 'Not Set'}")
+
+
+# ==================== InvenTree API Client ====================
+
+
 class InvenTreeClient:
-    def __init__(self, host, token, site_url):
-        self.base_url = host + "/api"
+    """
+    Custom HTTP client for InvenTree API with host header spoofing.
+    
+    This client adds the SITE_URL as the Host header in requests to bypass
+    InvenTree's SITE_URL validation, allowing internal container access.
+    """
+
+    def __init__(self, base_url: str, token: str, site_url: str):
+        """
+        Initialize the InvenTree API client.
+        
+        Args:
+            base_url: Base URL of InvenTree server (e.g., http://inventree-server:8000)
+            token: Authentication token for InvenTree API
+            site_url: SITE_URL configured in InvenTree (used as Host header)
+        """
+        self.base_url = f"{base_url}/api"
         self.token = token
         self.host_header = site_url.replace("http://", "").replace("https://", "")
+        
+        # Create session with auth headers
         self.session = requests.Session()
         self.session.headers.update({
             "Authorization": f"Token {token}",
-            "Host": self.host_header
+            "Host": self.host_header,
         })
-    
-    def get(self, endpoint):
+
+    def get(self, endpoint: str) -> dict:
+        """
+        Perform a GET request to the InvenTree API.
+        
+        Args:
+            endpoint: API endpoint (e.g., "/stock/123/")
+            
+        Returns:
+            JSON response as dictionary
+            
+        Raises:
+            Exception: If the API request fails
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+        
         try:
             response = self.session.get(url, params={"format": "json"})
-            if response.status_code == 200:
-                return response.json()
-            else:
-                raise Exception(f"API error: {response.status_code} - {response.text}")
-        except Exception as e:
-            raise Exception(f"Failed to GET {endpoint}: {e}")
-    
-    def post(self, endpoint, data):
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"GET {endpoint} failed: {e}") from e
+
+    def post(self, endpoint: str, data: dict) -> dict:
+        """
+        Perform a POST request to the InvenTree API.
+        
+        Args:
+            endpoint: API endpoint (e.g., "/barcode/")
+            data: Request payload as dictionary
+            
+        Returns:
+            JSON response as dictionary
+            
+        Raises:
+            Exception: If the API request fails
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+        
         try:
             response = self.session.post(url, json=data, params={"format": "json"})
-            if response.status_code in [200, 201]:
-                return response.json()
-            else:
-                raise Exception(f"API error: {response.status_code} - {response.text}")
-        except Exception as e:
-            raise Exception(f"Failed to POST {endpoint}: {e}")
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"POST {endpoint} failed: {e}") from e
 
-try: 
-    api = InvenTreeClient(host, token, site_url)
-except Exception as e:  
-    print(f"Error: {e}")
-    exit(1)
 
-@app.post("/remove-stock")
-def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API"):
-    """Remove stock and return simplified response."""
-    try:
-        payload = {"items": [{"pk": item_id, "quantity": quantity}], "notes": notes}
-        api.post("/stock/remove/", payload)
-        return {"status": "ok", "item_id": item_id, "quantity": quantity}
-    except Exception as e: 
-        print(f"Error in remove_stock: {e}")
-        return {"status": "error", "item_id": item_id, "message": str(e) or "An unknown error occurred while removing stock"}
+# Initialize global API client
+api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL)
 
-@app.get("/item-details/{item_id}")
-def get_item_details(item_id: int):
+
+# ==================== Stock Management Functions ====================
+
+
+def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") -> dict:
     """
-    Fetches a stock item and returns only essential fields,
-    including linked part name, description, and image.
+    Remove items from stock in InvenTree.
+    
+    Args:
+        item_id: The ID of the stock item to remove
+        quantity: The quantity to remove
+        notes: Optional removal notes
+        
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        payload = {
+            "items": [{"pk": item_id, "quantity": quantity}],
+            "notes": notes,
+        }
+        api.post("/stock/remove/", payload)
+        return {
+            "status": "ok",
+            "item_id": item_id,
+            "quantity": quantity,
+        }
+    except Exception as e:
+        print(f"Error removing stock: {e}")
+        return {
+            "status": "error",
+            "item_id": item_id,
+            "message": str(e),
+        }
+
+
+def get_item_details(item_id: int) -> dict:
+    """
+    Fetch complete item details including part information.
+    
+    Args:
+        item_id: The ID of the stock item
+        
+    Returns:
+        Response dictionary with item details or error message
     """
     try:
         stock_item = api.get(f"/stock/{item_id}/")
         if not stock_item:
-            return {"status": "error", "item_id": item_id, "message": "Stock item not found"}
+            return {
+                "status": "error",
+                "item_id": item_id,
+                "message": "Stock item not found",
+            }
 
-        # Fetch linked part details (name, description, image)
+        # Fetch linked part details
         part_id = stock_item.get("part")
-        # print("stock_item:")
-        # print(stock_item)
         part_details = {}
+        
         if part_id:
             try:
                 part = api.get(f"/part/{part_id}/")
-                # print("part:")
-                # print(part)
                 part_details = {
                     "name": part.get("name"),
                     "description": part.get("description"),
                     "price": part.get("pricing_min"),
-                    "thumbnail": part.get("thumbnail")
+                    "thumbnail": part.get("thumbnail"),
                 }
-
-            except Exception:
-                print("Error fetching part details")
-                pass
+            except Exception as e:
+                print(f"Warning: Could not fetch part details for part {part_id}: {e}")
 
         return {
             "status": "ok",
@@ -127,35 +191,44 @@ def get_item_details(item_id: int):
                 "description": part_details.get("description"),
                 "price": part_details.get("price"),
                 "thumbnail": part_details.get("thumbnail"),
-            }
+                "part_id": part_id,  # Include part ID for thumbnail URL construction
+            },
+        }
+    except Exception as e:
+        print(f"Error fetching item details for {item_id}: {e}")
+        return {
+            "status": "error",
+            "item_id": item_id,
+            "message": "Failed to fetch item details",
         }
 
-    except Exception as e:
-        print(f"Error in get_item_details for item_id {item_id}: {e}")
-        return {"status": "error", "item_id": item_id, "message": "An error occurred while fetching stock item details"}
 
-@app.get("/get-item-from-qr/{qr_id}")
-def get_stock_from_qrid(qr_id: str):
+def get_stock_from_qrid(qr_id: str) -> dict:
+    """
+    Look up stock item by QR/barcode ID.
+    
+    Args:
+        qr_id: The barcode/QR code string
+        
+    Returns:
+        Response dictionary with item details or error message
+    """
     try:
-        barcode_resp = api.post("/barcode/", {"barcode": qr_id})
-        stock_id = barcode_resp.get("stockitem", {}).get("pk")
+        barcode_response = api.post("/barcode/", {"barcode": qr_id})
+        stock_id = barcode_response.get("stockitem", {}).get("pk")
+        
         if not stock_id:
-            return {"status": "error", "qr_id": qr_id, "message": "No stock item found"}
+            return {
+                "status": "error",
+                "qr_id": qr_id,
+                "message": "No stock item found for this barcode",
+            }
 
-        return get_item_details(stock_id)  
-
+        return get_item_details(stock_id)
     except Exception as e:
-        error_message = f"An error occurred during the API request: {e}"
-        if hasattr(e, 'response') and e.response is not None:
-            response = e.response  # Access the response object from the exception
-            if response is not None:
-                status_code = response.status_code
-                try:
-                    error_detail = response.json()
-                    error_message = f"API request failed with status code {status_code}: {error_detail}"
-                except:
-                    error_message = f"API request failed with status code {status_code} and could not parse error detail."
-        else:
-            error_message = f"API request failed: No response received. {e}"
-        print(f"Error in get_stock_from_qrid for qr_id '{qr_id}': {error_message}")
-        return {"status": "error", "qr_id": qr_id, "message": error_message}
+        print(f"Error looking up QR code {qr_id}: {e}")
+        return {
+            "status": "error",
+            "qr_id": qr_id,
+            "message": f"Barcode lookup failed: {str(e)}",
+        }

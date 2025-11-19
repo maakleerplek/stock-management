@@ -7,11 +7,23 @@ COPY package.json package-lock.json ./
 RUN npm install
 
 COPY . .
+
+# Build with environment variables
+ARG VITE_BACKEND_URL=http://localhost:8001
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+
 RUN npm run build
 
-# Install serve to act as a static file server
+# Stage 2: Serve the built application
+FROM node:20-alpine
+
+WORKDIR /app
+
 RUN npm install -g serve
 
-# Start the server
+COPY --from=build /app/dist ./dist
+
+EXPOSE 80
+
 CMD ["serve", "-s", "dist", "-l", "80"]
 

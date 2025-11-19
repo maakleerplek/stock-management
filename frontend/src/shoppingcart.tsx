@@ -13,11 +13,21 @@ interface ShoppingCartProps {
     checkedOutTotal: number | null;
 }
 
-function ShoppingCart({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, checkedOutTotal }: ShoppingCartProps) {
-    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0);
+function ShoppingCart({
+    cartItems,
+    onUpdateQuantity,
+    onRemoveItem,
+    onCheckout,
+    checkedOutTotal,
+}: ShoppingCartProps) {
+    const totalPrice = cartItems.reduce(
+        (total, item) => total + item.price * item.cartQuantity,
+        0
+    );
 
+    // Don't render if cart is empty and no recent checkout
     if (cartItems.length === 0 && checkedOutTotal === null) {
-        return null; // Don't render anything if the cart is empty and not just checked out
+        return null;
     }
 
     return (
@@ -30,8 +40,8 @@ function ShoppingCart({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, c
                             <li key={item.id}>
                                 <img
                                     src={
-                                        item.thumbnail
-                                            ? `${import.meta.env.VITE_BACKEND_URL}/api/proxy${item.thumbnail}`
+                                        item.part_id && item.thumbnail
+                                            ? `${import.meta.env.VITE_BACKEND_URL}/api/proxy/part/${item.part_id}`
                                             : 'placeholder.png'
                                     }
                                     alt={item.name}
@@ -44,17 +54,43 @@ function ShoppingCart({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, c
                                 </div>
                                 <div className="item-controls">
                                     <div className="quantity-controls">
-                                        <button onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}>-</button>
+                                        <button
+                                            onClick={() =>
+                                                onUpdateQuantity(item.id, item.cartQuantity - 1)
+                                            }
+                                        >
+                                            −
+                                        </button>
                                         <input
                                             type="number"
                                             value={item.cartQuantity}
-                                            onChange={(e) => onUpdateQuantity(item.id, Math.min(parseInt(e.target.value, 10) || 0, item.quantity))}
+                                            onChange={(e) =>
+                                                onUpdateQuantity(
+                                                    item.id,
+                                                    Math.min(
+                                                        parseInt(e.target.value, 10) || 0,
+                                                        item.quantity
+                                                    )
+                                                )
+                                            }
                                             min="1"
                                             max={item.quantity}
                                         />
-                                        <button onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)} disabled={item.cartQuantity >= item.quantity}>+</button>
+                                        <button
+                                            onClick={() =>
+                                                onUpdateQuantity(item.id, item.cartQuantity + 1)
+                                            }
+                                            disabled={item.cartQuantity >= item.quantity}
+                                        >
+                                            +
+                                        </button>
                                     </div>
-                                    <button className="remove-btn" onClick={() => onRemoveItem(item.id)}>Remove</button>
+                                    <button
+                                        className="remove-btn"
+                                        onClick={() => onRemoveItem(item.id)}
+                                    >
+                                        Remove
+                                    </button>
                                 </div>
                             </li>
                         ))}
@@ -62,11 +98,13 @@ function ShoppingCart({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout, c
                     <div className="total-price">
                         <h3>Total: €{totalPrice.toFixed(2)}</h3>
                     </div>
-                    <button className="checkout-btn" onClick={onCheckout}>Checkout</button>
+                    <button className="checkout-btn" onClick={onCheckout}>
+                        Checkout
+                    </button>
                 </>
             ) : (
                 <div className="checked-out-summary">
-                    <p>Checkout successful!</p>
+                    <p>✓ Checkout successful!</p>
                     <div className="total-price">
                         <h3>Final Total: €{checkedOutTotal?.toFixed(2)}</h3>
                     </div>
