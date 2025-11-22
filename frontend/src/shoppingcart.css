@@ -144,3 +144,21 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-success);
 }
+
+.shopping-cart .cart-item-image {
+  width: 60px; /* Fixed width for the image container */
+  height: 60px; /* Fixed height for the image container */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Hide any overflow if image is larger */
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0; /* Prevent container from shrinking */
+}
+
+.shopping-cart .cart-item-image img {
+  max-width: 100%; /* Ensure image fits within the container */
+  max-height: 100%; /* Ensure image fits within the container */
+  object-fit: contain; /* Scale down to fit, maintaining aspect ratio */
+  display: block; /* Remove extra space below image */
+}

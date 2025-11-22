@@ -170,11 +170,18 @@ def get_item_details(item_id: int) -> dict:
         if part_id:
             try:
                 part = api.get(f"/part/{part_id}/")
+                
+                image_path = part.get("image")
+                full_image_url = None
+                if image_path:
+                    # Construct the full URL for the image
+                    full_image_url = urljoin(INVENTREE_SITE_URL, image_path)
+
                 part_details = {
                     "name": part.get("name"),
                     "description": part.get("description"),
                     "price": part.get("pricing_min"),
-                    "thumbnail": part.get("thumbnail"),
+                    "image": image_path,
                 }
             except Exception as e:
                 print(f"Warning: Could not fetch part details for part {part_id}: {e}")
@@ -190,7 +197,7 @@ def get_item_details(item_id: int) -> dict:
                 "name": part_details.get("name"),
                 "description": part_details.get("description"),
                 "price": part_details.get("price"),
-                "thumbnail": part_details.get("thumbnail"),
+                "image": part_details.get("image"),
             },
         }
     except Exception as e:

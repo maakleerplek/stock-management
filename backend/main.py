@@ -12,10 +12,13 @@ from pydantic import BaseModel
 import requests
 import os
 from dotenv import load_dotenv
+from urllib.parse import urljoin
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL
 
 load_dotenv()
+
+INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL")
 
 app = FastAPI(title="InvenTree Stock Management API")
 
@@ -73,3 +76,34 @@ def get_item_name(data: ItemDetailsRequest) -> dict:
     """Get item details by ID."""
     response = get_item_details(data.item_id)
     return response
+
+
+@app.get("/image-proxy/{image_path:path}")
+async def image_proxy(image_path: str):
+    """
+    Proxy image requests to the InvenTree server with authentication.
+    """
+    try:
+        # Construct the full URL to the image on the InvenTree server
+        # The image_path already includes "media/"
+        full_inventree_image_url = urljoin(INVENTREE_PROXY_INTERNAL_URL, image_path)
+
+        # Make an authenticated request to the InvenTree server for the image
+        response = api.session.get(full_inventree_image_url, stream=True)
+        response.raise_for_status()
+
+        # Determine content type
+        content_type = response.headers.get("Content-Type", "application/octet-stream")
+
+        return StreamingResponse(
+            response.iter_content(chunk_size=8192),
+            media_type=content_type,
+            headers={"Content-Disposition": f"inline; filename={os.path.basename(image_path)}"}
+        )
+    except requests.exceptions.RequestException as e:
+        print(f"Error in image_proxy RequestException: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch image from InvenTree: {e}")
+    except Exception as e:
+        print(f"Error in image_proxy: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+

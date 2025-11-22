@@ -24,7 +24,7 @@ export interface ItemData {
     name: string;                  // Item name
     description: string;           // Item description
     price: number;                 // Price per unit
-    thumbnail: string | null;      // URL to item image
+    image: string | null;      // URL to item image
     part_id: number | null;        // Part ID from inventory system
 }
 
@@ -40,7 +40,7 @@ interface ApiResponse {
 // CONFIGURATION
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 
 // ============================================================================
 // API FUNCTIONS

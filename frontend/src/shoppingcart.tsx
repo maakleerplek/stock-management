@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type ItemData } from './sendCodeHandler';
+import { type ItemData, API_BASE_URL } from './sendCodeHandler';
 import './shoppingcart.css';
 
 export interface CartItem extends ItemData {
@@ -53,6 +53,14 @@ function ShoppingCart({
                                 key={item.id}
                                 className={removingItemId === item.id ? 'removing' : ''}
                             >
+          {item.image && (
+            <div className="cart-item-image">
+              <img
+                src={`${API_BASE_URL}/image-proxy/${item.image}`}
+                alt={item.name}
+              />
+            </div>
+          )}
                                 <div className="item-details">
                                     <h3>{item.name}</h3>
                                     <p>{item.description}</p>
