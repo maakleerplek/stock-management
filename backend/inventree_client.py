@@ -191,7 +191,6 @@ def get_item_details(item_id: int) -> dict:
                 "description": part_details.get("description"),
                 "price": part_details.get("price"),
                 "thumbnail": part_details.get("thumbnail"),
-                "part_id": part_id,  # Include part ID for thumbnail URL construction
             },
         }
     except Exception as e:

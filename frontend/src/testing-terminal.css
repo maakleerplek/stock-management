@@ -1,29 +1,30 @@
-.terminal-container{
-  width:100%;
-  background:#222;
-  color:#f7f7f2;
-  padding:1rem;
-  border-radius: var(--radius);
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  overflow:auto;
-  min-height:120px;
-  display:flex;
-  flex-direction:column;
-  gap:8px; /* This gap is for items directly within the container */
-  align-items:flex-start; /* Align children to the start (left) of the cross-axis */
-  justify-content:flex-start;
-  text-align:left; /* keep log lines readable */
+.terminal-container {
+  width: 100%;
+  background-color: var(--card);
+  color: var(--foreground);
+  padding: var(--spacing-4);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  min-height: 150px;
+  max-height: 300px;
+  text-align: left;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: var(--font-size-sm);
 }
 
-/* inner wrapper keeps content centered horizontally while lines are left-aligned */
-.terminal-inner{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+.terminal-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 
-.terminal-container .muted{
-  color:#bbbbbb;
-  font-size:0.95rem;
+.terminal-inner div {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-inner span {
+  color: var(--muted-foreground);
 }
