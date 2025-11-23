@@ -57,9 +57,7 @@
   animation: bounceIn 0.3s ease-out;
 }
 
-.shopping-cart li.removing {
-  animation: slideOut 0.4s ease-out forwards;
-}
+
 
 .shopping-cart .item-details {
   flex-grow: 1;

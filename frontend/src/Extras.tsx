@@ -10,8 +10,8 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
     const [lasertimeMinutes, setLasertimeMinutes] = useState(0);
     const [printingGrams, setPrintingGrams] = useState(0);
 
-    const lasertimeCost = lasertimeMinutes * 0.50;
-    const printingCost = printingGrams * 0.10;
+    const lasertimeCost = lasertimeMinutes * 0.50
+    const printingCost = printingGrams * 0.10
     const totalExtraCost = lasertimeCost + printingCost;
 
     useEffect(() => {
@@ -43,7 +43,7 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
                     value={printingGrams}
                     onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
                     min="0"
-                    step="0.1"
+                    step="1"
                 />
                 <span>€{printingCost.toFixed(2)}</span>
             </div>

@@ -9,10 +9,10 @@ import LightOrDarkButton from './LightOrDarkButton';
 import ShoppingWindow from './ShoppingWindow';
 
 function App() {
-  const [logs, setLogs] = useState<string[]>([]);
   const [theme, setTheme] = useState('light');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [showContent, setShowContent] = useState(false); // New state for animation
+  const [logs, setLogs] = useState<string[]>([]); // State for logs
 
   useEffect(() => {
     // Start the animation after a short delay
@@ -33,8 +33,19 @@ function App() {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+    // Use the View Transitions API if available
+    if (!document.startViewTransition) {
+      // Fallback for browsers that don't support the API
+      setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+      return;
+    }
+
+    // Wrap the state update in startViewTransition
+    document.startViewTransition(() => {
+      setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+    });
   };
+
 
   /** Add a log message to the terminal */
   const addLog = useCallback((msg: string) => {

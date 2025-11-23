@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { type ItemData, API_BASE_URL } from './sendCodeHandler';
 import './shoppingcart.css';
 import Extras from './Extras'; // Assuming Extras component is correctly imported
 import ShoppingCartIcon from './assets/Shopping cart.svg?react';
+import TrashIcon from './assets/Trash.svg?react'; // Placeholder for missing trash icon
 
 export interface CartItem extends ItemData {
     cartQuantity: number;
@@ -27,20 +27,14 @@ function ShoppingCart({
     onExtraCostChange,
     extraCosts,
 }: ShoppingCartProps) {
-    const [removingItemId, setRemovingItemId] = useState<number | null>(null);
     const totalPrice = cartItems.reduce(
         (total, item) => total + item.price * item.cartQuantity,
         0
     );
 
-    // Handle item removal with animation
-    const handleRemoveWithAnimation = (itemId: number) => {
-        setRemovingItemId(itemId);
-        // Wait for animation to complete before calling the parent handler
-        setTimeout(() => {
-            onRemoveItem(itemId);
-            setRemovingItemId(null);
-        }, 400); // matches the slideOut animation duration
+    // Handle item removal directly without animation
+    const handleRemoveItem = (itemId: number) => {
+        onRemoveItem(itemId);
     };
 
     // Don't render if cart is empty and no recent checkout
@@ -57,7 +51,7 @@ function ShoppingCart({
                     <div className="total-price">
                         <h3>Final Total: €{checkedOutTotal?.toFixed(2)}</h3>
                     </div>
-                    <p>Scan a new item or add extra services to begin a new transaction.</p>
+                    <p>You can pay via the Qrcode and refresh the page to start a new transaction.</p>
                 </div>
             ) : (
                 // Display current cart state or empty message + extras
@@ -67,7 +61,6 @@ function ShoppingCart({
                             {cartItems.map((item) => (
                                 <li
                                     key={item.id}
-                                    className={removingItemId === item.id ? 'removing' : ''}
                                 >
                                     {item.image && (
                                         <div className="cart-item-image">
@@ -80,6 +73,7 @@ function ShoppingCart({
                                     <div className="item-details">
                                         <h3>{item.name}</h3>
                                         <p>{item.description}</p>
+                                        <p>Quantity: {item.cartQuantity}</p>
                                         <p>Price: €{item.price.toFixed(2)}</p>
                                     </div>
                                     <div className="item-controls">
@@ -117,8 +111,9 @@ function ShoppingCart({
                                         </div>
                                         <button
                                             className="remove-btn icon-button"
-                                            onClick={() => handleRemoveWithAnimation(item.id)}
+                                            onClick={() => handleRemoveItem(item.id)}
                                         >
+                                            <TrashIcon />
                                         </button>
                                     </div>
                                 </li>
