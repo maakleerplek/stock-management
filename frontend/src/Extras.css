@@ -1,0 +1,59 @@
+.extras-container {
+    background-color: var(--color-background-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: var(--shadow-small);
+}
+
+.extras-container h2 {
+    color: var(--foreground);
+    font-size: 1.5em;
+    margin: 0; /* Remove default margin */
+}
+
+.extras-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Space between title and icon */
+    margin-bottom: 20px; /* Space below the header */
+    border-bottom: 1px solid var(--color-border); /* Add border to the header div */
+    padding-bottom: 10px;
+}
+
+.extras-header svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--foreground);
+      fill: var(--foreground); /* Assuming the SVG paths should be filled with the primary text color */}
+
+.extra-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.extra-item label {
+    color: var(--foreground);
+    font-size: 1em;
+    flex-grow: 1;
+}
+
+.extra-item input[type="number"] {
+    width: 100px; /* Increased width for easier manual input */
+    padding: var(--spacing-2) var(--spacing-3); /* Consistent padding */
+    border: var(--border-width) solid var(--border); /* Use consistent border variable */
+    border-radius: var(--border-radius); /* Use consistent border-radius variable */
+    background-color: var(--background); /* Use consistent background variable */
+    color: var(--foreground);
+    margin-left: 10px;
+    text-align: right;
+}
+
+.extra-item input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary); /* Use primary color on focus */
+    box-shadow: 0 0 0 3px var(--ring); /* Use ring variable for focus shadow */
+}

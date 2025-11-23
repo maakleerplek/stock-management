@@ -24,6 +24,37 @@
   align-items: flex-start;
 }
 
+/* Children of main-layout are initially hidden and slightly below their final position */
+.main-layout > div {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+/* When .animate-in is applied to main-layout, its children animate */
+.main-layout.animate-in > div {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animation delays for children */
+.main-layout.animate-in > div:nth-child(1) {
+  transition-delay: 0.1s;
+}
+.main-layout.animate-in > div:nth-child(2) {
+  transition-delay: 0.2s;
+}
+.main-layout.animate-in > div:nth-child(3) {
+  transition-delay: 0.3s;
+}
+.main-layout.animate-in > div:nth-child(4) {
+  transition-delay: 0.4s;
+}
+.main-layout.animate-in > div:nth-child(5) {
+  transition-delay: 0.5s;
+}
+
+
 .content-area {
   flex: 1;
   display: flex;
@@ -48,6 +79,18 @@
    ANIMATIONS
    ============================================================================ */
 
+/* Moved from index.css */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes bounceIn {
   0% {
     opacity: 0;
@@ -70,13 +113,18 @@
   }
 }
 
-@keyframes fadeIn {
+@keyframes fadeIn { /* This was already here, but only for opacity. Keeping for now, but not using for startup */
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
   }
+}
+
+/* The .animate-fade-in was using the old fadeIn keyframes, updating it to use the new fade-in */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in forwards; /* Using the new keyframes */
 }
 
 .animate-bounce-in {
@@ -87,9 +135,6 @@
   animation: slideOut 0.3s ease-in-out;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in;
-}
 
 /* ============================================================================
    Responsive Design

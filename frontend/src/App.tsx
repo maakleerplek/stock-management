@@ -12,7 +12,16 @@ function App() {
   const [logs, setLogs] = useState<string[]>([]);
   const [theme, setTheme] = useState('light');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
+  const [showContent, setShowContent] = useState(false); // New state for animation
 
+  useEffect(() => {
+    // Start the animation after a short delay
+    const timer = setTimeout(() => {
+      setShowContent(true);
+    }, 100); // Small delay to ensure CSS is ready
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -39,7 +48,7 @@ function App() {
 
   return (
     <div className="App">
-      <div className="main-layout">
+      <div className={`main-layout ${showContent ? 'animate-in' : ''}`}>
         <div className="content-area">
           <div className="top-bar">
             <Logo />

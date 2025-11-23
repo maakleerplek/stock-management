@@ -10,6 +10,7 @@ interface ShoppingWindowProps {
 export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowProps) {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
+    const [extraCosts, setExtraCosts] = useState<number>(0);
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
         setCheckedOutTotal(null);
@@ -51,10 +52,10 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
     };
 
     const handleCheckout = async () => {
-        const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0);
+        const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
 
         const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
-        const confirmMessage = `Are you sure you want to checkout?\n\n${itemsSummary}\n\nTotal: €${checkoutTotal.toFixed(2)}`;
+        const confirmMessage = `Are you sure you want to checkout?\n\n${itemsSummary}\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}`;
 
         if (!window.confirm(confirmMessage)) {
             addLog("Checkout cancelled.");
@@ -85,6 +86,8 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
             onRemoveItem={handleRemoveItem}
             onCheckout={handleCheckout}
             checkedOutTotal={checkedOutTotal}
+            onExtraCostChange={setExtraCosts}
+            extraCosts={extraCosts}
         />
     );
 }

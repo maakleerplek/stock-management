@@ -20,7 +20,22 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   text-align: center;
-  margin: 0;
+  margin: 0; /* Ensures spacing is controlled by parent */
+}
+
+.shopping-cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space between title and icon */
+  margin-bottom: 20px; /* Space below the header */
+}
+
+.shopping-cart-header svg {
+  width: 28px;
+  height: 28px;
+  stroke: var(--foreground);
+  fill: var(--foreground);
 }
 
 .shopping-cart ul {
