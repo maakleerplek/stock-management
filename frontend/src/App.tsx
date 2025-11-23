@@ -4,7 +4,6 @@ import Scanner from './barcodescanner';
 import Qrcode from './qrcode';
 import Logo from './logo';
 import { type ItemData } from './sendCodeHandler';
-import TestingTerminal from './testing-terminal';
 import LightOrDarkButton from './LightOrDarkButton';
 import ShoppingWindow from './ShoppingWindow';
 
@@ -12,7 +11,7 @@ function App() {
   const [theme, setTheme] = useState('light');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [showContent, setShowContent] = useState(false); // New state for animation
-  const [logs, setLogs] = useState<string[]>([]); // State for logs
+  const [, setLogs] = useState<string[]>([]); // State for logs
 
   useEffect(() => {
     // Start the animation after a short delay
@@ -65,7 +64,6 @@ function App() {
             <Logo />
             <LightOrDarkButton toggleTheme={toggleTheme} />
           </div>
-          <TestingTerminal logs={logs} />
           <Scanner addLog={addLog} onItemScanned={handleItemScanned} />
           <Qrcode />
         </div>
