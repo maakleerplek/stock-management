@@ -3,11 +3,11 @@ import './shoppingcart.css';
 import Extras from './Extras'; // Assuming Extras component is correctly imported
 import ShoppingCartIcon from './assets/Shopping cart.svg?react';
 import TrashIcon from './assets/Trash.svg?react'; // Placeholder for missing trash icon
+import { useState } from 'react';
 
 export interface CartItem extends ItemData {
     cartQuantity: number;
 }
-
 interface ShoppingCartProps {
     cartItems: CartItem[];
     onUpdateQuantity: (itemId: number, newQuantity: number) => void;
@@ -17,7 +17,6 @@ interface ShoppingCartProps {
     onExtraCostChange: (cost: number) => void;
     extraCosts: number;
 }
-
 function ShoppingCart({
     cartItems,
     onUpdateQuantity,
@@ -27,16 +26,19 @@ function ShoppingCart({
     onExtraCostChange,
     extraCosts,
 }: ShoppingCartProps) {
+    const [removingItemId, setRemovingItemId] = useState<number | null>(null);
     const totalPrice = cartItems.reduce(
         (total, item) => total + item.price * item.cartQuantity,
         0
     );
-
-    // Handle item removal directly without animation
+    // Handle item removal with animation
     const handleRemoveItem = (itemId: number) => {
-        onRemoveItem(itemId);
+        setRemovingItemId(itemId); // Trigger animation
+        setTimeout(() => {
+            onRemoveItem(itemId); // Actual removal after animation
+            setRemovingItemId(null); // Reset after removal
+        }, 300); // Corresponds to animation duration
     };
-
     // Don't render if cart is empty and no recent checkout
     return (
         <div className="shopping-cart">
@@ -61,6 +63,7 @@ function ShoppingCart({
                             {cartItems.map((item) => (
                                 <li
                                     key={item.id}
+                                    className={removingItemId === item.id ? 'removing' : ''}
                                 >
                                     {item.image && (
                                         <div className="cart-item-image">
@@ -140,5 +143,4 @@ function ShoppingCart({
         </div>
     );
 }
-
 export default ShoppingCart;

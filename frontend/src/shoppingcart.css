@@ -55,6 +55,22 @@
   border-radius: var(--border-radius);
   border: 1px solid var(--border);
   animation: bounceIn 0.3s ease-out;
+  overflow: hidden; /* Prevent content from spilling during animation */
+}
+
+@keyframes fallOut {
+  0% {
+    opacity: 1;
+    transform: rotateZ(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100px) rotateZ(30deg);
+  }
+}
+
+.shopping-cart li.removing {
+  animation: fallOut 0.3s ease-in forwards;
 }
 
 
