@@ -154,7 +154,7 @@ services:
       build:
         context: ./frontend
         args:
-          VITE_BACKEND_URL: http://localhost:8001
+          - VITE_BACKEND_URL=${VITE_BACKEND_URL}
       depends_on:
         - backend
       ports:
