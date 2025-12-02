@@ -37,7 +37,7 @@ function ShoppingCart({
         setTimeout(() => {
             onRemoveItem(itemId); // Actual removal after animation
             setRemovingItemId(null); // Reset after removal
-        }, 300); // Corresponds to animation duration
+        }, 400); // Corresponds to animation duration
     };
     // Don't render if cart is empty and no recent checkout
     return (

@@ -14,11 +14,9 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, INVENTREE_URL, INVENTREE_TOKEN
 
 load_dotenv()
-
-INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL")
 
 app = FastAPI(title="InvenTree Stock Management API")
 
@@ -86,10 +84,20 @@ async def image_proxy(image_path: str):
     try:
         # Construct the full URL to the image on the InvenTree server
         # The image_path already includes "media/"
-        full_inventree_image_url = urljoin(INVENTREE_PROXY_INTERNAL_URL, image_path)
+        base_url = INVENTREE_URL.rstrip('/')
+        image_path_clean = image_path.lstrip('/')
+        full_inventree_image_url = f"{base_url}/{image_path_clean}"
 
-        # Make an authenticated request to the InvenTree server for the image
-        response = api.session.get(full_inventree_image_url, stream=True)
+        # Make a direct request with proper authentication and Host header spoofing
+        # to bypass InvenTree's SITE_URL validation
+        from inventree_client import INVENTREE_SITE_URL as SITE_URL
+        host_header = SITE_URL.replace("http://", "").replace("https://", "").split(':')[0]
+        
+        headers = {
+            "Authorization": f"Token {INVENTREE_TOKEN}",
+            "Host": host_header,
+        }
+        response = requests.get(full_inventree_image_url, headers=headers, stream=True, allow_redirects=True)
         response.raise_for_status()
 
         # Determine content type
@@ -101,9 +109,9 @@ async def image_proxy(image_path: str):
             headers={"Content-Disposition": f"inline; filename={os.path.basename(image_path)}"}
         )
     except requests.exceptions.RequestException as e:
-        print(f"Error in image_proxy RequestException: {e}")
+        print(f"Error fetching image from InvenTree: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch image from InvenTree: {e}")
     except Exception as e:
-        print(f"Error in image_proxy: {e}")
+        print(f"Unexpected error in image proxy: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
 
