@@ -7,15 +7,19 @@ import { type ItemData } from './sendCodeHandler';
 import LightOrDarkButton from './LightOrDarkButton';
 import ShoppingWindow from './ShoppingWindow';
 import Footer from './Footer';
-import { Grid, CssBaseline, Box } from '@mui/material';
+import { Grid, CssBaseline, Box, Button } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
 import { ToastProvider } from './ToastContext';
+import { VolunteerProvider, useVolunteer } from './VolunteerContext';
+import VolunteerModal from './VolunteerModal';
 
-function App() {
+function AppContent() {
   const [theme, setTheme] = useState('light');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [, setLogs] = useState<string[]>([]); // State for logs
+  const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
+  const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
 
   // This useEffect is no longer needed as ThemeProvider and CssBaseline handle theme switching.
 
@@ -33,6 +37,15 @@ function App() {
     });
   };
 
+  const handleVolunteerToggle = () => {
+    if (isVolunteerMode) {
+      // Exit volunteer mode immediately
+      setIsVolunteerMode(false);
+    } else {
+      // Show password dialog
+      setVolunteerModalOpen(true);
+    }
+  };
 
   /** Add a log message to the terminal */
   const addLog = useCallback((msg: string) => {
@@ -55,10 +68,37 @@ function App() {
           style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
-          <Box sx={{ width: '100%', backgroundColor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
+          <Box sx={{ width: '100%', backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
             <Grid container maxWidth="lg" sx={{ mx: 'auto', px: 2, justifyContent: 'space-between', alignItems: 'center' }}>
-              <Logo />
-              <LightOrDarkButton toggleTheme={toggleTheme} theme={theme} />
+              <Box>
+                <Logo />
+                {isVolunteerMode && (
+                  <Box sx={{ 
+                    display: 'inline-block', 
+                    ml: 2, 
+                    px: 2, 
+                    py: 0.5, 
+                    backgroundColor: 'info.dark',
+                    color: 'info.contrastText',
+                    borderRadius: 1,
+                    fontSize: '0.875rem',
+                    fontWeight: 'bold'
+                  }}>
+                    📝 VOLUNTEER MODE
+                  </Box>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Button
+                  variant={isVolunteerMode ? 'contained' : 'outlined'}
+                  color={isVolunteerMode ? 'info' : 'inherit'}
+                  onClick={handleVolunteerToggle}
+                  size="small"
+                >
+                  {isVolunteerMode ? 'Exit Volunteer Mode' : 'Volunteer Mode'}
+                </Button>
+                <LightOrDarkButton toggleTheme={toggleTheme} theme={theme} />
+              </Box>
             </Grid>
           </Box>
 
@@ -79,8 +119,17 @@ function App() {
           <Footer />
         </Box>
         </motion.div>
+        <VolunteerModal open={volunteerModalOpen} onClose={() => setVolunteerModalOpen(false)} />
       </ToastProvider>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <VolunteerProvider>
+      <AppContent />
+    </VolunteerProvider>
   );
 }
 

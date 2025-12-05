@@ -144,6 +144,38 @@ def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") ->
         }
 
 
+def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> dict:
+    """
+    Add items to stock in InvenTree.
+    
+    Args:
+        item_id: The ID of the stock item to add
+        quantity: The quantity to add
+        notes: Optional addition notes
+        
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        payload = {
+            "items": [{"pk": item_id, "quantity": quantity}],
+            "notes": notes,
+        }
+        api.post("/stock/add/", payload)
+        return {
+            "status": "ok",
+            "item_id": item_id,
+            "quantity": quantity,
+        }
+    except Exception as e:
+        print(f"Error adding stock: {e}")
+        return {
+            "status": "error",
+            "item_id": item_id,
+            "message": str(e),
+        }
+
+
 def get_item_details(item_id: int) -> dict:
     """
     Fetch complete item details including part information.

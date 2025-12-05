@@ -31,6 +31,7 @@ interface ShoppingCartProps {
     checkedOutTotal: number | null;
     onExtraCostChange: (cost: number) => void;
     extraCosts: number;
+    isVolunteerMode: boolean;
 }
 function ShoppingCart({
     cartItems,
@@ -40,6 +41,7 @@ function ShoppingCart({
     checkedOutTotal,
     onExtraCostChange,
     extraCosts,
+    isVolunteerMode,
 }: ShoppingCartProps) {
     const { addToast } = useToast();
     const totalPrice = cartItems.reduce(
@@ -56,12 +58,12 @@ function ShoppingCart({
     };
     // Don't render if cart is empty and no recent checkout
     return (
-        <Card sx={{ maxWidth: 420, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Card sx={{ maxWidth: 420, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 2, borderTop: isVolunteerMode ? 4 : 0, borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' }}>
             <CardHeader
-                title="Shopping Cart"
-                avatar={<ShoppingCartIcon />}
+                title={isVolunteerMode ? "Add to Stock" : "Shopping Cart"}
+                avatar={isVolunteerMode ? undefined : <ShoppingCartIcon />}
                 titleTypographyProps={{ variant: 'h5', align: 'center' }}
-                sx={{ pb: 0 }}
+                sx={{ pb: 0, backgroundColor: isVolunteerMode ? 'info.lighter' : 'transparent' }}
             />
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
                 {checkedOutTotal !== null ? (
@@ -114,7 +116,7 @@ function ShoppingCart({
                                             secondary={
                                                 <>
                                                     <Typography variant="body2" color="text.secondary">{item.description}</Typography>
-                                                    <Typography variant="body2">Quantity: {item.cartQuantity}</Typography>
+                                                    <Typography variant="body2">Quantity in cart: {item.cartQuantity} / Available in stock: {item.quantity}</Typography>
                                                     <Typography variant="body2">Price: €{item.price.toFixed(2)}</Typography>
                                                 </>
                                             }
@@ -171,11 +173,19 @@ function ShoppingCart({
 
                         {(cartItems.length > 0 || extraCosts > 0) && (
                             <Box sx={{ mt: 2 }}>
-                                <Typography variant="h6" sx={{ textAlign: 'right', borderTop: 1, borderColor: 'divider', pt: 2 }}>
-                                    Total: €{(totalPrice + extraCosts).toFixed(2)}
-                                </Typography>
-                                <Button variant="contained" color="primary" fullWidth onClick={onCheckout} sx={{ mt: 2 }}>
-                                    Checkout
+                                {!isVolunteerMode && (
+                                    <Typography variant="h6" sx={{ textAlign: 'right', borderTop: 1, borderColor: 'divider', pt: 2 }}>
+                                        Total: €{(totalPrice + extraCosts).toFixed(2)}
+                                    </Typography>
+                                )}
+                                <Button 
+                                    variant="contained" 
+                                    color={isVolunteerMode ? "info" : "primary"} 
+                                    fullWidth 
+                                    onClick={onCheckout} 
+                                    sx={{ mt: 2 }}
+                                >
+                                    {isVolunteerMode ? 'Add to Stock' : 'Checkout'}
                                 </Button>
                             </Box>
                         )}

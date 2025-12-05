@@ -144,3 +144,44 @@ export async function handleTakeItem(
         return false;
     }
 }
+
+/**
+ * Add item to stock (volunteer mode operation)
+ * 
+ * @param itemId - The ID of the item to add
+ * @param quantity - How many units to add
+ * @param addLog - Function to log messages to the UI
+ * @returns True if successful, false if failed
+ * 
+ * @example
+ * const success = await handleAddItem(5, 2, addLog);
+ */
+export async function handleAddItem(
+    itemId: number,
+    quantity: number,
+    addLog: (log: string) => void,
+): Promise<boolean> {
+    const url = `${API_BASE_URL}/add-item`;
+
+    try {
+        // Send request to backend
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ itemId, quantity }),
+        });
+
+        // Check if response is successful
+        if (!response.ok) {
+            addLog(`Error: Failed to add item ${itemId} (${response.status})`);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        // Handle network errors
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        addLog(`Network error adding item: ${errorMessage}`);
+        return false;
+    }
+}

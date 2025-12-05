@@ -14,7 +14,7 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, INVENTREE_URL, INVENTREE_TOKEN
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, INVENTREE_URL, INVENTREE_TOKEN, add_stock
 
 load_dotenv()
 
@@ -59,6 +59,14 @@ class ItemDetailsRequest(BaseModel):
 def take_item(data: TakeItemRequest) -> dict:
     """Remove stock from inventory."""
     response = remove_stock(data.itemId, data.quantity, data.notes)
+    return response
+
+
+@app.post("/add-item")
+def add_item(data: TakeItemRequest) -> dict:
+    """Add stock to inventory."""
+    notes = data.notes.replace("Removed via API", "Added via API")
+    response = add_stock(data.itemId, data.quantity, notes)
     return response
 
 

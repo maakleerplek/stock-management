@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ShoppingCart, { type CartItem } from './shoppingcart';
-import { type ItemData, handleTakeItem } from './sendCodeHandler';
+import { type ItemData, handleTakeItem, handleAddItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
+import { useVolunteer } from './VolunteerContext';
 
 interface ShoppingWindowProps {
     addLog: (msg: string) => void;
@@ -14,6 +15,7 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
     const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const { addToast } = useToast();
+    const { isVolunteerMode } = useVolunteer();
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
         setCheckedOutTotal(null);
@@ -60,21 +62,24 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
         const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
 
         const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
-        const confirmMessage = `Are you sure you want to checkout?\n\n${itemsSummary}\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}`;
+        const actionText = isVolunteerMode ? 'add to stock' : 'checkout';
+        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${itemsSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
 
         if (!window.confirm(confirmMessage)) {
-            addLog("Checkout cancelled.");
-            addToast("Checkout cancelled", 'info');
+            addLog(`${actionText} cancelled.`);
+            addToast(`${actionText} cancelled`, 'info');
             return;
         }
 
-        addLog("Checking out all items in the cart...");
-        addToast("Processing checkout...", 'info');
+        addLog(`Processing ${isVolunteerMode ? 'adding' : 'checkout of'} all items in the cart...`);
+        addToast(`Processing ${isVolunteerMode ? 'add' : 'checkout'}...`, 'info');
+
+        const handler = isVolunteerMode ? handleAddItem : handleTakeItem;
 
         for (const item of cartItems) {
-            const success = await handleTakeItem(item.id, item.cartQuantity, addLog);
+            const success = await handler(item.id, item.cartQuantity, addLog);
             if (!success) {
-                const errorMsg = `Error processing item ${item.name}. Checkout aborted. The cart has not been cleared.`;
+                const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
                 addLog(errorMsg);
                 addToast(errorMsg, 'error');
                 alert(errorMsg); // Inform user
@@ -82,8 +87,8 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
             }
         }
 
-        addLog("All items checked out successfully.");
-        addToast(`✓ Checkout complete! Total: €${checkoutTotal.toFixed(2)}`, 'success');
+        addLog(`All items ${isVolunteerMode ? 'added to stock' : 'checked out'} successfully.`);
+        addToast(`✓ ${isVolunteerMode ? 'Items added to stock!' : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
         setCartItems([]);
         setCheckedOutTotal(checkoutTotal);
     };
@@ -102,6 +107,7 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
                 checkedOutTotal={checkedOutTotal}
                 onExtraCostChange={setExtraCosts}
                 extraCosts={extraCosts}
+                isVolunteerMode={isVolunteerMode}
             />
         </motion.div>
     );
