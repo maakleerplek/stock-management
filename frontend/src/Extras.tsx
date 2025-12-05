@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import './Extras.css';
-import GearIcon from './assets/Gear.svg?react';
+import { Card, CardHeader, CardContent, TextField, Typography, Box } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings'; // Replaced GearIcon with MUI SettingsIcon
 
 interface ExtrasProps {
     onExtraCostChange: (cost: number) => void;
@@ -19,37 +19,39 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
     }, [lasertimeMinutes, printingGrams, onExtraCostChange, totalExtraCost]);
 
     return (
-        <div className="extras-container">
-            <div className="extras-header">
-                <h2>Extra Services</h2>
-                <GearIcon />
-            </div>
-            <div className="extra-item">
-                <label htmlFor="lasertime">Lasertime (minutes):</label>
-                <input
-                    id="lasertime"
-                    type="number"
-                    value={lasertimeMinutes}
-                    onChange={(e) => setLasertimeMinutes(Math.max(0, parseInt(e.target.value) || 0))}
-                    min="0"
-                />
-                <span>€{lasertimeCost.toFixed(2)}</span>
-            </div>
-            <div className="extra-item">
-                <label htmlFor="printing">3D Printing (grams):</label>
-                <input
-                    id="printing"
-                    type="number"
-                    value={printingGrams}
-                    onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
-                    min="0"
-                    step="1"
-                />
-                <span>€{printingCost.toFixed(2)}</span>
-            </div>
-            <div className="extra-total">
-                <h3>Total Extra Services: €{totalExtraCost.toFixed(2)}</h3>
-            </div>
-        </div>
+        <Card sx={{ mt: 2 }}>
+            <CardHeader
+                title="Extra Services"
+                avatar={<SettingsIcon />}
+                titleTypographyProps={{ variant: 'h6' }}
+            />
+            <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <TextField
+                        label="Lasertime (minutes)"
+                        type="number"
+                        value={lasertimeMinutes}
+                        onChange={(e) => setLasertimeMinutes(Math.max(0, parseInt(e.target.value) || 0))}
+                        fullWidth
+                        inputProps={{ min: "0" }}
+                    />
+                    <Typography variant="body1" sx={{ ml: 2 }}>€{lasertimeCost.toFixed(2)}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <TextField
+                        label="3D Printing (grams)"
+                        type="number"
+                        value={printingGrams}
+                        onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
+                        fullWidth
+                        inputProps={{ min: "0", step: "1" }}
+                    />
+                    <Typography variant="body1" sx={{ ml: 2 }}>€{printingCost.toFixed(2)}</Typography>
+                </Box>
+                <Typography variant="h6" align="right" sx={{ mt: 2 }}>
+                    Total Extra Services: €{totalExtraCost.toFixed(2)}
+                </Typography>
+            </CardContent>
+        </Card>
     );
 }

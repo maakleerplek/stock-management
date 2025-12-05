@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import './barcodescanner.css';
 import { handleSend, type ItemData } from './sendCodeHandler';
+import { motion } from 'framer-motion';
+import { Card, Button, Typography, Box, CircularProgress } from '@mui/material';
+import { QrCode2, Stop }from '@mui/icons-material';
+import { useToast } from './ToastContext';
 
 const QR_READER_ID = 'reader';
 const noop = () => {};
@@ -15,6 +18,7 @@ function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [barcode, setBarcode] = useState('No result');
   const [showLoading, setShowLoading] = useState(false);
+  const { addToast } = useToast();
 
   const isProcessing = useRef(false);
   const onItemScannedRef = useRef(onItemScanned);
@@ -55,12 +59,14 @@ function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
         setBarcode(decodedText);
         const fetchedItem = await handleSend(decodedText, addLog);
         if (fetchedItem) {
+          addToast(`✓ Found: ${fetchedItem.name}`, 'success');
           onItemScannedRef.current(fetchedItem);
         }
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         addLog(`Error processing scan: ${errorMessage}`);
+        addToast(`Failed to process scan: ${errorMessage}`, 'error');
       } finally {
         setShowLoading(false);
         isProcessing.current = false;
@@ -82,29 +88,38 @@ function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
   }, [isScanning, addLog, stopScan]);
 
   return (
-    <div className="card scanner-container">
-      <h2 className="scanner-title">Barcode Scanner</h2>
-      <div className="scanner-controls">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <Card sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, p: 3, width: '100%', maxWidth: 400 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <QrCode2 sx={{ fontSize: '1.8rem', color: 'primary.main' }} />
+        <Typography variant="h5" component="h2">Barcode Scanner</Typography>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', gap: 2 }}>
         {!isScanning ? (
-          <button onClick={startScan}>Scan Item</button>
+          <Button variant="contained" startIcon={<QrCode2 />} onClick={startScan}>Scan Item</Button>
         ) : (
-          <button onClick={stopScan} className="secondary">
+          <Button variant="contained" color="error" startIcon={<Stop />} onClick={stopScan}>
             Stop Scan
-          </button>
+          </Button>
         )}
-      </div>
+      </Box>
 
-      {isScanning && <div id={QR_READER_ID} className="scanner-view"></div>}
+      {isScanning && <Box id={QR_READER_ID} sx={{ width: '100%', maxWidth: 400, aspectRatio: '1 / 1', borderRadius: 2, overflow: 'hidden', border: '2px solid', borderColor: 'primary.main', position: 'relative', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)' }}></Box>}
       {showLoading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner"></div>
-        </div>
+        <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, bgcolor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10, borderRadius: 1 }}>
+          <CircularProgress />
+        </Box>
       )}
 
-      <p className="scan-result">
-        Last Scanned: <span>{barcode}</span>
-      </p>
-    </div>
+      <Typography variant="body2" sx={{ mt: 2 }}>
+        Last Scanned: <Typography component="span" variant="body2" sx={{ fontWeight: 'medium', bgcolor: 'background.default', p: 0.5, borderRadius: 0.5 }}>{barcode}</Typography>
+      </Typography>
+    </Card>
+    </motion.div>
   );
 }
 

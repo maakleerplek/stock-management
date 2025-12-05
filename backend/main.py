@@ -76,6 +76,18 @@ def get_item_name(data: ItemDetailsRequest) -> dict:
     return response
 
 
+@app.options("/image-proxy/{image_path:path}")
+async def image_proxy_options(image_path: str):
+    """
+    Handle CORS preflight requests for image proxy.
+    """
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
+
+
 @app.get("/image-proxy/{image_path:path}")
 async def image_proxy(image_path: str):
     """
@@ -83,13 +95,13 @@ async def image_proxy(image_path: str):
     """
     try:
         # Construct the full URL to the image on the InvenTree server
-        # The image_path already includes "media/"
         base_url = INVENTREE_URL.rstrip('/')
         image_path_clean = image_path.lstrip('/')
         full_inventree_image_url = f"{base_url}/{image_path_clean}"
 
-        # Make a direct request with proper authentication and Host header spoofing
-        # to bypass InvenTree's SITE_URL validation
+        print(f"DEBUG: Requesting image from: {full_inventree_image_url}")
+        
+        # Make a direct request with proper authentication
         from inventree_client import INVENTREE_SITE_URL as SITE_URL
         host_header = SITE_URL.replace("http://", "").replace("https://", "").split(':')[0]
         
@@ -97,16 +109,40 @@ async def image_proxy(image_path: str):
             "Authorization": f"Token {INVENTREE_TOKEN}",
             "Host": host_header,
         }
+        
         response = requests.get(full_inventree_image_url, headers=headers, stream=True, allow_redirects=True)
+        
+        print(f"DEBUG: Response status: {response.status_code}")
+        print(f"DEBUG: Response content-type: {response.headers.get('Content-Type')}")
+        
         response.raise_for_status()
 
-        # Determine content type
+        # Determine content type - infer from URL if response is HTML
         content_type = response.headers.get("Content-Type", "application/octet-stream")
+        if "text/html" in content_type:
+            # InvenTree returned HTML, likely an error page. Try to infer from filename
+            if image_path.endswith('.jpeg') or image_path.endswith('.jpg'):
+                content_type = "image/jpeg"
+            elif image_path.endswith('.png'):
+                content_type = "image/png"
+            elif image_path.endswith('.gif'):
+                content_type = "image/gif"
+            elif image_path.endswith('.webp'):
+                content_type = "image/webp"
+            else:
+                content_type = "image/jpeg"  # default to jpeg
+            print(f"DEBUG: Corrected content-type to: {content_type}")
 
         return StreamingResponse(
             response.iter_content(chunk_size=8192),
             media_type=content_type,
-            headers={"Content-Disposition": f"inline; filename={os.path.basename(image_path)}"}
+            headers={
+                "Content-Disposition": f"inline; filename={os.path.basename(image_path)}",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                "Cache-Control": "public, max-age=3600"
+            }
         )
     except requests.exceptions.RequestException as e:
         print(f"Error fetching image from InvenTree: {e}")

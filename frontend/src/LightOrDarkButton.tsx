@@ -1,16 +1,17 @@
 import React from 'react';
-import './light-or-dark-button.css';
-import ThemeIcon from './assets/LightDark.svg';
+import { IconButton } from '@mui/material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
 
 interface LightOrDarkButtonProps {
   toggleTheme: () => void;
+  theme: string;
 }
 
-const LightOrDarkButton: React.FC<LightOrDarkButtonProps> = ({ toggleTheme }) => {
+const LightOrDarkButton: React.FC<LightOrDarkButtonProps> = ({ toggleTheme, theme }) => {
   return (
-    <button onClick={toggleTheme} className="theme-toggle-button">
-      <img src={ThemeIcon} alt="Toggle light and dark theme" />
-    </button>
+    <IconButton onClick={toggleTheme} color="inherit">
+      {theme === 'dark' ? <Brightness7 /> : <Brightness4 />}
+    </IconButton>
   );
 };
 

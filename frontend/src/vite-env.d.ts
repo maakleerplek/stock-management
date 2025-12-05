@@ -6,3 +6,5 @@ declare module '*.svg?react' {
   const SVG: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
   export default SVG;
 }
+
+declare module '@fontsource/inter';

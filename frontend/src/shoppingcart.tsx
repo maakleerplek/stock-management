@@ -1,9 +1,24 @@
 import { type ItemData, API_BASE_URL } from './sendCodeHandler';
-import './shoppingcart.css';
-import Extras from './Extras'; // Assuming Extras component is correctly imported
-import ShoppingCartIcon from './assets/Shopping cart.svg?react';
-import TrashIcon from './assets/Trash.svg?react'; // Placeholder for missing trash icon
-import { useState } from 'react';
+import Extras from './Extras';
+import { useToast } from './ToastContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Button,
+  Typography,
+  Box,
+  InputBase, // For quantity input
+} from '@mui/material';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 export interface CartItem extends ItemData {
     cartQuantity: number;
@@ -26,121 +41,147 @@ function ShoppingCart({
     onExtraCostChange,
     extraCosts,
 }: ShoppingCartProps) {
-    const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+    const { addToast } = useToast();
     const totalPrice = cartItems.reduce(
         (total, item) => total + item.price * item.cartQuantity,
         0
     );
     // Handle item removal with animation
     const handleRemoveItem = (itemId: number) => {
-        setRemovingItemId(itemId); // Trigger animation
-        setTimeout(() => {
-            onRemoveItem(itemId); // Actual removal after animation
-            setRemovingItemId(null); // Reset after removal
-        }, 400); // Corresponds to animation duration
+        const item = cartItems.find(i => i.id === itemId);
+        onRemoveItem(itemId); // Actual removal triggers animation exit
+        if (item) {
+            addToast(`Removed ${item.name} from cart`, 'info');
+        }
     };
     // Don't render if cart is empty and no recent checkout
     return (
-        <div className="shopping-cart">
-            <div className="shopping-cart-header">
-                <h2>Shopping Cart</h2>
-                <ShoppingCartIcon />
-            </div>
-            {checkedOutTotal !== null ? (
-                // Display checkout successful summary
-                <div className="checked-out-summary">
-                    <p>✓ Checkout successful!</p>
-                    <div className="total-price">
-                        <h3>Final Total: €{checkedOutTotal?.toFixed(2)}</h3>
-                    </div>
-                    <p>You can pay via the Qrcode and refresh the page to start a new transaction.</p>
-                </div>
-            ) : (
-                // Display current cart state or empty message + extras
-                <>
-                    {cartItems.length > 0 ? (
-                        <ul>
-                            {cartItems.map((item) => (
-                                <li
-                                    key={item.id}
-                                    className={removingItemId === item.id ? 'removing' : ''}
-                                >
-                                    {item.image && (
-                                        <div className="cart-item-image">
-                                            <img
-                                                src={`${API_BASE_URL}/image-proxy/${item.image}`}
-                                                alt={item.name}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="item-details">
-                                        <h3>{item.name}</h3>
-                                        <p>{item.description}</p>
-                                        <p>Quantity: {item.cartQuantity}</p>
-                                        <p>Price: €{item.price.toFixed(2)}</p>
-                                    </div>
-                                    <div className="item-controls">
-                                        <div className="quantity-controls">
-                                            <button
-                                                onClick={() =>
-                                                    onUpdateQuantity(item.id, item.cartQuantity - 1)
-                                                }
-                                            >
-                                                −
-                                            </button>
-                                            <input
-                                                type="number"
-                                                value={item.cartQuantity}
-                                                onChange={(e) =>
-                                                    onUpdateQuantity(
-                                                        item.id,
-                                                        Math.min(
-                                                            parseInt(e.target.value, 10) || 0,
-                                                            item.quantity
-                                                        )
-                                                    )
-                                                }
-                                                min="1"
-                                                max={item.quantity}
-                                            />
-                                            <button
-                                                onClick={() =>
-                                                    onUpdateQuantity(item.id, item.cartQuantity + 1)
-                                                }
-                                                disabled={item.cartQuantity >= item.quantity}
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                        <button
-                                            className="remove-btn icon-button"
-                                            onClick={() => handleRemoveItem(item.id)}
+        <Card sx={{ maxWidth: 420, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <CardHeader
+                title="Shopping Cart"
+                avatar={<ShoppingCartIcon />}
+                titleTypographyProps={{ variant: 'h5', align: 'center' }}
+                sx={{ pb: 0 }}
+            />
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
+                {checkedOutTotal !== null ? (
+                    // Display checkout successful summary
+                    <Box sx={{ textAlign: 'center', py: 4, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Typography variant="h6" color="success.main">✓ Checkout successful!</Typography>
+                        <Typography variant="h5" fontWeight="bold">Final Total: €{checkedOutTotal?.toFixed(2)}</Typography>
+                        <Typography variant="body2">You can pay via the Qrcode and refresh the page to start a new transaction.</Typography>
+                    </Box>
+                ) : (
+                    // Display current cart state or empty message + extras
+                    <>
+                        {cartItems.length > 0 ? (
+                            <List sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+                                <AnimatePresence mode="wait">
+                                    {cartItems.map((item) => (
+                                        <motion.div
+                                            key={item.id}
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+                                            transition={{ duration: 0.3 }}
                                         >
-                                            <TrashIcon />
-                                        </button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>Your cart is empty. Scan an item to add it.</p>
-                    )}
+                                            <ListItem
+                                                sx={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'flex-start',
+                                                    gap: 2,
+                                                    p: 2,
+                                                    bgcolor: 'background.default',
+                                                    borderRadius: 1,
+                                                    border: 1,
+                                                    borderColor: 'divider',
+                                                    animation: 'bounceIn 0.3s ease-out',
+                                                    overflow: 'hidden',
+                                                }}
+                                            >
+                                        {item.image && (
+                                            <Box sx={{ width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 1, flexShrink: 0 }}>
+                                                <img
+                                                    src={`${API_BASE_URL}/image-proxy/${item.image.startsWith('/') ? item.image.slice(1) : item.image}`}
+                                                    alt={item.name}
+                                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+                                                />
+                                            </Box>
+                                        )}
+                                        <ListItemText
+                                            primary={<Typography variant="h6">{item.name}</Typography>}
+                                            secondary={
+                                                <>
+                                                    <Typography variant="body2" color="text.secondary">{item.description}</Typography>
+                                                    <Typography variant="body2">Quantity: {item.cartQuantity}</Typography>
+                                                    <Typography variant="body2">Price: €{item.price.toFixed(2)}</Typography>
+                                                </>
+                                            }
+                                        />
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <IconButton
+                                                    onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}
+                                                    size="small"
+                                                >
+                                                    <RemoveIcon />
+                                                </IconButton>
+                                                <InputBase
+                                                    type="number"
+                                                    value={item.cartQuantity}
+                                                    onChange={(e) =>
+                                                        onUpdateQuantity(
+                                                            item.id,
+                                                            Math.min(
+                                                                parseInt(e.target.value, 10) || 0,
+                                                                item.quantity
+                                                            )
+                                                        )
+                                                    }
+                                                    inputProps={{ min: 1, max: item.quantity, style: { textAlign: 'center' } }}
+                                                    sx={{ width: 45 }}
+                                                />
+                                                <IconButton
+                                                    onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)}
+                                                    disabled={item.cartQuantity >= item.quantity}
+                                                    size="small"
+                                                >
+                                                    <AddIcon />
+                                                </IconButton>
+                                            </Box>
+                                            <IconButton
+                                                color="error"
+                                                onClick={() => handleRemoveItem(item.id)}
+                                                sx={{ bgcolor: 'error.main', color: 'error.contrastText', '&:hover': { bgcolor: 'error.dark' } }}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Box>
+                                        </ListItem>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </List>
+                        ) : (
+                            <Typography variant="body1" sx={{ textAlign: 'center' }}>Your cart is empty. Scan an item to add it.</Typography>
+                        )}
 
-                    <Extras onExtraCostChange={onExtraCostChange} />
+                        <Extras onExtraCostChange={onExtraCostChange} />
 
-                    {(cartItems.length > 0 || extraCosts > 0) && (
-                        <>
-                            <div className="total-price">
-                                <h3>Total: €{(totalPrice + extraCosts).toFixed(2)}</h3>
-                            </div>
-                            <button className="checkout-btn" onClick={onCheckout}>
-                                Checkout
-                            </button>
-                        </>
-                    )}
-                </>
-            )}
-        </div>
-    );
-}
+                        {(cartItems.length > 0 || extraCosts > 0) && (
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="h6" sx={{ textAlign: 'right', borderTop: 1, borderColor: 'divider', pt: 2 }}>
+                                    Total: €{(totalPrice + extraCosts).toFixed(2)}
+                                </Typography>
+                                <Button variant="contained" color="primary" fullWidth onClick={onCheckout} sx={{ mt: 2 }}>
+                                    Checkout
+                                </Button>
+                            </Box>
+                        )}
+                    </>
+                )}
+            </CardContent>
+        </Card>
+    );}
 export default ShoppingCart;
