@@ -1,5 +1,6 @@
-import { type ItemData, API_BASE_URL } from './sendCodeHandler';
+import { type ItemData } from './sendCodeHandler';
 import Extras from './Extras';
+import ImageDisplay from './ImageDisplay';
 import { useToast } from './ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -33,6 +34,9 @@ interface ShoppingCartProps {
     extraCosts: number;
     isVolunteerMode: boolean;
 }
+
+
+
 function ShoppingCart({
     cartItems,
     onUpdateQuantity,
@@ -102,15 +106,16 @@ function ShoppingCart({
                                                     overflow: 'hidden',
                                                 }}
                                             >
-                                        {item.image && (
-                                            <Box sx={{ width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: 1, flexShrink: 0 }}>
-                                                <img
-                                                    src={`${API_BASE_URL}/image-proxy/${item.image.startsWith('/') ? item.image.slice(1) : item.image}`}
-                                                    alt={item.name}
-                                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
-                                                />
-                                            </Box>
-                                        )}
+                                        {/* Item Image */}
+                                        <Box sx={{ flexShrink: 0 }}>
+                                            <ImageDisplay
+                                                imagePath={item.image}
+                                                alt={item.name}
+                                                width={100}
+                                                height={100}
+                                            />
+                                        </Box>
+
                                         <ListItemText
                                             primary={<Typography variant="h6">{item.name}</Typography>}
                                             secondary={

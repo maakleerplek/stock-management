@@ -14,9 +14,11 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, INVENTREE_URL, INVENTREE_TOKEN, add_stock
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock
 
 load_dotenv()
+
+INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy")
 
 app = FastAPI(title="InvenTree Stock Management API")
 
@@ -65,7 +67,7 @@ def take_item(data: TakeItemRequest) -> dict:
 @app.post("/add-item")
 def add_item(data: TakeItemRequest) -> dict:
     """Add stock to inventory."""
-    notes = data.notes.replace("Removed via API", "Added via API")
+    notes = data.notes.replace("Removed", "Added")
     response = add_stock(data.itemId, data.quantity, notes)
     return response
 
@@ -84,78 +86,67 @@ def get_item_name(data: ItemDetailsRequest) -> dict:
     return response
 
 
-@app.options("/image-proxy/{image_path:path}")
-async def image_proxy_options(image_path: str):
-    """
-    Handle CORS preflight requests for image proxy.
-    """
-    return {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    }
-
-
 @app.get("/image-proxy/{image_path:path}")
 async def image_proxy(image_path: str):
     """
     Proxy image requests to the InvenTree server with authentication.
+    Uses the Caddy reverse proxy which handles authentication properly.
+    
+    CRITICAL: This endpoint is essential for displaying images in the frontend.
+    Do NOT modify without thorough testing. The key aspects:
+    
+    1. Uses INVENTREE_PROXY_INTERNAL_URL (Caddy reverse proxy)
+       - Routes: Frontend → Backend → Caddy → InvenTree
+       - Caddy handles auth, media serving, and proper headers
+       
+    2. Uses api.session.get() for authenticated requests
+       - Session already has Authorization token and Host headers
+       - Follows proper HTTP redirects (allow_redirects=True)
+       
+    3. Streams response in chunks (chunk_size=8192)
+       - Efficient for large images
+       - Prevents memory issues
+       
+    4. Sets proper CORS headers for cross-origin requests
+       - Allows frontend to access the image proxy
+    
+    If images don't display in frontend, check:
+    - INVENTREE_PROXY_INTERNAL_URL in .env (should be http://inventree-proxy)
+    - Caddy container is running (docker ps should show inventree-proxy)
+    - Backend logs show "Successfully fetched image" with Content-Type
     """
     try:
         # Construct the full URL to the image on the InvenTree server
-        base_url = INVENTREE_URL.rstrip('/')
-        image_path_clean = image_path.lstrip('/')
-        full_inventree_image_url = f"{base_url}/{image_path_clean}"
+        # The image_path already includes "media/"
+        full_inventree_image_url = urljoin(INVENTREE_PROXY_INTERNAL_URL, image_path)
 
-        print(f"DEBUG: Requesting image from: {full_inventree_image_url}")
-        
-        # Make a direct request with proper authentication
-        from inventree_client import INVENTREE_SITE_URL as SITE_URL
-        host_header = SITE_URL.replace("http://", "").replace("https://", "").split(':')[0]
-        
-        headers = {
-            "Authorization": f"Token {INVENTREE_TOKEN}",
-            "Host": host_header,
-        }
-        
-        response = requests.get(full_inventree_image_url, headers=headers, stream=True, allow_redirects=True)
-        
-        print(f"DEBUG: Response status: {response.status_code}")
-        print(f"DEBUG: Response content-type: {response.headers.get('Content-Type')}")
-        
+        print(f"DEBUG: Proxying image request to: {full_inventree_image_url}")
+
+        # Make an authenticated request to the InvenTree server for the image
+        # Using api.session which has proper auth headers already set up
+        response = api.session.get(full_inventree_image_url, stream=True)
         response.raise_for_status()
 
-        # Determine content type - infer from URL if response is HTML
+        # Log response info
+        print(f"DEBUG: Successfully fetched image")
+        print(f"  Status: {response.status_code}")
+        print(f"  Content-Type: {response.headers.get('Content-Type', 'Not set')}")
+        print(f"  Content-Length: {response.headers.get('Content-Length', 'Not set')}")
+
+        # Determine content type
         content_type = response.headers.get("Content-Type", "application/octet-stream")
-        if "text/html" in content_type:
-            # InvenTree returned HTML, likely an error page. Try to infer from filename
-            if image_path.endswith('.jpeg') or image_path.endswith('.jpg'):
-                content_type = "image/jpeg"
-            elif image_path.endswith('.png'):
-                content_type = "image/png"
-            elif image_path.endswith('.gif'):
-                content_type = "image/gif"
-            elif image_path.endswith('.webp'):
-                content_type = "image/webp"
-            else:
-                content_type = "image/jpeg"  # default to jpeg
-            print(f"DEBUG: Corrected content-type to: {content_type}")
 
         return StreamingResponse(
             response.iter_content(chunk_size=8192),
             media_type=content_type,
             headers={
-                "Content-Disposition": f"inline; filename={os.path.basename(image_path)}",
                 "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization",
-                "Cache-Control": "public, max-age=3600"
+                "Content-Disposition": f"inline; filename={os.path.basename(image_path)}"
             }
         )
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching image from InvenTree: {e}")
+        print(f"Error in image_proxy RequestException: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch image from InvenTree: {e}")
     except Exception as e:
-        print(f"Unexpected error in image proxy: {e}")
+        print(f"Error in image_proxy: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
-

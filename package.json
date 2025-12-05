@@ -5,6 +5,7 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@emotion/styled": "^11.14.1",
     "@types/qrcode": "^1.5.5"
   }
 }

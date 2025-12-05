@@ -42,6 +42,46 @@ interface ApiResponse {
 
 export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
 
+export const API_ENDPOINTS = {
+    GET_ITEM_FROM_QR: '/get-item-from-qr',
+    TAKE_ITEM: '/take-item',
+    ADD_ITEM: '/add-item',
+};
+
+interface ApiCallOptions {
+    method: string;
+    body?: object;
+    addLog: (log: string) => void;
+}
+
+async function apiCall<T>(
+    endpoint: string,
+    options: ApiCallOptions,
+): Promise<T | null> {
+    const { method, body, addLog } = options;
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            addLog(`Error: Server returned ${response.status} - ${text}`);
+            return null;
+        }
+
+        return await response.json() as T;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        addLog(`Network error during ${method} ${endpoint}: ${errorMessage}`);
+        return null;
+    }
+}
+
 // ============================================================================
 // API FUNCTIONS
 // ============================================================================
@@ -66,42 +106,32 @@ export async function handleSend(
         return null;
     }
 
-    const url = `${API_BASE_URL}/get-item-from-qr`;
     addLog(`Fetching item for barcode: ${code}`);
 
-    try {
-        // Send request to backend
-        const response = await fetch(url, {
+    const data = await apiCall<ApiResponse>(
+        API_ENDPOINTS.GET_ITEM_FROM_QR,
+        {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ qr_id: code }),
-        });
-
-        // Check if response is successful
-        if (!response.ok) {
-            const text = await response.text();
-            addLog(`Error: Server returned ${response.status} - ${text}`);
-            return null;
+            body: { qr_id: code },
+            addLog,
         }
+    );
 
-        // Parse response
-        const data: ApiResponse = await response.json();
-
-        // Return item if found
-        if (data?.item) {
-            const { name, quantity, price } = data.item;
-            addLog(`✓ Found: ${name} (Qty: ${quantity}, €${price.toFixed(2)})`);
-            return data.item;
-        }
-
-        addLog("Error: No item found for this barcode.");
-        return null;
-    } catch (error) {
-        // Handle network errors
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        addLog(`Network error: ${errorMessage}`);
+    if (!data) {
+        // apiCall handles logging for network errors or !response.ok
+        addLog("Error: Could not retrieve item data."); // Generic error if apiCall returned null
         return null;
     }
+
+    // Return item if found
+    if (data.item) {
+        const { name, quantity, price } = data.item;
+        addLog(`✓ Found: ${name} (Qty: ${quantity}, €${price.toFixed(2)})`);
+        return data.item;
+    }
+
+    addLog("Error: No item found for this barcode.");
+    return null;
 }
 
 /**
@@ -120,29 +150,22 @@ export async function handleTakeItem(
     quantity: number,
     addLog: (log: string) => void,
 ): Promise<boolean> {
-    const url = `${API_BASE_URL}/take-item`;
-
-    try {
-        // Send request to backend
-        const response = await fetch(url, {
+    const result = await apiCall<any>(
+        API_ENDPOINTS.TAKE_ITEM,
+        {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemId, quantity }),
-        });
-
-        // Check if response is successful
-        if (!response.ok) {
-            addLog(`Error: Failed to remove item ${itemId} (${response.status})`);
-            return false;
+            body: { itemId, quantity },
+            addLog,
         }
+    );
 
-        return true;
-    } catch (error) {
-        // Handle network errors
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        addLog(`Network error removing item: ${errorMessage}`);
+    if (!result) {
+        addLog(`Error: Failed to remove item ${itemId}.`);
         return false;
     }
+
+    // Assuming apiCall returns null on error and result on success
+    return true;
 }
 
 /**
@@ -161,27 +184,20 @@ export async function handleAddItem(
     quantity: number,
     addLog: (log: string) => void,
 ): Promise<boolean> {
-    const url = `${API_BASE_URL}/add-item`;
-
-    try {
-        // Send request to backend
-        const response = await fetch(url, {
+    const result = await apiCall<any>(
+        API_ENDPOINTS.ADD_ITEM,
+        {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ itemId, quantity }),
-        });
-
-        // Check if response is successful
-        if (!response.ok) {
-            addLog(`Error: Failed to add item ${itemId} (${response.status})`);
-            return false;
+            body: { itemId, quantity },
+            addLog,
         }
+    );
 
-        return true;
-    } catch (error) {
-        // Handle network errors
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        addLog(`Network error adding item: ${errorMessage}`);
+    if (!result) {
+        addLog(`Error: Failed to add item ${itemId}.`);
         return false;
     }
+
+    // Assuming apiCall returns null on error and result on success
+    return true;
 }

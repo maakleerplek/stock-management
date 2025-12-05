@@ -150,6 +150,7 @@ services:
           # Force python to run in unbuffered mode, so print() statements appear in logs.
           - PYTHONUNBUFFERED=1
 
+
     frontend:
       build:
         context: ./frontend
