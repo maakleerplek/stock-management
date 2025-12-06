@@ -40,7 +40,8 @@ export interface PartFormData {
   // supplier: string; // Removed
   // notes: string; // Removed
   barcode?: string; // Add barcode field
-  unitPrice: string; // Add unitPrice field
+  purchasePrice: string; // Add purchasePrice field
+  purchasePriceCurrency: string; // Add purchasePriceCurrency field
 }
 
 export interface PartFormErrors {
@@ -77,7 +78,8 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     // supplier: '', // Removed
     // notes: '', // Removed
     barcode: '', // Initialize barcode
-    unitPrice: '', // Initialize unitPrice
+    purchasePrice: '', // Initialize purchasePrice
+    purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency
   });
 
   const [errors, setErrors] = useState<PartFormErrors>({});
@@ -95,8 +97,8 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       if (formData.initialQuantity && isNaN(parseFloat(formData.initialQuantity))) {
         newErrors.initialQuantity = 'Quantity must be a number';
       }
-      if (formData.unitPrice && isNaN(parseFloat(formData.unitPrice))) {
-        newErrors.unitPrice = 'Unit Price must be a number';
+      if (formData.purchasePrice && isNaN(parseFloat(formData.purchasePrice))) {
+        newErrors.purchasePrice = 'Purchase Price must be a number';
       }
     } else if (currentStep === 2) {
       requiredFieldsStep2.forEach((field) => {
@@ -179,7 +181,8 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       // supplier: '', // Removed
       // notes: '', // Removed
       barcode: '',
-      unitPrice: '', // Initialize unitPrice here
+      purchasePrice: '', // Initialize purchasePrice here
+      purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency here
     });
     setErrors({});
     setSuccessMessage(''); // Clear success message on reset
@@ -260,16 +263,33 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Unit Price"
-                    name="unitPrice"
-                    value={formData.unitPrice}
+                    label="Purchase Price"
+                    name="purchasePrice"
+                    value={formData.purchasePrice}
                     onChange={handleChange}
-                    error={!!errors.unitPrice}
-                    helperText={errors.unitPrice}
+                    error={!!errors.purchasePrice}
+                    helperText={errors.purchasePrice}
                     type="number"
                     inputProps={{ step: '0.01', min: '0' }}
                     placeholder="0.00"
                   />
+                </Grid>
+
+                {/* Purchase Price Currency */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      name="purchasePriceCurrency"
+                      value={formData.purchasePriceCurrency}
+                      onChange={handleChange}
+                      label="Currency"
+                    >
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="GBP">GBP</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
               </>
             )}

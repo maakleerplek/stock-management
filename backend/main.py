@@ -63,7 +63,7 @@ class CreatePartRequest(BaseModel):
     # Removed from initial creation
     # category: str
     initialQuantity: float = 0 # Initial quantity for stock item to be created with part
-    unitPrice: Optional[float] = None # Add unitPrice field
+
     # unit: str = "" # Removed
     # Removed from initial creation
     # storageLocation: str
@@ -112,7 +112,6 @@ async def create_part_endpoint(data: CreatePartRequest) -> dict:
             name=data.partName,
             ipn=part_ipn,
             description=data.description,
-            unit_price=data.unitPrice, # Pass unitPrice to create_part
             # category is now set in the update step
             # units is now set in the update step
             # default_location is now set in the update step
@@ -178,6 +177,8 @@ class CreateStockItemRequest(BaseModel):
     locationId: int
     notes: str = ""
     barcode: str = "" # Add optional barcode field
+    purchasePrice: Optional[float] = None
+    purchasePriceCurrency: Optional[str] = None
 
 @app.post("/create-stock-item")
 async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
@@ -188,6 +189,9 @@ async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
             location_id=data.locationId,
             quantity=data.quantity,
             notes=data.notes,
+            barcode=data.barcode,
+            purchase_price=data.purchasePrice,
+            purchase_price_currency=data.purchasePriceCurrency,
         )
 
         if stock_creation_response.get("status") == "ok":

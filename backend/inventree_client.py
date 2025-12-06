@@ -212,7 +212,6 @@ def create_part(
     notes: str = "",
     active: bool = True,
     purchaseable: bool = True,
-    unit_price: Optional[float] = None
 ) -> dict:
     """
     Create a new part in InvenTree.
@@ -249,8 +248,6 @@ def create_part(
             payload["default_location"] = default_location
         if default_supplier is not None:
             payload["default_supplier"] = default_supplier
-        if unit_price is not None:
-            payload["default_price"] = unit_price
 
         response = api.post("/part/", payload)
         return {
@@ -270,7 +267,9 @@ def create_stock_item(
     location_id: int,
     quantity: float,
     notes: str = "",
-    barcode: str = ""
+    barcode: str = "",
+    purchase_price: Optional[float] = None,
+    purchase_price_currency: Optional[str] = None
 ) -> dict:
     """
     Create a new stock item in InvenTree for a given part.
@@ -293,6 +292,10 @@ def create_stock_item(
         }
         if barcode:
             payload["barcode"] = barcode
+        if purchase_price is not None:
+            payload["purchase_price"] = purchase_price
+        if purchase_price_currency is not None:
+            payload["purchase_price_currency"] = purchase_price_currency
         response = api.post("/stock/", payload)
         return {
             "status": "ok",

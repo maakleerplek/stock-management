@@ -123,6 +123,8 @@ function AppContent() {
               locationId: locationIdNum,
               notes: `Initial stock for new part: ${formData.partName}`,
               barcode: formData.barcode, // Pass the barcode here
+              purchasePrice: parseFloat(formData.purchasePrice), // Assuming purchasePrice from form
+              purchasePriceCurrency: "EUR", // Hardcoding to EUR for now
             }),
           });
 
