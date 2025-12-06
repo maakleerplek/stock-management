@@ -17,7 +17,7 @@ interface VolunteerModalProps {
 }
 
 // Password for volunteer mode - you can change this
-const VOLUNTEER_PASSWORD = 'volunteer2024';
+const VOLUNTEER_PASSWORD = "volunteer"
 
 export default function VolunteerModal({ open, onClose }: VolunteerModalProps) {
     const [password, setPassword] = useState('');

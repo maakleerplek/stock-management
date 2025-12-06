@@ -275,7 +275,7 @@ export async function loadImage(imageRelativePath: string | null): Promise<Image
 
     try {
         // Construct the proxy URL - DO NOT double encode
-        let cleanPath = imageRelativePath.startsWith('/') 
+        const cleanPath = imageRelativePath.startsWith('/') 
             ? imageRelativePath.substring(1) 
             : imageRelativePath;
         

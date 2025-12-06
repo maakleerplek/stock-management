@@ -1,0 +1,410 @@
+import React, { useState } from 'react';
+import {
+  TextField,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Alert,
+  CircularProgress,
+  Typography,
+} from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import ClearIcon from '@mui/icons-material/Clear';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Scanner from './barcodescanner'; // Import the Barcode Scanner
+
+// Define interfaces for common data structures
+export interface SelectOption {
+  id: string | number;
+  name: string;
+}
+
+export interface PartFormData {
+  partId?: string; // Add partId for updating existing part
+  partName: string;
+  // partNumber: string; // Removed
+  description: string;
+  category: string;
+  initialQuantity: string; // Keep as string for TextField input
+  // unit: string; // Removed
+  storageLocation: string;
+  // supplier: string; // Removed
+  // notes: string; // Removed
+  barcode?: string; // Add barcode field
+  unitPrice: string; // Add unitPrice field
+}
+
+export interface PartFormErrors {
+  [key: string]: string | undefined; // Allow dynamic keys for errors
+  partName?: string;
+  // partNumber?: string; // Removed
+  category?: string;
+  initialQuantity?: string;
+  barcode?: string;
+  submit?: string; // For general form submission errors
+}
+
+interface AddPartFormProps {
+  onSubmit: (formData: PartFormData) => Promise<{ partId: string }>; // onSubmit now returns partId
+  categories: SelectOption[];
+  locations: SelectOption[];
+  // units: SelectOption[]; // Removed
+}
+
+const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locations }) => {
+  const requiredFieldsStep1: Array<keyof PartFormData> = ['partName', 'initialQuantity']; // Removed partNumber
+  const requiredFieldsStep2: Array<keyof PartFormData> = ['category', 'storageLocation']; // barcode will be validated separately
+
+  const [step, setStep] = useState(1); // Add step state
+  const [formData, setFormData] = useState<PartFormData>({
+    partId: undefined, // Initialize partId
+    partName: '',
+    // partNumber: '', // Removed
+    description: '',
+    category: '',
+    initialQuantity: '',
+    // unit: '', // Removed
+    storageLocation: '',
+    // supplier: '', // Removed
+    // notes: '', // Removed
+    barcode: '', // Initialize barcode
+    unitPrice: '', // Initialize unitPrice
+  });
+
+  const [errors, setErrors] = useState<PartFormErrors>({});
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const validateForm = (currentStep: number) => {
+    const newErrors: PartFormErrors = {};
+    if (currentStep === 1) {
+      requiredFieldsStep1.forEach((field) => {
+        if (!formData[field as keyof PartFormData]?.toString().trim()) {
+          newErrors[field] = `${field} is required`;
+        }
+      });
+      if (formData.initialQuantity && isNaN(parseFloat(formData.initialQuantity))) {
+        newErrors.initialQuantity = 'Quantity must be a number';
+      }
+      if (formData.unitPrice && isNaN(parseFloat(formData.unitPrice))) {
+        newErrors.unitPrice = 'Unit Price must be a number';
+      }
+    } else if (currentStep === 2) {
+      requiredFieldsStep2.forEach((field) => {
+        if (!formData[field as keyof PartFormData]?.toString().trim()) {
+          newErrors[field] = `${field} is required`;
+        }
+      });
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name as keyof PartFormData]: value,
+    }));
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined, // Clear specific error
+      }));
+    }
+  };
+
+  const handleNextStep = async () => {
+    if (!validateForm(1)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Submit part data for creation
+      const { partId } = await onSubmit(formData); // Expecting partId back
+      setFormData((prev) => ({ ...prev, partId })); // Store partId
+      setStep(2); // Move to next step
+      setErrors({}); // Clear errors for the next step
+    } catch (error: unknown) {
+      setErrors({ submit: (error instanceof Error ? error.message : String(error)) || 'Failed to add part (Step 1)' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm(2)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Submit remaining data for update, including partId
+      await onSubmit(formData); // This call should now handle the update with partId
+      setSuccessMessage('Part added successfully!');
+      handleReset();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error: unknown) {
+      setErrors({ submit: (error instanceof Error ? error.message : String(error)) || 'Failed to add part (Step 2)' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setStep(1); // Reset step to 1
+    setFormData({
+      partId: undefined,
+      partName: '',
+      // partNumber: '', // Removed
+      description: '',
+      category: '',
+      initialQuantity: '',
+      // unit: '', // Removed
+      storageLocation: '',
+      // supplier: '', // Removed
+      // notes: '', // Removed
+      barcode: '',
+      unitPrice: '', // Initialize unitPrice here
+    });
+    setErrors({});
+    setSuccessMessage(''); // Clear success message on reset
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    setFormData((prev) => ({ ...prev, barcode }));
+    // Clear barcode error if present
+    if (errors.barcode) {
+      setErrors((prev) => ({
+        ...prev,
+        barcode: undefined,
+      }));
+    }
+  };
+
+  return (
+    <Card sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
+      <CardHeader
+        title={step === 1 ? "Add New Part (Step 1/2)" : "Add New Part (Step 2/2)"}
+        subheader={step === 1 ? "Fill in basic part details" : "Add category, location, and barcode"}
+      />
+      <CardContent>
+        {successMessage && <Alert severity="success">{successMessage}</Alert>}
+        {errors.submit && <Alert severity="error">{errors.submit}</Alert>}
+
+        <Box component="form" onSubmit={handleFinalSubmit} sx={{ mt: 3 }}>
+          <Grid container spacing={2}>
+            {step === 1 && (
+              <>
+                {/* Part Name */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Part Name"
+                    name="partName"
+                    value={formData.partName}
+                    onChange={handleChange}
+                    error={!!errors.partName}
+                    helperText={errors.partName}
+                    required
+                    placeholder="e.g., Resistor 10k"
+                  />
+                </Grid>
+
+                {/* Description */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    multiline
+                    rows={3}
+                    placeholder="Detailed description of the part"
+                  />
+                </Grid>
+
+                {/* Initial Quantity */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Initial Quantity"
+                    name="initialQuantity"
+                    value={formData.initialQuantity}
+                    onChange={handleChange}
+                    error={!!errors.initialQuantity}
+                    helperText={errors.initialQuantity}
+                    type="number"
+                    inputProps={{ step: '0.01', min: '0' }}
+                    placeholder="0"
+                    required
+                  />
+                </Grid>
+
+                {/* Unit Price */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Unit Price"
+                    name="unitPrice"
+                    value={formData.unitPrice}
+                    onChange={handleChange}
+                    error={!!errors.unitPrice}
+                    helperText={errors.unitPrice}
+                    type="number"
+                    inputProps={{ step: '0.01', min: '0' }}
+                    placeholder="0.00"
+                  />
+                </Grid>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                {/* Category */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.category} required>
+                    <InputLabel>Category *</InputLabel>
+                    <Select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      label="Category"
+                    >
+                      <MenuItem value="">
+                        <em>Select a category</em>
+                      </MenuItem>
+                      {categories.map((cat) => (
+                        <MenuItem key={cat.id} value={String(cat.id)}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.category && (
+                      <span style={{ color: '#d32f2f', fontSize: '0.75rem' }}>
+                        {errors.category}
+                      </span>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                {/* Storage Location */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth error={!!errors.storageLocation} required>
+                    <InputLabel>Storage Location *</InputLabel>
+                    <Select
+                      name="storageLocation"
+                      value={formData.storageLocation}
+                      onChange={handleChange}
+                      label="Storage Location"
+                    >
+                      <MenuItem value="">
+                        <em>Select location</em>
+                      </MenuItem>
+                      {locations.map((loc) => (
+                        <MenuItem key={loc.id} value={String(loc.id)}>
+                          {loc.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.storageLocation && (
+                      <span style={{ color: '#d32f2f', fontSize: '0.75rem' }}>
+                        {errors.storageLocation}
+                      </span>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                {/* Barcode Scanner */}
+                <Grid item xs={12} sx={{ mt: 2, mb: 2 }}>
+                  <Scanner addLog={() => {}} onItemScanned={handleBarcodeScanned} />
+                  {errors.barcode && (
+                    <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                      {errors.barcode}
+                    </Typography>
+                  )}
+                  {formData.barcode && (
+                    <TextField
+                      fullWidth
+                      label="Scanned Barcode"
+                      name="barcode"
+                      value={formData.barcode}
+                      onChange={handleChange}
+                      margin="normal"
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                    />
+                  )}
+                </Grid>
+              </>
+            )}
+
+            {/* Action Buttons */}
+            <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+              {step === 1 && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ClearIcon />}
+                    onClick={handleReset}
+                    disabled={loading}
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNextStep}
+                    startIcon={loading ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
+                    disabled={loading}
+                  >
+                    {loading ? 'Creating Part...' : 'Next Step'}
+                  </Button>
+                </>
+              )}
+              {step === 2 && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : 'Add Part'}
+                  </Button>
+                </>
+              )}
+            </Grid>
+          </Grid>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default AddPartForm;

@@ -6,6 +6,7 @@ to bypass SITE_URL validation from internal Docker containers.
 
 import os
 from urllib.parse import urljoin
+from typing import Optional
 
 import requests
 from dotenv import load_dotenv
@@ -17,14 +18,15 @@ load_dotenv()
 INVENTREE_URL = os.getenv("INVENTREE_URL")
 INVENTREE_TOKEN = os.getenv("INVENTREE_TOKEN")
 INVENTREE_SITE_URL = os.getenv("INVENTREE_SITE_URL")
+INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy") # Default to inventree-proxy for internal use
 
-if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL]):
+if not all([INVENTREE_PROXY_INTERNAL_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL]):
     raise RuntimeError(
         "Missing required environment variables: "
-        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL"
+        "INVENTREE_PROXY_INTERNAL_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL"
     )
 
-print(f"InvenTree Host: {INVENTREE_URL}")
+print(f"InvenTree Proxy Host: {INVENTREE_PROXY_INTERNAL_URL}")
 print(f"InvenTree Token: {'*' * 10}{'*' * (len(INVENTREE_TOKEN) - 10) if INVENTREE_TOKEN else 'Not Set'}")
 
 
@@ -104,6 +106,29 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"POST {endpoint} failed: {e}") from e
 
+    def patch(self, endpoint: str, data: dict) -> dict:
+        """
+        Perform a PATCH request to the InvenTree API.
+
+        Args:
+            endpoint: API endpoint (e.g., "/part/123/")
+            data: Request payload as dictionary
+
+        Returns:
+            JSON response as dictionary
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+
+        try:
+            response = self.session.patch(url, json=data, params={"format": "json"})
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"PATCH {endpoint} failed: {e}") from e
+
 
 # Initialize global API client
 api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL)
@@ -172,6 +197,111 @@ def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> dict
         return {
             "status": "error",
             "item_id": item_id,
+            "message": str(e),
+        }
+
+
+def create_part(
+    name: str,
+    ipn: str,
+    description: str = "",
+    category: int = None,
+    units: str = "",
+    default_location: int = None,
+    default_supplier: int = None,
+    notes: str = "",
+    active: bool = True,
+    purchaseable: bool = True,
+    unit_price: Optional[float] = None
+) -> dict:
+    """
+    Create a new part in InvenTree.
+
+    Args:
+        name: Part name
+        ipn: Internal Part Number (SKU)
+        description: Part description
+        category: Category ID
+        units: Unit of measure
+        default_location: Default storage location ID
+        default_supplier: Default supplier ID
+        notes: Part notes
+        active: Is part active
+        purchaseable: Is part purchaseable
+
+    Returns:
+        Dictionary with status and details of the created part, or error.
+    """
+    try:
+        payload = {
+            "name": name,
+            "IPN": ipn,
+            "description": description,
+            "units": units,
+            "notes": notes,
+            "active": active,
+            "purchaseable": purchaseable,
+        }
+
+        if category is not None:
+            payload["category"] = category
+        if default_location is not None:
+            payload["default_location"] = default_location
+        if default_supplier is not None:
+            payload["default_supplier"] = default_supplier
+        if unit_price is not None:
+            payload["default_price"] = unit_price
+
+        response = api.post("/part/", payload)
+        return {
+            "status": "ok",
+            "part": response,
+        }
+    except Exception as e:
+        print(f"Error creating part: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+
+
+def create_stock_item(
+    part_id: int,
+    location_id: int,
+    quantity: float,
+    notes: str = "",
+    barcode: str = ""
+) -> dict:
+    """
+    Create a new stock item in InvenTree for a given part.
+
+    Args:
+        part_id: The ID of the part to create stock for.
+        location_id: The ID of the storage location for the stock item.
+        quantity: The quantity of the stock item.
+        notes: Optional notes for the stock item.
+
+    Returns:
+        Dictionary with status and details of the created stock item, or error.
+    """
+    try:
+        payload = {
+            "part": part_id,
+            "location": location_id,
+            "quantity": quantity,
+            "notes": notes,
+        }
+        if barcode:
+            payload["barcode"] = barcode
+        response = api.post("/stock/", payload)
+        return {
+            "status": "ok",
+            "stock_item": response,
+        }
+    except Exception as e:
+        print(f"Error creating stock item: {e}")
+        return {
+            "status": "error",
             "message": str(e),
         }
 

@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { Box, Skeleton, Typography } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material/styles';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import { loadImage } from './imageHandler';
 
@@ -24,7 +25,7 @@ interface ImageDisplayProps {
     /** Height of the image container */
     height?: number | string;
     /** CSS styles for the container */
-    sx?: any;
+    sx?: SxProps<Theme>;
     /** Callback when image loads successfully */
     onLoad?: () => void;
     /** Callback when image fails to load */
@@ -119,7 +120,7 @@ export default function ImageDisplay({
                 URL.revokeObjectURL(imageUrl);
             }
         };
-    }, [imagePath, onLoad, onError]);
+    }, [imagePath, onLoad, onError, imageUrl]);
 
     // ========================================================================
     // RENDER STATES

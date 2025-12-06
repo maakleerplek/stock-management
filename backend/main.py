@@ -13,8 +13,9 @@ import requests
 import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
+from typing import Optional
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, create_part, create_stock_item
 
 load_dotenv()
 
@@ -54,6 +55,28 @@ class ItemDetailsRequest(BaseModel):
     item_id: int
 
 
+class CreatePartRequest(BaseModel):
+    """Request model for creating a new part."""
+    partName: str
+    ipn: str = "" # Add ipn field
+    description: str = ""
+    # Removed from initial creation
+    # category: str
+    initialQuantity: float = 0 # Initial quantity for stock item to be created with part
+    unitPrice: Optional[float] = None # Add unitPrice field
+    # unit: str = "" # Removed
+    # Removed from initial creation
+    # storageLocation: str
+    # supplier: str = "" # Removed
+    # notes: str = "" # Removed
+
+class UpdatePartRequest(BaseModel):
+    """Request model for updating an existing part."""
+    category: str
+    storageLocation: str
+    barcode: str = ""
+
+
 # ==================== Endpoints ====================
 
 
@@ -72,6 +95,135 @@ def add_item(data: TakeItemRequest) -> dict:
     return response
 
 
+@app.post("/create-part")
+async def create_part_endpoint(data: CreatePartRequest) -> dict:
+    """Create a new part in inventory and optionally add initial stock."""
+    try:
+        # Note: category, default_location are now handled in update_part_endpoint
+        # For now, assume they are sent as appropriate types or handle potential
+        # None/empty string values for optional fields.
+        
+        # supplier is now handled in the update step
+
+        
+        part_ipn = data.ipn if data.ipn else f"TEMP-{data.partName}-{os.urandom(4).hex()}"
+
+        part_creation_response = create_part(
+            name=data.partName,
+            ipn=part_ipn,
+            description=data.description,
+            unit_price=data.unitPrice, # Pass unitPrice to create_part
+            # category is now set in the update step
+            # units is now set in the update step
+            # default_location is now set in the update step
+            # default_supplier is not directly supported in create_part for inventree_client
+            # notes is now set in the update step
+        )
+
+        if part_creation_response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=part_creation_response.get("message"))
+
+        created_part = part_creation_response.get("part")
+        part_pk = created_part.get("pk")
+
+        
+        return {
+            "status": "ok",
+            "message": "Part created successfully",
+            "partId": part_pk, # Return partId for the frontend to use in the next step
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error creating part: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create part: {e}")
+
+
+@app.patch("/update-part/{part_pk}")
+async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> dict:
+    """Update an existing part in inventory."""
+    try:
+        # Convert category and storageLocation to int if they are not empty
+        category_id = int(data.category) if data.category else None
+        location_id = int(data.storageLocation) if data.storageLocation else None
+
+        update_payload = {}
+        
+        # Only add fields that are not None
+        if category_id is not None:
+            update_payload["category"] = category_id
+        if location_id is not None:
+            update_payload["default_location"] = location_id
+
+        # Update the part only if we have data to update
+        if update_payload:
+            part_update_response = api.patch(f"/part/{part_pk}/", update_payload)
+            print(f"Successfully updated part {part_pk} with: {update_payload}")
+        
+        return {
+            "status": "ok",
+            "message": f"Part {part_pk} updated successfully",
+            "partId": part_pk,
+        }
+    except Exception as e:
+        print(f"Error updating part: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update part: {str(e)}")
+
+
+
+class CreateStockItemRequest(BaseModel):
+    """Request model for creating a stock item."""
+    partId: int
+    quantity: float
+    locationId: int
+    notes: str = ""
+    barcode: str = "" # Add optional barcode field
+
+@app.post("/create-stock-item")
+async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
+    """Create a new stock item in inventory."""
+    try:
+        stock_creation_response = create_stock_item(
+            part_id=data.partId,
+            location_id=data.locationId,
+            quantity=data.quantity,
+            notes=data.notes,
+        )
+
+        if stock_creation_response.get("status") == "ok":
+            raw_stock_item = stock_creation_response.get("stock_item")
+            stock_item_pk = None
+            if isinstance(raw_stock_item, list) and len(raw_stock_item) > 0:
+                stock_item_pk = raw_stock_item[0].get("pk")
+            elif isinstance(raw_stock_item, dict):
+                stock_item_pk = raw_stock_item.get("pk")
+
+            if data.barcode and stock_item_pk:
+                try:
+                    barcode_payload = {
+                        "barcode": data.barcode,
+                        "stockitem": stock_item_pk, # Link to stock_item PK
+                    }
+                    api.post("/barcode/link/", barcode_payload) # Use the specific link endpoint
+                    print(f"Successfully added barcode {data.barcode} to stock item {stock_item_pk}")
+                except Exception as barcode_error:
+                    print(f"Warning: Failed to add barcode {data.barcode} to stock item {stock_item_pk}: {barcode_error}")
+                    # Don't fail the entire stock creation if barcode fails
+                    pass
+            print(f"Successfully created stock item for part {data.partId} at location {data.locationId}: {data.quantity}")
+            return {
+                "status": "ok",
+                "message": "Stock item created successfully",
+                "stockItem": stock_creation_response.get("stock_item"),
+            }
+        else:
+            raise HTTPException(status_code=500, detail=stock_creation_response.get("message"))
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error creating stock item: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create stock item: {e}")
+
 @app.post("/get-item-from-qr")
 def get_item_from_qr(data: BarcodeRequest) -> dict:
     """Get item info from a QR/barcode."""
@@ -79,11 +231,61 @@ def get_item_from_qr(data: BarcodeRequest) -> dict:
     return response
 
 
-@app.post("/get-item-name")
+@app.get("/get-item-name")
 def get_item_name(data: ItemDetailsRequest) -> dict:
     """Get item details by ID."""
     response = get_item_details(data.item_id)
     return response
+
+
+@app.get("/get-categories")
+def get_categories() -> dict:
+    """Fetch all part categories from InvenTree."""
+    try:
+        # Fetch all categories from InvenTree API
+        categories = api.get("/part/category/")
+        
+        # Extract only id and name for each category
+        category_list = [
+            {"id": cat.get("pk"), "name": cat.get("name")}
+            for cat in categories
+        ]
+        
+        return {
+            "status": "ok",
+            "categories": category_list,
+        }
+    except Exception as e:
+        print(f"Error fetching categories: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+
+
+@app.get("/get-locations")
+def get_locations() -> dict:
+    """Fetch all storage locations from InvenTree."""
+    try:
+        # Fetch all locations from InvenTree API
+        locations = api.get("/stock/location/")
+        
+        # Extract only id and name for each location
+        location_list = [
+            {"id": loc.get("pk"), "name": loc.get("name")}
+            for loc in locations
+        ]
+        
+        return {
+            "status": "ok",
+            "locations": location_list,
+        }
+    except Exception as e:
+        print(f"Error fetching locations: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+        }
 
 
 @app.get("/image-proxy/{image_path:path}")

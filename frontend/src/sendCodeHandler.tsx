@@ -150,7 +150,7 @@ export async function handleTakeItem(
     quantity: number,
     addLog: (log: string) => void,
 ): Promise<boolean> {
-    const result = await apiCall<any>(
+    const result = await apiCall<unknown>(
         API_ENDPOINTS.TAKE_ITEM,
         {
             method: "POST",
@@ -184,7 +184,7 @@ export async function handleAddItem(
     quantity: number,
     addLog: (log: string) => void,
 ): Promise<boolean> {
-    const result = await apiCall<any>(
+    const result = await apiCall<unknown>(
         API_ENDPOINTS.ADD_ITEM,
         {
             method: "POST",

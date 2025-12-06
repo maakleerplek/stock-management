@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { handleSend, type ItemData } from './sendCodeHandler';
+import { handleSend } from './sendCodeHandler'; // Remove ItemData import
 import { motion } from 'framer-motion';
 import { Card, Button, Typography, Box, CircularProgress } from '@mui/material';
 import { QrCode2, Stop }from '@mui/icons-material';
@@ -11,7 +11,7 @@ const noop = () => {};
 
 interface ScannerProps {
   addLog: (msg: string) => void;
-  onItemScanned?: (item: ItemData) => void;
+  onItemScanned?: (barcode: string) => void; // Change type to string
 }
 
 function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
@@ -57,10 +57,10 @@ function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
       try {
         addLog(`Scanned: ${decodedText}`);
         setBarcode(decodedText);
+        onItemScannedRef.current(decodedText); // Pass decodedText directly
         const fetchedItem = await handleSend(decodedText, addLog);
         if (fetchedItem) {
           addToast(`✓ Found: ${fetchedItem.name}`, 'success');
-          onItemScannedRef.current(fetchedItem);
         }
       } catch (error) {
         const errorMessage =
@@ -85,7 +85,7 @@ function Scanner({ addLog, onItemScanned = noop }: ScannerProps) {
         // Ignore cleanup errors
       });
     };
-  }, [isScanning, addLog, stopScan]);
+  }, [isScanning, addLog, stopScan, addToast]);
 
   return (
     <motion.div
