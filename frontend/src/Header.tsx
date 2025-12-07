@@ -49,7 +49,7 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
           {isVolunteerMode && (
             <Button
               variant="contained"
-              color="primary"
+              color="info"
               onClick={() => setAddPartFormModalOpen(true)}
               size="small"
             >

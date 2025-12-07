@@ -16,10 +16,13 @@ import {
   Box,
   InputBase, // For quantity input
 } from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+
 
 export interface CartItem extends ItemData {
     cartQuantity: number;
@@ -65,9 +68,8 @@ function ShoppingCart({
         <Card sx={{ maxWidth: 420, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 2, borderTop: isVolunteerMode ? 4 : 0, borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' }}>
             <CardHeader
                 title={isVolunteerMode ? "Add to Stock" : "Shopping Cart"}
-                avatar={isVolunteerMode ? undefined : <ShoppingCartIcon />}
-                titleTypographyProps={{ variant: 'h5', align: 'center' }}
-                sx={{ pb: 0, backgroundColor: isVolunteerMode ? 'info.lighter' : 'transparent' }}
+                avatar={isVolunteerMode ? <VolunteerActivismIcon /> : <ShoppingCartIcon />}
+                titleTypographyProps={{ variant: 'h6' }}
             />
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
                 {checkedOutTotal !== null ? (
