@@ -6,9 +6,10 @@ import { handleSend, type ItemData } from './sendCodeHandler';
 
 interface BarcodeScannerContainerProps {
   onItemScanned: (item: ItemData | null) => void;
+  checkoutTotal?: number | null;
 }
 
-function BarcodeScannerContainer({ onItemScanned }: BarcodeScannerContainerProps) {
+function BarcodeScannerContainer({ onItemScanned, checkoutTotal = null }: BarcodeScannerContainerProps) {
   const [, setLogs] = useState<string[]>([]); // State for logs
 
   /** Add a log message to the terminal */
@@ -25,7 +26,7 @@ function BarcodeScannerContainer({ onItemScanned }: BarcodeScannerContainerProps
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
       <Scanner addLog={addLog} onItemScanned={handleItemScannedInternal} />
-      <Qrcode />
+      {checkoutTotal !== null && <Qrcode total={checkoutTotal} />}
     </Box>
   );
 }

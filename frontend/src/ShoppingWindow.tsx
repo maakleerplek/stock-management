@@ -8,14 +8,22 @@ import { useVolunteer } from './VolunteerContext';
 interface ShoppingWindowProps {
     addLog: (msg: string) => void;
     scannedItem: ItemData | null;
+    onCheckoutTotalChange?: (total: number | null) => void;
 }
 
-export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowProps) {
+export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalChange }: ShoppingWindowProps) {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
+
+    // Notify parent component when checkout total changes
+    useEffect(() => {
+        if (onCheckoutTotalChange) {
+            onCheckoutTotalChange(checkedOutTotal);
+        }
+    }, [checkedOutTotal, onCheckoutTotalChange]);
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
         setCheckedOutTotal(null);
@@ -90,7 +98,12 @@ export default function ShoppingWindow({ addLog, scannedItem }: ShoppingWindowPr
         addLog(`All items ${isVolunteerMode ? 'added to stock' : 'checked out'} successfully.`);
         addToast(`✓ ${isVolunteerMode ? 'Items added to stock!' : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
         setCartItems([]);
-        setCheckedOutTotal(checkoutTotal);
+        // Only set checkout total for non-volunteer mode (when payment is needed)
+        if (!isVolunteerMode) {
+            setCheckedOutTotal(checkoutTotal);
+        } else {
+            setCheckedOutTotal(null);
+        }
     };
 
     return (

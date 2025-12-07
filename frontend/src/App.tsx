@@ -21,6 +21,7 @@ function AppContent() {
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
+  const [checkoutTotal, setCheckoutTotal] = useState<number | null>(null);
   const { addToast } = useToast();
 
   // Reintroduce addLog function
@@ -233,12 +234,19 @@ function AppContent() {
           <Box sx={{ flex: 1, py: 4 }}>
             <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <BarcodeScannerContainer onItemScanned={(item) => {
-                  setScannedItem(null); // Reset to null first to ensure re-trigger
-                  setScannedItem(item);
-                }} />
+                <BarcodeScannerContainer 
+                  onItemScanned={(item) => {
+                    setScannedItem(null); // Reset to null first to ensure re-trigger
+                    setScannedItem(item);
+                  }}
+                  checkoutTotal={checkoutTotal}
+                />
                 <Box>
-                  <ShoppingWindow addLog={addLog} scannedItem={scannedItem} />
+                  <ShoppingWindow 
+                    addLog={addLog} 
+                    scannedItem={scannedItem}
+                    onCheckoutTotalChange={setCheckoutTotal}
+                  />
                 </Box>
               </Box>
             </Box>
