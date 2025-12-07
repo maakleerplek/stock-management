@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   Grid,
   FormControl,
   InputLabel,
@@ -13,7 +12,12 @@ import {
   Box,
   Alert,
   CircularProgress,
+  FormHelperText,
+  Stepper,
+  Step,
+  StepLabel,
   Typography,
+  InputAdornment, // Add InputAdornment
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -201,162 +205,189 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
 
   return (
     <Card sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
-      <CardHeader
-        title={step === 1 ? "Add New Part (Step 1/2)" : "Add New Part (Step 2/2)"}
-        subheader={step === 1 ? "Fill in basic part details" : "Add category, location, and barcode"}
-      />
+      <Stepper activeStep={step - 1} alternativeLabel sx={{ pt: 2, pb: 3 }}>
+        <Step>
+          <StepLabel>Basic Details</StepLabel>
+        </Step>
+        <Step>
+          <StepLabel>Category & Location</StepLabel>
+        </Step>
+      </Stepper>
       <CardContent>
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
         {errors.submit && <Alert severity="error">{errors.submit}</Alert>}
 
         <Box component="form" onSubmit={handleFinalSubmit} sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            {step === 1 && (
-              <>
-                {/* Part Name */}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Part Name"
-                    name="partName"
-                    value={formData.partName}
+          {step === 1 && (
+            <Grid container spacing={2}>
+              {/* Part Name */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Part Name"
+                  name="partName"
+                  value={formData.partName}
+                  onChange={handleChange}
+                  error={!!errors.partName}
+                  helperText={errors.partName}
+                  required
+                  placeholder="e.g., Resistor 10k"
+                />
+              </Grid>
+
+              {/* Description */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  multiline
+                  rows={3}
+                  placeholder="Detailed description of the part"
+                />
+              </Grid>
+
+              {/* Initial Quantity */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Initial Quantity"
+                  name="initialQuantity"
+                  value={formData.initialQuantity}
+                  onChange={handleChange}
+                  error={!!errors.initialQuantity}
+                  helperText={errors.initialQuantity}
+                  type="number"
+                  inputProps={{ step: '0.01', min: '0' }}
+                  placeholder="0"
+                  required
+                />
+              </Grid>
+
+              {/* Unit Price */}
+                              <Grid item xs={12} sm={6}>
+                                <TextField
+                                  fullWidth
+                                  label="Purchase Price"
+                                  name="purchasePrice"
+                                  value={formData.purchasePrice}
+                                  onChange={handleChange}
+                                  error={!!errors.purchasePrice}
+                                  helperText={errors.purchasePrice}
+                                  type="number"
+                                  inputProps={{ step: '0.01', min: '0' }}
+                                  InputProps={{
+                                    startAdornment: <InputAdornment position="start">{formData.purchasePriceCurrency}</InputAdornment>,
+                                  }}
+                                  placeholder="0.00"
+                                />
+                              </Grid>
+              {/* Purchase Price Currency */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Currency</InputLabel>
+                  <Select
+                    name="purchasePriceCurrency"
+                    value={formData.purchasePriceCurrency}
                     onChange={handleChange}
-                    error={!!errors.partName}
-                    helperText={errors.partName}
-                    required
-                    placeholder="e.g., Resistor 10k"
-                  />
-                </Grid>
+                    label="Currency"
+                  >
+                    <MenuItem value="EUR">EUR</MenuItem>
+                    <MenuItem value="USD">USD</MenuItem>
+                    <MenuItem value="GBP">GBP</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              {/* Action Buttons for Step 1 */}
+              <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ClearIcon />}
+                  onClick={handleReset}
+                  disabled={loading}
+                >
+                  Reset
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleNextStep}
+                  startIcon={loading ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
+                  disabled={loading}
+                >
+                  {loading ? 'Creating Part...' : 'Next Step'}
+                </Button>
+              </Grid>
+            </Grid>
+          )}
 
-                {/* Description */}
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Description"
-                    name="description"
-                    value={formData.description}
+          {step === 2 && (
+            <Grid container spacing={2}>
+              {/* Category */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth error={!!errors.category} required>
+                  <InputLabel>Category *</InputLabel>
+                  <Select
+                    name="category"
+                    value={formData.category}
                     onChange={handleChange}
-                    multiline
-                    rows={3}
-                    placeholder="Detailed description of the part"
-                  />
-                </Grid>
-
-                {/* Initial Quantity */}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Initial Quantity"
-                    name="initialQuantity"
-                    value={formData.initialQuantity}
-                    onChange={handleChange}
-                    error={!!errors.initialQuantity}
-                    helperText={errors.initialQuantity}
-                    type="number"
-                    inputProps={{ step: '0.01', min: '0' }}
-                    placeholder="0"
-                    required
-                  />
-                </Grid>
-
-                {/* Unit Price */}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Purchase Price"
-                    name="purchasePrice"
-                    value={formData.purchasePrice}
-                    onChange={handleChange}
-                    error={!!errors.purchasePrice}
-                    helperText={errors.purchasePrice}
-                    type="number"
-                    inputProps={{ step: '0.01', min: '0' }}
-                    placeholder="0.00"
-                  />
-                </Grid>
-
-                {/* Purchase Price Currency */}
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Currency</InputLabel>
-                    <Select
-                      name="purchasePriceCurrency"
-                      value={formData.purchasePriceCurrency}
-                      onChange={handleChange}
-                      label="Currency"
-                    >
-                      <MenuItem value="EUR">EUR</MenuItem>
-                      <MenuItem value="USD">USD</MenuItem>
-                      <MenuItem value="GBP">GBP</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                {/* Category */}
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth error={!!errors.category} required>
-                    <InputLabel>Category *</InputLabel>
-                    <Select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      label="Category"
-                    >
-                      <MenuItem value="">
-                        <em>Select a category</em>
+                    label="Category"
+                  >
+                    <MenuItem value="">
+                      <em>Select a category</em>
+                    </MenuItem>
+                    {categories.map((cat) => (
+                      <MenuItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
                       </MenuItem>
-                      {categories.map((cat) => (
-                        <MenuItem key={cat.id} value={String(cat.id)}>
-                          {cat.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.category && (
-                      <span style={{ color: '#d32f2f', fontSize: '0.75rem' }}>
-                        {errors.category}
-                      </span>
-                    )}
-                  </FormControl>
-                </Grid>
+                    ))}
+                  </Select>
+                  {errors.category && <FormHelperText>{errors.category}</FormHelperText>}
+                </FormControl>
+              </Grid>
 
-                {/* Storage Location */}
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth error={!!errors.storageLocation} required>
-                    <InputLabel>Storage Location *</InputLabel>
-                    <Select
-                      name="storageLocation"
-                      value={formData.storageLocation}
-                      onChange={handleChange}
-                      label="Storage Location"
-                    >
-                      <MenuItem value="">
-                        <em>Select location</em>
+              {/* Storage Location */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth error={!!errors.storageLocation} required>
+                  <InputLabel>Storage Location *</InputLabel>
+                  <Select
+                    name="storageLocation"
+                    value={formData.storageLocation}
+                    onChange={handleChange}
+                    label="Storage Location"
+                  >
+                    <MenuItem value="">
+                      <em>Select location</em>
+                    </MenuItem>
+                    {locations.map((loc) => (
+                      <MenuItem key={loc.id} value={String(loc.id)}>
+                        {loc.name}
                       </MenuItem>
-                      {locations.map((loc) => (
-                        <MenuItem key={loc.id} value={String(loc.id)}>
-                          {loc.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.storageLocation && (
-                      <span style={{ color: '#d32f2f', fontSize: '0.75rem' }}>
-                        {errors.storageLocation}
-                      </span>
-                    )}
-                  </FormControl>
-                </Grid>
+                    ))}
+                  </Select>
+                  {errors.storageLocation && <FormHelperText>{errors.storageLocation}</FormHelperText>}
+                </FormControl>
+              </Grid>
 
-                {/* Barcode Scanner */}
-                <Grid item xs={12} sx={{ mt: 2, mb: 2 }}>
-                  <Scanner addLog={() => {}} onItemScanned={handleBarcodeScanned} />
-                  {errors.barcode && (
-                    <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                              {/* Barcode Scanner and Display */}
+                              <Grid item xs={12}>
+                                <Box sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 2,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  borderRadius: 1,
+                                  p: 2,
+                                  mt: 2
+                                }}>
+                                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
+                                  <Scanner addLog={() => {}} onItemScanned={handleBarcodeScanned} />                  {errors.barcode && (
+                    <FormHelperText error sx={{ mt: 1 }}>
                       {errors.barcode}
-                    </Typography>
+                    </FormHelperText>
                   )}
                   {formData.barcode && (
                     <TextField
@@ -365,62 +396,36 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                       name="barcode"
                       value={formData.barcode}
                       onChange={handleChange}
-                      margin="normal"
-                      InputProps={{
-                        readOnly: true,
-                      }}
+                      variant="outlined" // Consistent variant
+                      InputProps={{ readOnly: true }} // Correct usage
+                      margin="dense" // Adjust margin for better spacing
+                      sx={{ mt: 1 }}
                     />
                   )}
-                </Grid>
-              </>
-            )}
-
-            {/* Action Buttons */}
-            <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
-              {step === 1 && (
-                <>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ClearIcon />}
-                    onClick={handleReset}
-                    disabled={loading}
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleNextStep}
-                    startIcon={loading ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating Part...' : 'Next Step'}
-                  </Button>
-                </>
-              )}
-              {step === 2 && (
-                <>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ArrowBackIcon />}
-                    onClick={() => setStep(1)}
-                    disabled={loading}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    type="submit"
-                    startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-                    disabled={loading}
-                  >
-                    {loading ? 'Saving...' : 'Add Part'}
-                  </Button>
-                </>
-              )}
+                </Box>
+              </Grid>
+              {/* Action Buttons for Step 2 */}
+              <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ArrowBackIcon />}
+                  onClick={() => setStep(1)}
+                  disabled={loading}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Add Part'}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
+          )}
         </Box>
       </CardContent>
     </Card>

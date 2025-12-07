@@ -9,10 +9,8 @@ RUN npm install
 COPY . .
 
 # Build with environment variables
-ARG VITE_BACKEND_URL=http://localhost:8001
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
-
-RUN npm run build
+ARG VITE_BACKEND_URL
+RUN VITE_BACKEND_URL=${VITE_BACKEND_URL} npm run build
 
 # Stage 2: Serve the built application
 FROM node:20-alpine
