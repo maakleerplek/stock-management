@@ -104,24 +104,7 @@ export function clearImageCache(): void {
 // HELPER FUNCTIONS
 // ============================================================================
 
-/**
- * Convert a blob to a data URL
- * @param blob - Blob to convert
- * @returns Promise that resolves to data URL string
- */
-function blobToDataUrl(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = reader.result as string;
-            resolve(result);
-        };
-        reader.onerror = () => {
-            reject(new Error('Failed to read blob as data URL'));
-        };
-        reader.readAsDataURL(blob);
-    });
-}
+
 
 // ============================================================================
 // IMAGE LOADING WITH RETRY
@@ -247,30 +230,15 @@ export async function loadImage(imageRelativePath: string | null): Promise<Image
     // Create a cache key from the image path
     const cacheKey = btoa(imageRelativePath); // Base64 encode for safe key
 
-    // Check cache first - cache stores the proxy URL
-    const cachedProxyUrl = getCachedImage(cacheKey);
-    if (cachedProxyUrl) {
-        console.log(`Found cached proxy URL: ${cachedProxyUrl}`);
-        try {
-            // Fetch blob from cached proxy URL and convert to data URL
-            const response = await fetch(cachedProxyUrl, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            if (response.ok) {
-                const blob = await response.blob();
-                const dataUrl = await blobToDataUrl(blob);
-                console.log(`Using cached image, converted to data URL (${dataUrl.length} chars)`);
-                return {
-                    success: true,
-                    url: dataUrl,
-                    fromCache: true,
-                };
-            }
-        } catch (error) {
-            console.warn(`Failed to load from cached URL:`, error);
-            // Fall through to normal load if cache fetch fails
-        }
+    // Check cache first - cache stores the data URL
+    const cachedDataUrl = getCachedImage(cacheKey);
+    if (cachedDataUrl) {
+        console.log(`Found cached image, using data URL (${cachedDataUrl.length} chars)`);
+        return {
+            success: true,
+            url: cachedDataUrl,
+            fromCache: true,
+        };
     }
 
     try {
@@ -287,8 +255,8 @@ export async function loadImage(imageRelativePath: string | null): Promise<Image
         // Load the image as data URL with retries
         const dataUrl = await loadImageWithRetry(proxiedUrl);
 
-        // Cache the proxy URL for future reference
-        setCachedImage(cacheKey, proxiedUrl);
+        // Cache the data URL for future reference
+        setCachedImage(cacheKey, dataUrl);
 
         console.log(`Successfully loaded image (data URL: ${dataUrl.length} chars)`);
 

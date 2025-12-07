@@ -1,30 +1,32 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Scanner from './barcodescanner';
-import Qrcode from './qrcode';
-import Logo from './logo';
 import AddPartForm, { type PartFormData, type SelectOption } from './AddPartForm';
-import { handleSend, type ItemData } from './sendCodeHandler';
-import LightOrDarkButton from './LightOrDarkButton';
+import type { ItemData } from './sendCodeHandler'; // Use type-only import
 import ShoppingWindow from './ShoppingWindow';
+import BarcodeScannerContainer from './BarcodeScannerContainer';
 import Footer from './Footer';
-import { Grid, CssBaseline, Box, Button, Dialog, DialogContent } from '@mui/material';
+import Header from './Header';
+import { CssBaseline, Box, Dialog, DialogContent } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
 import { ToastProvider, useToast } from './ToastContext';
-import { VolunteerProvider, useVolunteer } from './VolunteerContext';
+import { VolunteerProvider } from './VolunteerContext'; // Removed useVolunteer import
 import VolunteerModal from './VolunteerModal';
 
 function AppContent() {
   const [theme, setTheme] = useState('light');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
-  const [, setLogs] = useState<string[]>([]); // State for logs
+  const [, setLogs] = useState<string[]>([]); // Ignore logs variable
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
-  const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
   const { addToast } = useToast();
+
+  // Reintroduce addLog function
+  const addLog = useCallback((msg: string) => {
+    setLogs((prev) => [...prev, msg]);
+  }, []);
 
   // Fetch categories and locations on component mount
   useEffect(() => {
@@ -48,29 +50,25 @@ function AppContent() {
         } else {
           console.error('Network error fetching categories:', categoriesRes.statusText);
           setCategories([]); // Ensure categories are reset on network error
-          addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
+            addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
         }
 
         if (locationsRes.ok) {
           const locationsData = await locationsRes.json();
           if (locationsData.status === 'ok') {
             setLocations(locationsData.locations);
-          } else {
-            console.error('Backend error fetching locations:', locationsData.message);
-            setLocations([]); // Ensure locations are reset on backend error
-            addToast(`Error fetching locations: ${locationsData.message}`, 'error');
           }
         } else {
           console.error('Network error fetching locations:', locationsRes.statusText);
           setLocations([]); // Ensure locations are reset on network error
-          addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
+            addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
         }
       } catch (error) {
         console.error('Error fetching categories and locations:', error);
         // Fall back to empty arrays if fetching fails
         setCategories([]);
         setLocations([]);
-        addToast(`Failed to fetch categories and locations: ${error}`, 'error');
+        addToast(`Error fetching categories and locations: ${(error instanceof Error ? error.message : String(error))}`, 'error');
       }
     };
 
@@ -189,30 +187,6 @@ function AppContent() {
     });
   };
 
-  const handleVolunteerToggle = () => {
-    if (isVolunteerMode) {
-      // Exit volunteer mode immediately
-      setIsVolunteerMode(false);
-      setAddPartFormModalOpen(false); // Close add part form if open
-    } else {
-      // Show password dialog
-      setVolunteerModalOpen(true);
-    }
-  };
-
-  /** Add a log message to the terminal */
-  const addLog = useCallback((msg: string) => {
-    setLogs((prev) => [...prev, msg]);
-  }, []);
-  
-  const handleItemScanned = async (barcode: string) => {
-    setScannedItem(null); // Reset to null first to ensure re-trigger
-    const fetchedItem = await handleSend(barcode, addLog);
-    if (fetchedItem) {
-      setScannedItem(fetchedItem);
-    }
-  }
-
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <CssBaseline />
@@ -224,57 +198,19 @@ function AppContent() {
           style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
-          <Box sx={{ width: '100%', backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
-            <Grid container maxWidth="lg" sx={{ mx: 'auto', px: 2, justifyContent: 'space-between', alignItems: 'center' }}>
-              <Box>
-                <Logo />
-                {isVolunteerMode && (
-                  <Box sx={{ 
-                    display: 'inline-block', 
-                    ml: 2, 
-                    px: 2, 
-                    py: 0.5, 
-                    backgroundColor: 'info.dark',
-                    color: 'info.contrastText',
-                    borderRadius: 1,
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold'
-                  }}>
-                    📝 VOLUNTEER MODE
-                  </Box>
-                )}
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                {isVolunteerMode && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setAddPartFormModalOpen(true)}
-                    size="small"
-                  >
-                    Add New Part
-                  </Button>
-                )}
-                <Button
-                  variant={isVolunteerMode ? 'contained' : 'outlined'}
-                  color={isVolunteerMode ? 'info' : 'inherit'}
-                  onClick={handleVolunteerToggle}
-                  size="small"
-                >
-                  {isVolunteerMode ? 'Exit Volunteer Mode' : 'Volunteer Mode'}
-                </Button>
-                <LightOrDarkButton toggleTheme={toggleTheme} theme={theme} />
-              </Box>
-            </Grid>
-          </Box>
-
+            <Header
+              theme={theme}
+              toggleTheme={toggleTheme}
+              setVolunteerModalOpen={setVolunteerModalOpen}
+              setAddPartFormModalOpen={setAddPartFormModalOpen}
+            />
           <Box sx={{ flex: 1, py: 4 }}>
             <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
-                  <Scanner addLog={addLog} onItemScanned={handleItemScanned} />
-                  <Qrcode />
-                </Box>
+                <BarcodeScannerContainer onItemScanned={(item) => {
+                  setScannedItem(null); // Reset to null first to ensure re-trigger
+                  setScannedItem(item);
+                }} />
                 <Box>
                   <ShoppingWindow addLog={addLog} scannedItem={scannedItem} />
                 </Box>
