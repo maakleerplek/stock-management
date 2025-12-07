@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -18,6 +18,7 @@ import {
   StepLabel,
   Typography,
   InputAdornment, // Add InputAdornment
+  Avatar,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -46,6 +47,7 @@ export interface PartFormData {
   barcode?: string; // Add barcode field
   purchasePrice: string; // Add purchasePrice field
   purchasePriceCurrency: string; // Add purchasePriceCurrency field
+  image?: File; // Add image file field
 }
 
 export interface PartFormErrors {
@@ -89,6 +91,18 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
   const [errors, setErrors] = useState<PartFormErrors>({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Restore image preview if file exists but preview is missing
+  useEffect(() => {
+    if (formData.image && !imagePreview) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(formData.image);
+    }
+  }, [formData.image, imagePreview]);
 
   const validateForm = (currentStep: number) => {
     const newErrors: PartFormErrors = {};
@@ -128,6 +142,45 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
         ...prev,
         [name]: undefined, // Clear specific error
       }));
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors((prev) => ({
+          ...prev,
+          image: 'Please select a valid image file',
+        }));
+        return;
+      }
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          image: 'Image size must be less than 10MB',
+        }));
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      // Clear error
+      if (errors.image) {
+        setErrors((prev) => ({
+          ...prev,
+          image: undefined,
+        }));
+      }
     }
   };
 
@@ -187,9 +240,11 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       barcode: '',
       purchasePrice: '', // Initialize purchasePrice here
       purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency here
+      image: undefined,
     });
     setErrors({});
     setSuccessMessage(''); // Clear success message on reset
+    setImagePreview(null); // Clear image preview
   };
 
   const handleBarcodeScanned = (barcode: string) => {
@@ -204,7 +259,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
   };
 
   return (
-    <Card sx={{ maxWidth: 800, margin: '0 auto', padding: 2 }}>
+    <Card sx={{ maxWidth: 800, margin: '0 auto', p: 3 }}>
       <Stepper activeStep={step - 1} alternativeLabel sx={{ pt: 2, pb: 3 }}>
         <Step>
           <StepLabel>Basic Details</StepLabel>
@@ -247,6 +302,56 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                   rows={3}
                   placeholder="Detailed description of the part"
                 />
+              </Grid>
+
+              {/* Image Upload */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="subtitle2">Part Image (Optional)</Typography>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    {imagePreview && (
+                      <Avatar
+                        src={imagePreview}
+                        alt="Preview"
+                        sx={{ width: 100, height: 100 }}
+                        variant="rounded"
+                      />
+                    )}
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      sx={{ minWidth: 150 }}
+                    >
+                      {formData.image ? 'Change Image' : 'Upload Image'}
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </Button>
+                    {formData.image && (
+                      <Button
+                        variant="text"
+                        color="error"
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, image: undefined }));
+                          setImagePreview(null);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </Box>
+                  {errors.image && (
+                    <FormHelperText error>{errors.image}</FormHelperText>
+                  )}
+                  {formData.image && (
+                    <Typography variant="caption" color="text.secondary">
+                      Selected: {formData.image.name} ({(formData.image.size / 1024).toFixed(2)} KB)
+                    </Typography>
+                  )}
+                </Box>
               </Grid>
 
               {/* Initial Quantity */}
@@ -379,7 +484,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                                   gap: 2,
                                   border: '1px solid',
                                   borderColor: 'divider',
-                                  borderRadius: 1,
+                                  borderRadius: 1.5,
                                   p: 2,
                                   mt: 2
                                 }}>

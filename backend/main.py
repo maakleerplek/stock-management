@@ -5,7 +5,7 @@ Provides endpoints for item retrieval, stock removal, and image proxying.
 
 from io import BytesIO
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from urllib.parse import urljoin
 from typing import Optional
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, create_part, create_stock_item
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, create_part, create_stock_item, upload_image_to_part
 
 load_dotenv()
 
@@ -47,12 +47,6 @@ class BarcodeRequest(BaseModel):
     """Request model for QR/barcode lookup."""
 
     qr_id: str
-
-
-class ItemDetailsRequest(BaseModel):
-    """Request model for item details lookup."""
-
-    item_id: int
 
 
 class CreatePartRequest(BaseModel):
@@ -236,9 +230,9 @@ def get_item_from_qr(data: BarcodeRequest) -> dict:
 
 
 @app.get("/get-item-name")
-def get_item_name(data: ItemDetailsRequest) -> dict:
+def get_item_name(item_id: int = Query(..., description="The ID of the item to get details for")) -> dict:
     """Get item details by ID."""
-    response = get_item_details(data.item_id)
+    response = get_item_details(item_id)
     return response
 
 
@@ -290,6 +284,49 @@ def get_locations() -> dict:
             "status": "error",
             "message": str(e),
         }
+
+
+@app.post("/upload-part-image/{part_id}")
+async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> dict:
+    """
+    Upload an image to a part in InvenTree.
+    
+    Args:
+        part_id: The ID of the part to upload the image to
+        file: The image file to upload
+        
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Read file content
+        image_data = await file.read()
+        
+        # Validate file size (max 10MB)
+        if len(image_data) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Image size must be less than 10MB")
+        
+        # Upload to InvenTree
+        response = upload_image_to_part(
+            part_id=part_id,
+            image_data=image_data,
+            filename=file.filename or "image.jpg",
+            content_type=file.content_type or "image/jpeg"
+        )
+        
+        if response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=response.get("message"))
+        
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error uploading image to part {part_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {e}")
 
 
 @app.get("/image-proxy/{image_path:path}")

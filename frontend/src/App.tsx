@@ -103,6 +103,31 @@ function AppContent() {
         console.log('Part update successful:', result);
         addToast('Part updated successfully!', 'success');
 
+        // Upload image if provided
+        if (formData.image && formData.partId) {
+          try {
+            const imageFormData = new FormData();
+            imageFormData.append('file', formData.image);
+            
+            const imageResponse = await fetch(`${BACKEND_URL}/upload-part-image/${formData.partId}`, {
+              method: 'POST',
+              body: imageFormData,
+            });
+
+            if (!imageResponse.ok) {
+              const errorData = await imageResponse.json();
+              throw new Error(errorData.detail || 'Failed to upload image');
+            }
+            
+            console.log('Image uploaded successfully');
+            addToast('Image uploaded successfully!', 'success');
+          } catch (error) {
+            console.error('Error uploading image:', error);
+            addToast(`Warning: Image upload failed: ${(error instanceof Error ? error.message : String(error))}`, 'warning');
+            // Don't fail the entire operation if image upload fails
+          }
+        }
+
         // --- NEW LOGIC FOR STOCK CREATION ---
         const initialQuantityNum = parseFloat(formData.initialQuantity);
         const locationIdNum = parseInt(formData.storageLocation);
@@ -164,6 +189,7 @@ function AppContent() {
         console.log('Part creation successful:', result);
         addToast('Part created successfully!', 'success');
         // Do NOT close modal here, stay on step 2
+        // Image will be uploaded in step 2 after part is fully updated
         return { partId: result.partId }; // Expecting partId from backend for next step
       }
     } catch (error) {

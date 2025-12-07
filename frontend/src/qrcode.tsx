@@ -25,7 +25,7 @@ function PayconiqQrCode() {
                 image={codeImg}
                 alt="Payconiqqrcode"
                 onClick={handleClick}
-                sx={{ width: 150, height: 150, cursor: 'pointer', borderRadius: 1, border: '4px solid', borderColor: 'background.paper', transition: 'transform 0.3s, box-shadow 0.3s', '&:hover': { transform: 'scale(1.05)', boxShadow: '0 0 0 4px var(--mui-palette-primary-main)' } }}
+                sx={{ width: 150, height: 150, cursor: 'pointer', borderRadius: 1.5, border: '4px solid', borderColor: 'background.paper', transition: 'transform 0.3s, box-shadow 0.3s', '&:hover': { transform: 'scale(1.05)', boxShadow: '0 0 0 4px var(--mui-palette-primary-main)' } }}
             />
         </Card>
         </motion.div>

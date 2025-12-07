@@ -20,10 +20,10 @@ INVENTREE_TOKEN = os.getenv("INVENTREE_TOKEN")
 INVENTREE_SITE_URL = os.getenv("INVENTREE_SITE_URL")
 INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy") # Default to inventree-proxy for internal use
 
-if not all([INVENTREE_PROXY_INTERNAL_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL]):
+if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL]):
     raise RuntimeError(
         "Missing required environment variables: "
-        "INVENTREE_PROXY_INTERNAL_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL"
+        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL"
     )
 
 print(f"InvenTree Proxy Host: {INVENTREE_PROXY_INTERNAL_URL}")
@@ -128,6 +128,36 @@ class InvenTreeClient:
             return response.json()
         except requests.RequestException as e:
             raise Exception(f"PATCH {endpoint} failed: {e}") from e
+
+    def upload_file(self, endpoint: str, file_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
+        """
+        Upload a file to the InvenTree API using multipart/form-data.
+        For part images, use PATCH on /part/{id}/ with the image field.
+
+        Args:
+            endpoint: API endpoint (e.g., "/part/123/")
+            file_data: File content as bytes
+            filename: Name of the file
+            content_type: MIME type of the file
+
+        Returns:
+            JSON response as dictionary
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+
+        try:
+            files = {
+                "image": (filename, file_data, content_type)
+            }
+            # Use PATCH for part image uploads (not POST)
+            response = self.session.patch(url, files=files, params={"format": "json"})
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"File upload to {endpoint} failed: {e}") from e
 
 
 # Initialize global API client
@@ -371,6 +401,38 @@ def get_item_details(item_id: int) -> dict:
             "status": "error",
             "item_id": item_id,
             "message": "Failed to fetch item details",
+        }
+
+
+def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
+    """
+    Upload an image to a part in InvenTree.
+    Uses PATCH on /api/part/{id}/ with multipart/form-data containing the image field.
+
+    Args:
+        part_id: The ID of the part to upload the image to
+        image_data: Image file content as bytes
+        filename: Name of the image file
+        content_type: MIME type of the image (default: image/jpeg)
+
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        # InvenTree uses PATCH /api/part/{id}/ with image field, not a separate /image/ endpoint
+        response = api.upload_file(f"/part/{part_id}/", image_data, filename, content_type)
+        return {
+            "status": "ok",
+            "part_id": part_id,
+            "message": "Image uploaded successfully",
+            "response": response,
+        }
+    except Exception as e:
+        print(f"Error uploading image to part {part_id}: {e}")
+        return {
+            "status": "error",
+            "part_id": part_id,
+            "message": str(e),
         }
 
 

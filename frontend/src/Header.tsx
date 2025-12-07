@@ -37,7 +37,7 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
               py: 0.5,
               backgroundColor: 'info.dark',
               color: 'info.contrastText',
-              borderRadius: 1,
+              borderRadius: 1.5,
               fontSize: '0.875rem',
               fontWeight: 'bold'
             }}>

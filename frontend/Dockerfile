@@ -9,7 +9,8 @@ RUN npm install
 COPY . .
 
 # Build with environment variables
-ARG VITE_BACKEND_URL
+# Default value provides fallback for local development if not provided via docker-compose
+ARG VITE_BACKEND_URL=http://localhost:8001
 RUN VITE_BACKEND_URL=${VITE_BACKEND_URL} npm run build
 
 # Stage 2: Serve the built application

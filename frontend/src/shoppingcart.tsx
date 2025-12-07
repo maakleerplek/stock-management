@@ -65,7 +65,15 @@ function ShoppingCart({
     };
     // Don't render if cart is empty and no recent checkout
     return (
-        <Card sx={{ maxWidth: 420, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 2, borderTop: isVolunteerMode ? 4 : 0, borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' }}>
+        <Card sx={{ 
+            maxWidth: 420, 
+            minWidth: 320, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 2, 
+            borderTop: isVolunteerMode ? 4 : 0, 
+            borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' 
+        }}>
             <CardHeader
                 title={isVolunteerMode ? "Add to Stock" : "Shopping Cart"}
                 avatar={isVolunteerMode ? <VolunteerActivismIcon /> : <ShoppingCartIcon />}
@@ -101,7 +109,7 @@ function ShoppingCart({
                                                     gap: 2,
                                                     p: 2,
                                                     bgcolor: 'background.default',
-                                                    borderRadius: 1,
+                                                    borderRadius: 1.5,
                                                     border: 1,
                                                     borderColor: 'divider',
                                                     animation: 'bounceIn 0.3s ease-out',

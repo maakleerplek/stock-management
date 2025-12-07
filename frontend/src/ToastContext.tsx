@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           sx={{
             '& .MuiAlert-root': {
-              borderRadius: 1,
+              borderRadius: 1.5,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             },
           }}

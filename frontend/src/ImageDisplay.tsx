@@ -134,7 +134,7 @@ export default function ImageDisplay({
                 width={width}
                 height={height}
                 sx={{
-                    borderRadius: 1,
+                    borderRadius: 1.5,
                     ...sx,
                 }}
             />
@@ -153,7 +153,7 @@ export default function ImageDisplay({
                     width,
                     height,
                     backgroundColor: 'action.disabledBackground',
-                    borderRadius: 1,
+                    borderRadius: 1.5,
                     border: '1px solid',
                     borderColor: 'divider',
                     gap: 1,
@@ -188,7 +188,7 @@ export default function ImageDisplay({
                     width,
                     height,
                     objectFit: 'contain',
-                    borderRadius: 1,
+                    borderRadius: 1.5,
                     border: '1px solid',
                     borderColor: 'divider',
                     backgroundColor: 'background.default',

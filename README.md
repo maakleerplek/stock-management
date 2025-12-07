@@ -89,24 +89,41 @@ python main.py
 ## Project Structure
 
 ```
-stock-management/
-├── frontend/                 # React TypeScript application
+gev/
+├── frontend/                    # React TypeScript application
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── App.tsx          # Main application component
-│   │   ├── theme.ts         # Material-UI theme configuration
-│   │   ├── sendCodeHandler.tsx    # API communication
-│   │   └── ToastContext.tsx       # Notification system
+│   │   ├── App.tsx             # Main app component
+│   │   ├── BarcodeScannerContainer.tsx
+│   │   ├── ShoppingWindow.tsx
+│   │   ├── AddPartForm.tsx
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   ├── ToastContext.tsx    # Notification system
+│   │   ├── VolunteerContext.tsx
+│   │   ├── theme.ts            # MUI theme config
+│   │   ├── sendCodeHandler.tsx # API communication
+│   │   └── assets/             # Images and SVGs
+│   ├── Dockerfile
 │   ├── package.json
 │   └── vite.config.ts
-├── backend/                  # Python FastAPI backend
-│   ├── main.py              # API server
-│   ├── inventree_client.py  # InvenTree integration
+│
+├── backend/                     # Python FastAPI backend
+│   ├── main.py                 # API server with endpoints
+│   ├── inventree_client.py     # InvenTree API client
+│   ├── test_backend.py
+│   ├── Dockerfile
 │   └── requirements.txt
-├── inventree-configs/        # InvenTree configuration
-├── inventree-data/           # Database and media storage
-├── docker-compose.yml        # Docker Compose configuration
-└── Caddyfile                # Caddy reverse proxy config
+│
+├── inventree-configs/           # InvenTree configuration files
+│
+├── logs/                        # Application logs
+│
+├── docker-compose.yml          # Multi-container orchestration
+├── Caddyfile                   # Reverse proxy configuration
+├── README.md                   # Project documentation
+├── DEPLOYMENT_CHECKLIST.md
+├── BACKEND_PROTECTION.md
+└── Various IMAGE_*.md files    # Image system documentation
 ```
 
 ## API Endpoints
