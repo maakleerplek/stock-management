@@ -14,7 +14,7 @@
   - Caddy as reverse proxy, Nginx for static serving in some setups
 - DevOps:
   - Docker & Docker Compose for local/dev/prod
-- Default URLs (Docker):
+- Default URLs (Docker) Check the .env for relevent ulr's:
   - Frontend: http://localhost:8081
   - Backend API: http://localhost:8001
   - InvenTree: http://localhost:8000
@@ -29,15 +29,6 @@
   - Use MUI patterns and theming (see `frontend/src/theme.ts`).
   - Keep existing structure of components in `frontend/src/components`.
 
-## How to Use MCP Tools for This Project
-
-- When you need external information (React, TypeScript, MUI, FastAPI, InvenTree, Docker):
-  - Prefer the **Perplexity MCP server** to search current documentation and best practices.
-- When you need to inspect or modify project files (if a filesystem MCP is configured):
-  - Use the filesystem MCP to read/write files under `frontend/` and `backend/`.
-- Always:
-  - Read existing code and component structure before suggesting big refactors.
-  - Prefer minimal, focused changes that fit the existing architecture.
 
 ## Project Structure (Important Paths)
 
@@ -50,19 +41,14 @@
 - `backend/inventree_client.py` – InvenTree integration
 - `docker-compose.yml` – Docker services
 - `Caddyfile` – Caddy configuration
+- `Inventree-data` – All inventree data
+
 
 ## Development & Environment
 
-- Local frontend:
-  - `cd frontend && npm install && npm run dev`
-- Local backend:
-  - `cd backend`
-  - `python -m venv venv`
-  - `source venv/bin/activate` (or `venv\Scripts\activate` on Windows)
-  - `pip install -r requirements.txt`
-  - `python main.py`
 - Docker (recommended):
   - `docker compose up -d --build`
+
 
 ## Behaviors to Avoid
 
