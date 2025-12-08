@@ -248,6 +248,8 @@ Contributions are welcome! Please follow these steps:
 - Update documentation
 
 ## Roadmap
+- Android mobile app if possible
+- Using feedback from users to improve the webapp
 
 ### Current Status ✅
 - ✅ Barcode scanning
