@@ -80,6 +80,24 @@ function Footer() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <GitHub sx={{ fontSize: '1.2rem' }} />
                 <Link
+                  href="https://forms.office.com/Pages/ResponsePage.aspx?id=na_P3-cbHE-C0Dt1rSax0GOEml8Fu2tKkljOunyJSCNUMUk1SkM4UUIxRExGNVRRNlhZVzU1UkVQSS4u"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="primary"
+                  sx={{
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    transition: 'color 0.2s',
+                    '&:hover': { color: 'primary.light' },
+                  }}
+                >
+                  Give feedback
+                </Link>
+              </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <GitHub sx={{ fontSize: '1.2rem' }} />
+                <Link
                   href="https://github.com/maakleerplek/stock-management"
                   target="_blank"
                   rel="noopener noreferrer"

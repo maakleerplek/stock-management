@@ -112,11 +112,3 @@ Before modifying `backend/main.py`, ensure:
    docker compose up -d --build
    ```
 
-## 📞 Support Contact
-
-Document any issues encountered:
-- [ ] Date/Time of issue
-- [ ] Which endpoint failed
-- [ ] Error message from backend logs
-- [ ] Steps to reproduce
-- [ ] Frontend browser console errors
