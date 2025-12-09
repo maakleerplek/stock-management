@@ -22,8 +22,8 @@ export default tseslint.config([
   },
   {
     files: [
-      'frontend/src/ToastContext.tsx',
-      'frontend/src/VolunteerContext.tsx',
+      'src/ToastContext.tsx',
+      'src/VolunteerContext.tsx',
     ],
     rules: {
       'react-refresh/only-export-components': 'off',
