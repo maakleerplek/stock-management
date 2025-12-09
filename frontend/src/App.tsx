@@ -14,7 +14,10 @@ import { VolunteerProvider } from './VolunteerContext'; // Removed useVolunteer 
 import VolunteerModal from './VolunteerModal';
 
 function AppContent() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('themePreference');
+    return savedTheme ? savedTheme : 'light';
+  });
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [, setLogs] = useState<string[]>([]); // Ignore logs variable
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
@@ -201,16 +204,20 @@ function AppContent() {
   };
 
   const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+
     // Use the View Transitions API if available
     if (!document.startViewTransition) {
       // Fallback for browsers that don't support the API
-      setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+      setTheme(newTheme);
+      localStorage.setItem('themePreference', newTheme);
       return;
     }
 
     // Wrap the state update in startViewTransition
     document.startViewTransition(() => {
-      setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+      setTheme(newTheme);
+      localStorage.setItem('themePreference', newTheme);
     });
   };
 

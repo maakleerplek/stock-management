@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      # Optional: Add a step to check for syntax errors or basic import errors
+      - name: Verify imports
+        run: python -c "import main; print('Backend imports verified')"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env file
+        run: |
+          echo "INVENTREE_DB_USER=test" >> .env
+          echo "INVENTREE_DB_PASSWORD=test" >> .env
+          echo "INVENTREE_DB_NAME=test" >> .env
+          echo "INVENTREE_EXT_VOLUME=./inventree-data" >> .env # Changed to existing folder
+          echo "INVENTREE_TAG=stable" >> .env # Added a default value
+          echo "LOCAL_IP=127.0.0.1" >> .env
+          echo "INVENTREE_HTTP_PORT=80" >> .env
+          echo "INVENTREE_HTTPS_PORT=443" >> .env
+      - name: Build Docker images
+        run: docker compose build
