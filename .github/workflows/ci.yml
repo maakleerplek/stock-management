@@ -43,8 +43,12 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
-      # Optional: Add a step to check for syntax errors or basic import errors
       - name: Verify imports
+        env:
+          INVENTREE_URL: http://localhost:8000
+          INVENTREE_TOKEN: dummytoken
+          INVENTREE_SITE_URL: http://localhost:8080
+          INVENTREE_PROXY_INTERNAL_URL: http://inventree-proxy
         run: python -c "import main; print('Backend imports verified')"
 
   docker-build:
