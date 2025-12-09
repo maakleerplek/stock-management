@@ -41,7 +41,6 @@ A modern, responsive inventory management system with barcode scanning, shopping
 
 ### DevOps
 - **Docker & Docker Compose** - Containerization
-- **Nginx** - Static file serving
 
 ## Quick Start
 
@@ -170,21 +169,6 @@ curl -X POST http://localhost:8001/take-item \
 - Keyboard navigation support
 - ARIA labels on interactive elements
 
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Backend
-VITE_BACKEND_URL=http://localhost:8001
-
-# InvenTree
-INVENTREE_USER=admin
-INVENTREE_PASSWORD=your_password
-INVENTREE_SERVER=http://inventree:8000
-```
 
 ### Theme Customization
 
@@ -265,6 +249,8 @@ Contributions are welcome! Please follow these steps:
 - Update documentation
 
 ## Roadmap
+- Android mobile app if possible
+- Using feedback from users to improve the webapp
 
 ### Current Status ✅
 - ✅ Barcode scanning
