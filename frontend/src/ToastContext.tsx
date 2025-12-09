@@ -18,6 +18,10 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const addToast = useCallback((message: string, type: AlertColor = 'info', duration = 4000) => {
     const id = `${Date.now()}-${Math.random()}`;
     const newToast: Toast = { id, message, type, duration };
@@ -27,11 +31,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     if (duration > 0) {
       setTimeout(() => removeToast(id), duration);
     }
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           sx={{
             '& .MuiAlert-root': {
-              borderRadius: 1,
+              borderRadius: 1.5,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             },
           }}

@@ -32,7 +32,8 @@
 # The default server address is configured in the .env file
 # If not specified, the proxy listens for all http/https traffic
 # If you need to listen on multiple addresses, or use a different port, you can modify this section directly
-{$INVENTREE_SITE_URL:"http://, https://"} {
+{$LOCAL_IP}.sslip.io {
+	tls internal
 	import log_common inventree
 
 	encode gzip
@@ -73,5 +74,28 @@
 		# If you are running behind another proxy, you may need to specify 'trusted_proxies'
 		# Ref: https://caddyserver.com/docs/json/apps/http/servers/trusted_proxies/
 		# trusted_proxies ...
+	}
+}
+
+{$LOCAL_IP}.sslip.io:8085 {
+	tls internal
+	log {
+		output file /var/log/caddy/assistant.access.log
+	}
+
+	# Handle media request files (needed for item images)
+	handle_path /media/* {
+		root * /var/www/media
+		file_server
+	}
+
+	# Proxy API requests to the custom backend
+	handle_path /api/* {
+		reverse_proxy backend:8001
+	}
+
+	# Proxy all other requests to the custom frontend
+	handle /* {
+		reverse_proxy frontend:80
 	}
 }

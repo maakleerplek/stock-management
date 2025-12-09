@@ -1,12 +1,33 @@
-import codeImg from './assets/code_202508181659032.png';
 import { motion } from 'framer-motion';
-import { Card, Typography, CardMedia, Box } from '@mui/material';
+import { Card, Typography, Box } from '@mui/material';
 import { Payment } from '@mui/icons-material';
+import { QRCodeSVG } from 'qrcode.react';
+import { useMemo } from 'react';
 
-function PayconiqQrCode() {
+interface PayconiqQrCodeProps {
+    total?: number; // Total amount in euros
+}
+
+function PayconiqQrCode({ total = 0 }: PayconiqQrCodeProps) {
+    // Generate dynamic Payconiq payment link with amount
+    // Format: https://payconiq.com/merchant/{merchantId}?amount={amountInCents}
+    const MERCHANT_ID = "616941d236664900073738ce";
+    
+    const paymentLink = useMemo(() => {
+        if (total > 0) {
+            // Convert euros to cents for Payconiq
+            const amountInCents = Math.round(total * 100);
+            return `https://payconiq.com/merchant/1/${MERCHANT_ID}?amount=${amountInCents}`;
+        }
+        // Default link when no total is provided
+        return `https://payconiq.com/merchant/1/${MERCHANT_ID}`;
+    }, [total]);
+
     const handleClick = () => {
-        window.open("https://payconiq.com/merchant/1/616941d236664900073738ce", "_blank");
+        window.open(paymentLink, "_blank");
     };
+
+    const displayTotal = total > 0 ? `€${total.toFixed(2)}` : '';
 
     return (
         <motion.div
@@ -19,14 +40,40 @@ function PayconiqQrCode() {
                 <Payment sx={{ fontSize: '1.8rem', color: 'secondary.main' }} />
                 <Typography variant="h5" component="h2">Pay with Payconiq</Typography>
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '25ch' }}>Click the QR code to open the payment link.</Typography>
-            <CardMedia
-                component="img"
-                image={codeImg}
-                alt="Payconiqqrcode"
+            {total > 0 && (
+                <Typography variant="h6" color="primary.main" fontWeight="bold">
+                    Amount: {displayTotal}
+                </Typography>
+            )}
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '25ch' }}>
+                Scan the QR code to pay the exact amount.
+            </Typography>
+            <Box
                 onClick={handleClick}
-                sx={{ width: 150, height: 150, cursor: 'pointer', borderRadius: 1, border: '4px solid', borderColor: 'background.paper', transition: 'transform 0.3s, box-shadow 0.3s', '&:hover': { transform: 'scale(1.05)', boxShadow: '0 0 0 4px var(--mui-palette-primary-main)' } }}
-            />
+                sx={{ 
+                    cursor: 'pointer',
+                    p: 2,
+                    bgcolor: 'background.paper',
+                    borderRadius: 1.5,
+                    border: '4px solid',
+                    borderColor: 'background.paper',
+                    transition: 'transform 0.3s, box-shadow 0.3s',
+                    '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: '0 0 0 4px var(--mui-palette-primary-main)'
+                    }
+                }}
+            >
+                <QRCodeSVG
+                    value={paymentLink}
+                    size={150}
+                    level="M"
+                    includeMargin={false}
+                />
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+                Click QR code to open payment link
+            </Typography>
         </Card>
         </motion.div>
     );

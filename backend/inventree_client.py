@@ -6,6 +6,7 @@ to bypass SITE_URL validation from internal Docker containers.
 
 import os
 from urllib.parse import urljoin
+from typing import Optional
 
 import requests
 from dotenv import load_dotenv
@@ -17,14 +18,15 @@ load_dotenv()
 INVENTREE_URL = os.getenv("INVENTREE_URL")
 INVENTREE_TOKEN = os.getenv("INVENTREE_TOKEN")
 INVENTREE_SITE_URL = os.getenv("INVENTREE_SITE_URL")
+INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy") # Default to inventree-proxy for internal use
 
-if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL]):
+if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL]):
     raise RuntimeError(
         "Missing required environment variables: "
-        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL"
+        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL"
     )
 
-print(f"InvenTree Host: {INVENTREE_URL}")
+print(f"InvenTree Proxy Host: {INVENTREE_PROXY_INTERNAL_URL}")
 print(f"InvenTree Token: {'*' * 10}{'*' * (len(INVENTREE_TOKEN) - 10) if INVENTREE_TOKEN else 'Not Set'}")
 
 
@@ -104,6 +106,59 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"POST {endpoint} failed: {e}") from e
 
+    def patch(self, endpoint: str, data: dict) -> dict:
+        """
+        Perform a PATCH request to the InvenTree API.
+
+        Args:
+            endpoint: API endpoint (e.g., "/part/123/")
+            data: Request payload as dictionary
+
+        Returns:
+            JSON response as dictionary
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+
+        try:
+            response = self.session.patch(url, json=data, params={"format": "json"})
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"PATCH {endpoint} failed: {e}") from e
+
+    def upload_file(self, endpoint: str, file_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
+        """
+        Upload a file to the InvenTree API using multipart/form-data.
+        For part images, use PATCH on /part/{id}/ with the image field.
+
+        Args:
+            endpoint: API endpoint (e.g., "/part/123/")
+            file_data: File content as bytes
+            filename: Name of the file
+            content_type: MIME type of the file
+
+        Returns:
+            JSON response as dictionary
+
+        Raises:
+            Exception: If the API request fails
+        """
+        url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
+
+        try:
+            files = {
+                "image": (filename, file_data, content_type)
+            }
+            # Use PATCH for part image uploads (not POST)
+            response = self.session.patch(url, files=files, params={"format": "json"})
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            raise Exception(f"File upload to {endpoint} failed: {e}") from e
+
 
 # Initialize global API client
 api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL)
@@ -140,6 +195,146 @@ def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") ->
         return {
             "status": "error",
             "item_id": item_id,
+            "message": str(e),
+        }
+
+
+def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> dict:
+    """
+    Add items to stock in InvenTree.
+    
+    Args:
+        item_id: The ID of the stock item to add
+        quantity: The quantity to add
+        notes: Optional addition notes
+        
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        payload = {
+            "items": [{"pk": item_id, "quantity": quantity}],
+            "notes": notes,
+        }
+        api.post("/stock/add/", payload)
+        return {
+            "status": "ok",
+            "item_id": item_id,
+            "quantity": quantity,
+        }
+    except Exception as e:
+        print(f"Error adding stock: {e}")
+        return {
+            "status": "error",
+            "item_id": item_id,
+            "message": str(e),
+        }
+
+
+def create_part(
+    name: str,
+    ipn: str,
+    description: str = "",
+    category: int = None,
+    units: str = "",
+    default_location: int = None,
+    default_supplier: int = None,
+    notes: str = "",
+    active: bool = True,
+    purchaseable: bool = True,
+) -> dict:
+    """
+    Create a new part in InvenTree.
+
+    Args:
+        name: Part name
+        ipn: Internal Part Number (SKU)
+        description: Part description
+        category: Category ID
+        units: Unit of measure
+        default_location: Default storage location ID
+        default_supplier: Default supplier ID
+        notes: Part notes
+        active: Is part active
+        purchaseable: Is part purchaseable
+
+    Returns:
+        Dictionary with status and details of the created part, or error.
+    """
+    try:
+        payload = {
+            "name": name,
+            "IPN": ipn,
+            "description": description,
+            "units": units,
+            "notes": notes,
+            "active": active,
+            "purchaseable": purchaseable,
+        }
+
+        if category is not None:
+            payload["category"] = category
+        if default_location is not None:
+            payload["default_location"] = default_location
+        if default_supplier is not None:
+            payload["default_supplier"] = default_supplier
+
+        response = api.post("/part/", payload)
+        return {
+            "status": "ok",
+            "part": response,
+        }
+    except Exception as e:
+        print(f"Error creating part: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+
+
+def create_stock_item(
+    part_id: int,
+    location_id: int,
+    quantity: float,
+    notes: str = "",
+    barcode: str = "",
+    purchase_price: Optional[float] = None,
+    purchase_price_currency: Optional[str] = None
+) -> dict:
+    """
+    Create a new stock item in InvenTree for a given part.
+
+    Args:
+        part_id: The ID of the part to create stock for.
+        location_id: The ID of the storage location for the stock item.
+        quantity: The quantity of the stock item.
+        notes: Optional notes for the stock item.
+
+    Returns:
+        Dictionary with status and details of the created stock item, or error.
+    """
+    try:
+        payload = {
+            "part": part_id,
+            "location": location_id,
+            "quantity": quantity,
+            "notes": notes,
+        }
+        if barcode:
+            payload["barcode"] = barcode
+        if purchase_price is not None:
+            payload["purchase_price"] = purchase_price
+        if purchase_price_currency is not None:
+            payload["purchase_price_currency"] = purchase_price_currency
+        response = api.post("/stock/", payload)
+        return {
+            "status": "ok",
+            "stock_item": response,
+        }
+    except Exception as e:
+        print(f"Error creating stock item: {e}")
+        return {
+            "status": "error",
             "message": str(e),
         }
 
@@ -206,6 +401,38 @@ def get_item_details(item_id: int) -> dict:
             "status": "error",
             "item_id": item_id,
             "message": "Failed to fetch item details",
+        }
+
+
+def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
+    """
+    Upload an image to a part in InvenTree.
+    Uses PATCH on /api/part/{id}/ with multipart/form-data containing the image field.
+
+    Args:
+        part_id: The ID of the part to upload the image to
+        image_data: Image file content as bytes
+        filename: Name of the image file
+        content_type: MIME type of the image (default: image/jpeg)
+
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        # InvenTree uses PATCH /api/part/{id}/ with image field, not a separate /image/ endpoint
+        response = api.upload_file(f"/part/{part_id}/", image_data, filename, content_type)
+        return {
+            "status": "ok",
+            "part_id": part_id,
+            "message": "Image uploaded successfully",
+            "response": response,
+        }
+    except Exception as e:
+        print(f"Error uploading image to part {part_id}: {e}")
+        return {
+            "status": "error",
+            "part_id": part_id,
+            "message": str(e),
         }
 
 

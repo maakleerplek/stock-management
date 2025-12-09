@@ -80,7 +80,8 @@ services:
             - 8000
         environment:
             # Add the internal service name to the list of allowed hosts.
-            - INVENTREE_ALLOWED_HOSTS=inventree-server,${INVENTREE_SITE_URL}
+            - INVENTREE_ALLOWED_HOSTS=inventree-server,${LOCAL_IP}.sslip.io
+            - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
             - TZ=Europe/Brussels
         depends_on:
             - inventree-db
@@ -99,6 +100,7 @@ services:
         container_name: inventree-worker
         command: invoke worker
         environment:
+            - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
             - TZ=Europe/Brussels
         depends_on:
             - inventree-server
@@ -118,11 +120,13 @@ services:
         restart: always
         environment:
             - TZ=Europe/Brussels
+            - LOCAL_IP=${LOCAL_IP}
         depends_on:
             - inventree-server
         ports:
             - ${INVENTREE_HTTP_PORT:-80}:80
             - ${INVENTREE_HTTPS_PORT:-443}:443
+            - 8085:8085
         env_file:
             - .env
         volumes:
@@ -140,22 +144,23 @@ services:
         context: ./backend
       depends_on:
         - inventree-server
-      ports:
-        # Maps host port 8001 to the backend container's internal port 8001
-        - "8001:8001"
+      expose:
+        - "8001"
       env_file:
         - .env
       environment:
+          - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
           - TZ=Europe/Brussels
           # Force python to run in unbuffered mode, so print() statements appear in logs.
           - PYTHONUNBUFFERED=1
+
 
     frontend:
       build:
         context: ./frontend
         args:
-          - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+          VITE_BACKEND_URL: /api
       depends_on:
         - backend
-      ports:
-        - "8081:80"
+      expose:
+        - "80"
