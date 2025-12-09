@@ -54,9 +54,8 @@ class CreatePartRequest(BaseModel):
     partName: str
     ipn: str = "" # Add ipn field
     description: str = ""
-    # Removed from initial creation
-    # category: str
     initialQuantity: float = 0 # Initial quantity for stock item to be created with part
+    minimumStock: Optional[float] = None # Add minimumStock field
 
     # unit: str = "" # Removed
     # Removed from initial creation
@@ -106,6 +105,7 @@ async def create_part_endpoint(data: CreatePartRequest) -> dict:
             name=data.partName,
             ipn=part_ipn,
             description=data.description,
+            minimum_stock=data.minimumStock, # Pass minimumStock to create_part
             # category is now set in the update step
             # units is now set in the update step
             # default_location is now set in the update step

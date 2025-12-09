@@ -178,6 +178,7 @@ function AppContent() {
             // partNumber: formData.partNumber, // Removed
             description: formData.description,
             initialQuantity: formData.initialQuantity,
+            minimumStock: formData.minimumStock, // Include minimumStock here
             // unit: formData.unit, // Removed
             // supplier: formData.supplier, // Removed
             // notes: formData.notes, // Removed

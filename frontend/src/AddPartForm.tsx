@@ -42,6 +42,7 @@ export interface PartFormData {
   initialQuantity: string; // Keep as string for TextField input
   // unit: string; // Removed
   storageLocation: string;
+  minimumStock: string; // Add minimumStock field
   // supplier: string; // Removed
   // notes: string; // Removed
   barcode?: string; // Add barcode field
@@ -56,6 +57,7 @@ export interface PartFormErrors {
   // partNumber?: string; // Removed
   category?: string;
   initialQuantity?: string;
+  minimumStock?: string; // Add minimumStock error field
   barcode?: string;
   submit?: string; // For general form submission errors
 }
@@ -79,6 +81,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     description: '',
     category: '',
     initialQuantity: '',
+    minimumStock: '', // Initialize minimumStock
     // unit: '', // Removed
     storageLocation: '',
     // supplier: '', // Removed
@@ -114,6 +117,9 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       });
       if (formData.initialQuantity && isNaN(parseFloat(formData.initialQuantity))) {
         newErrors.initialQuantity = 'Quantity must be a number';
+      }
+      if (formData.minimumStock && isNaN(parseFloat(formData.minimumStock))) {
+        newErrors.minimumStock = 'Minimum Stock must be a number';
       }
       if (formData.purchasePrice && isNaN(parseFloat(formData.purchasePrice))) {
         newErrors.purchasePrice = 'Purchase Price must be a number';
@@ -233,6 +239,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       description: '',
       category: '',
       initialQuantity: '',
+      minimumStock: '', // Clear minimumStock on reset
       // unit: '', // Removed
       storageLocation: '',
       // supplier: '', // Removed
@@ -368,6 +375,22 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                   inputProps={{ step: '0.01', min: '0' }}
                   placeholder="0"
                   required
+                />
+              </Grid>
+
+              {/* Minimum Stock */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Minimum Stock"
+                  name="minimumStock"
+                  value={formData.minimumStock}
+                  onChange={handleChange}
+                  error={!!errors.minimumStock}
+                  helperText={errors.minimumStock}
+                  type="number"
+                  inputProps={{ step: '1', min: '0' }}
+                  placeholder="0"
                 />
               </Grid>
 

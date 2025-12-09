@@ -242,6 +242,7 @@ def create_part(
     notes: str = "",
     active: bool = True,
     purchaseable: bool = True,
+    minimum_stock: Optional[float] = None, # Add minimum_stock parameter
 ) -> dict:
     """
     Create a new part in InvenTree.
@@ -278,6 +279,8 @@ def create_part(
             payload["default_location"] = default_location
         if default_supplier is not None:
             payload["default_supplier"] = default_supplier
+        if minimum_stock is not None: # Add minimum_stock to payload
+            payload["minimum_stock"] = minimum_stock
 
         response = api.post("/part/", payload)
         return {
