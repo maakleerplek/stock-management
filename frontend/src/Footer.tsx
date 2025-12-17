@@ -78,7 +78,6 @@ function Footer() {
                 </Link>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <GitHub sx={{ fontSize: '1.2rem' }} />
                 <Link
                   href="https://forms.office.com/Pages/ResponsePage.aspx?id=na_P3-cbHE-C0Dt1rSax0GOEml8Fu2tKkljOunyJSCNUMUk1SkM4UUIxRExGNVRRNlhZVzU1UkVQSS4u"
                   target="_blank"

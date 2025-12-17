@@ -231,6 +231,63 @@ def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> dict
         }
 
 
+def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> dict:
+    """
+    Set stock to an absolute quantity in InvenTree.
+    
+    Args:
+        item_id: The ID of the stock item to update
+        quantity: The absolute quantity to set
+        notes: Optional notes
+        
+    Returns:
+        Response dictionary with status and details
+    """
+    try:
+        # Get current stock quantity
+        stock_item = api.get(f"/stock/{item_id}/")
+        current_quantity = stock_item.get("quantity", 0)
+        
+        # Calculate the difference
+        difference = quantity - current_quantity
+        
+        if difference == 0:
+            return {
+                "status": "ok",
+                "item_id": item_id,
+                "quantity": quantity,
+                "message": "Stock quantity already at target value",
+            }
+        elif difference > 0:
+            # Need to add stock
+            payload = {
+                "items": [{"pk": item_id, "quantity": difference}],
+                "notes": notes,
+            }
+            api.post("/stock/add/", payload)
+        else:
+            # Need to remove stock
+            payload = {
+                "items": [{"pk": item_id, "quantity": abs(difference)}],
+                "notes": notes,
+            }
+            api.post("/stock/remove/", payload)
+        
+        return {
+            "status": "ok",
+            "item_id": item_id,
+            "quantity": quantity,
+            "previous_quantity": current_quantity,
+        }
+    except Exception as e:
+        print(f"Error setting stock: {e}")
+        return {
+            "status": "error",
+            "item_id": item_id,
+            "message": str(e),
+        }
+
+
 def create_part(
     name: str,
     ipn: str,
@@ -242,6 +299,7 @@ def create_part(
     notes: str = "",
     active: bool = True,
     purchaseable: bool = True,
+    minimum_stock: Optional[float] = None, # Add minimum_stock parameter
 ) -> dict:
     """
     Create a new part in InvenTree.
@@ -278,6 +336,8 @@ def create_part(
             payload["default_location"] = default_location
         if default_supplier is not None:
             payload["default_supplier"] = default_supplier
+        if minimum_stock is not None: # Add minimum_stock to payload
+            payload["minimum_stock"] = minimum_stock
 
         response = api.post("/part/", payload)
         return {

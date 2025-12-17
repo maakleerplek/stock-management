@@ -74,6 +74,10 @@
 		# If you are running behind another proxy, you may need to specify 'trusted_proxies'
 		# Ref: https://caddyserver.com/docs/json/apps/http/servers/trusted_proxies/
 		# trusted_proxies ...
+
+		# Remove X-Frame-Options from upstream and set our own
+		header_down -X-Frame-Options
+		header_down X-Frame-Options "SAMEORIGIN"
 	}
 }
 

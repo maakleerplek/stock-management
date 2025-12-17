@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import ShoppingCart, { type CartItem } from './shoppingcart';
-import { type ItemData, handleTakeItem, handleAddItem } from './sendCodeHandler';
+import { type ItemData, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
 import { useVolunteer } from './VolunteerContext';
 
@@ -15,6 +15,7 @@ export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalCha
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
+    const [isSetMode, setIsSetMode] = useState<boolean>(false);
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
 
@@ -70,7 +71,10 @@ export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalCha
         const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
 
         const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
-        const actionText = isVolunteerMode ? 'add to stock' : 'checkout';
+        let actionText = 'checkout';
+        if (isVolunteerMode) {
+            actionText = isSetMode ? 'set stock to' : 'add to stock';
+        }
         const confirmMessage = `Are you sure you want to ${actionText}?\n\n${itemsSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
 
         if (!window.confirm(confirmMessage)) {
@@ -79,10 +83,13 @@ export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalCha
             return;
         }
 
-        addLog(`Processing ${isVolunteerMode ? 'adding' : 'checkout of'} all items in the cart...`);
-        addToast(`Processing ${isVolunteerMode ? 'add' : 'checkout'}...`, 'info');
+        addLog(`Processing ${isVolunteerMode ? (isSetMode ? 'setting' : 'adding') : 'checkout of'} all items in the cart...`);
+        addToast(`Processing ${isVolunteerMode ? (isSetMode ? 'set' : 'add') : 'checkout'}...`, 'info');
 
-        const handler = isVolunteerMode ? handleAddItem : handleTakeItem;
+        let handler = handleTakeItem;
+        if (isVolunteerMode) {
+            handler = isSetMode ? handleSetItem : handleAddItem;
+        }
 
         for (const item of cartItems) {
             const success = await handler(item.id, item.cartQuantity, addLog);
@@ -95,8 +102,12 @@ export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalCha
             }
         }
 
-        addLog(`All items ${isVolunteerMode ? 'added to stock' : 'checked out'} successfully.`);
-        addToast(`✓ ${isVolunteerMode ? 'Items added to stock!' : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
+        let successMessage = 'checked out';
+        if (isVolunteerMode) {
+            successMessage = isSetMode ? 'set in stock' : 'added to stock';
+        }
+        addLog(`All items ${successMessage} successfully.`);
+        addToast(`✓ ${isVolunteerMode ? (isSetMode ? 'Stock quantities set!' : 'Items added to stock!') : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
         setCartItems([]);
         // Only set checkout total for non-volunteer mode (when payment is needed)
         if (!isVolunteerMode) {
@@ -121,6 +132,8 @@ export default function ShoppingWindow({ addLog, scannedItem, onCheckoutTotalCha
                 onExtraCostChange={setExtraCosts}
                 extraCosts={extraCosts}
                 isVolunteerMode={isVolunteerMode}
+                isSetMode={isSetMode}
+                onSetModeChange={setIsSetMode}
             />
         </motion.div>
     );

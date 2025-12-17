@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
     GET_ITEM_FROM_QR: '/get-item-from-qr',
     TAKE_ITEM: '/take-item',
     ADD_ITEM: '/add-item',
+    SET_ITEM: '/set-item',
 };
 
 interface ApiCallOptions {
@@ -195,6 +196,40 @@ export async function handleAddItem(
 
     if (!result) {
         addLog(`Error: Failed to add item ${itemId}.`);
+        return false;
+    }
+
+    // Assuming apiCall returns null on error and result on success
+    return true;
+}
+
+/**
+ * Set stock to an absolute quantity by calling the backend API.
+ * 
+ * @param itemId - The ID of the stock item to update
+ * @param quantity - The absolute quantity to set
+ * @param addLog - Logging function to record events
+ * @returns Promise<boolean> - true if successful, false otherwise
+ * 
+ * @example
+ * const success = await handleSetItem(5, 10, addLog);
+ */
+export async function handleSetItem(
+    itemId: number,
+    quantity: number,
+    addLog: (log: string) => void,
+): Promise<boolean> {
+    const result = await apiCall<unknown>(
+        API_ENDPOINTS.SET_ITEM,
+        {
+            method: "POST",
+            body: { itemId, quantity },
+            addLog,
+        }
+    );
+
+    if (!result) {
+        addLog(`Error: Failed to set item ${itemId}.`);
         return false;
     }
 
