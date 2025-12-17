@@ -10,12 +10,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import requests
+import urllib3
 import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
 from typing import Optional
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, create_part, create_stock_item, upload_image_to_part
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
+
+# Suppress SSL warnings for internal Docker network communication
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 
@@ -85,6 +89,14 @@ def add_item(data: TakeItemRequest) -> dict:
     """Add stock to inventory."""
     notes = data.notes.replace("Removed", "Added")
     response = add_stock(data.itemId, data.quantity, notes)
+    return response
+
+
+@app.post("/set-item")
+def set_item(data: TakeItemRequest) -> dict:
+    """Set stock to an absolute quantity."""
+    notes = data.notes.replace("Removed", "Set").replace("Added", "Set")
+    response = set_stock(data.itemId, data.quantity, notes)
     return response
 
 
@@ -367,7 +379,8 @@ async def image_proxy(image_path: str):
 
         # Make an authenticated request to the InvenTree server for the image
         # Using api.session which has proper auth headers already set up
-        response = api.session.get(full_inventree_image_url, stream=True)
+        # Disable SSL verification for internal Docker network communication
+        response = api.session.get(full_inventree_image_url, stream=True, verify=False)
         response.raise_for_status()
 
         # Log response info

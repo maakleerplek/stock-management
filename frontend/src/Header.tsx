@@ -1,4 +1,5 @@
-import { Box, Grid, Button } from '@mui/material';
+import { Box, Grid, Button, IconButton, Tooltip } from '@mui/material';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Logo from './logo';
 import LightOrDarkButton from './LightOrDarkButton';
 import { useVolunteer } from './VolunteerContext'; // Assuming VolunteerContext is needed here
@@ -8,9 +9,10 @@ interface HeaderProps {
   toggleTheme: () => void;
   setVolunteerModalOpen: (open: boolean) => void;
   setAddPartFormModalOpen: (open: boolean) => void;
+  onOpenInvenTree?: () => void;
 }
 
-function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen }: HeaderProps) {
+function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, onOpenInvenTree }: HeaderProps) {
   const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
 
   const handleVolunteerToggle = () => {
@@ -46,6 +48,15 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
           )}
         </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Tooltip title="Open InvenTree">
+            <IconButton
+              color="primary"
+              onClick={onOpenInvenTree || (() => window.open('https://10.72.3.141.sslip.io', '_blank'))}
+              size="small"
+            >
+              <OpenInNewIcon />
+            </IconButton>
+          </Tooltip>
           {isVolunteerMode && (
             <Button
               variant="contained"

@@ -6,6 +6,7 @@ import ShoppingWindow from './ShoppingWindow';
 import BarcodeScannerContainer from './BarcodeScannerContainer';
 import Footer from './Footer';
 import Header from './Header';
+import InvenTreePage from './InvenTreePage';
 import { CssBaseline, Box, Dialog, DialogContent } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
@@ -18,6 +19,7 @@ function AppContent() {
     const savedTheme = localStorage.getItem('themePreference');
     return savedTheme ? savedTheme : 'light';
   });
+  const [currentPage, setCurrentPage] = useState<'main' | 'inventree'>('main');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [, setLogs] = useState<string[]>([]); // Ignore logs variable
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
@@ -232,12 +234,16 @@ function AppContent() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
         >
+          {currentPage === 'inventree' ? (
+            <InvenTreePage onBack={() => setCurrentPage('main')} />
+          ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
             <Header
               theme={theme}
               toggleTheme={toggleTheme}
               setVolunteerModalOpen={setVolunteerModalOpen}
               setAddPartFormModalOpen={setAddPartFormModalOpen}
+              onOpenInvenTree={() => setCurrentPage('inventree')}
             />
           <Box sx={{ flex: 1, py: 4 }}>
             <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
@@ -262,6 +268,7 @@ function AppContent() {
 
           <Footer />
         </Box>
+          )}
         </motion.div>
         <VolunteerModal open={volunteerModalOpen} onClose={() => setVolunteerModalOpen(false)} />
         

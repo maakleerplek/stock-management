@@ -15,6 +15,8 @@ import {
   Typography,
   Box,
   InputBase, // For quantity input
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,6 +38,8 @@ interface ShoppingCartProps {
     onExtraCostChange: (cost: number) => void;
     extraCosts: number;
     isVolunteerMode: boolean;
+    isSetMode?: boolean;
+    onSetModeChange?: (isSet: boolean) => void;
 }
 
 
@@ -49,6 +53,8 @@ function ShoppingCart({
     onExtraCostChange,
     extraCosts,
     isVolunteerMode,
+    isSetMode = false,
+    onSetModeChange,
 }: ShoppingCartProps) {
     const { addToast } = useToast();
     const totalPrice = cartItems.reduce(
@@ -75,11 +81,27 @@ function ShoppingCart({
             borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' 
         }}>
             <CardHeader
-                title={isVolunteerMode ? "Add to Stock" : "Shopping Cart"}
+                title={isVolunteerMode ? (isSetMode ? "Set Stock" : "Add to Stock") : "Shopping Cart"}
                 avatar={isVolunteerMode ? <VolunteerActivismIcon /> : <ShoppingCartIcon />}
                 titleTypographyProps={{ variant: 'h6' }}
-            />
-            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
+            />            {isVolunteerMode && onSetModeChange && (
+                <Box sx={{ px: 2, pb: 1 }}>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={isSetMode}
+                                onChange={(e) => onSetModeChange(e.target.checked)}
+                                color="info"
+                            />
+                        }
+                        label={
+                            <Typography variant="body2">
+                                {isSetMode ? "Set absolute quantity" : "Add to existing stock"}
+                            </Typography>
+                        }
+                    />
+                </Box>
+            )}            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
                 {checkedOutTotal !== null ? (
                     // Display checkout successful summary
                     <Box sx={{ textAlign: 'center', py: 4, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -184,7 +206,7 @@ function ShoppingCart({
                             <Typography variant="body1" sx={{ textAlign: 'center' }}>Your cart is empty. Scan an item to add it.</Typography>
                         )}
 
-                        <Extras onExtraCostChange={onExtraCostChange} />
+                        {!isVolunteerMode && <Extras onExtraCostChange={onExtraCostChange} />}
 
                         {(cartItems.length > 0 || extraCosts > 0) && (
                             <Box sx={{ mt: 2 }}>
@@ -200,7 +222,7 @@ function ShoppingCart({
                                     onClick={onCheckout} 
                                     sx={{ mt: 2 }}
                                 >
-                                    {isVolunteerMode ? 'Add to Stock' : 'Checkout'}
+                                    {isVolunteerMode ? (isSetMode ? 'Set Stock' : 'Add to Stock') : 'Checkout'}
                                 </Button>
                             </Box>
                         )}
