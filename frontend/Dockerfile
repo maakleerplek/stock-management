@@ -19,18 +19,19 @@ ENV VITE_VOLUNTEER_PASSWORD=${VITE_VOLUNTEER_PASSWORD}
 
 RUN npm run build
 
-# Stage 2: Serve built application with lightweight web server
+# Stage 2: Serve built application with nginx
 FROM nginx:alpine AS production
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Copy built app
+# Copy built app to nginx html directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 85
+EXPOSE 80
+
+# Simple health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

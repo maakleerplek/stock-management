@@ -47,7 +47,6 @@ services:
         expose:
             - ${INVENTREE_DB_PORT:-5432}/tcp
         environment:
-            - TZ=Europe/Brussels
             - PGDATA=/var/lib/postgresql/data/pgdb
             - POSTGRES_USER=${INVENTREE_DB_USER:?You must provide the 'INVENTREE_DB_USER' variable in the .env file}
             - POSTGRES_PASSWORD=${INVENTREE_DB_PASSWORD:?You must provide the 'INVENTREE_DB_PASSWORD' variable in the .env file}
@@ -63,8 +62,6 @@ services:
         container_name: inventree-cache
         env_file:
             - .env
-        environment:
-            - TZ=Europe/Brussels
         expose:
             - ${INVENTREE_CACHE_PORT:-6379}
         restart: always
@@ -78,11 +75,6 @@ services:
         # Only change this port if you understand the stack.
         expose:
             - 8000
-        environment:
-            # Add the internal service name to the list of allowed hosts.
-            - INVENTREE_ALLOWED_HOSTS=inventree-server,${LOCAL_IP}.sslip.io
-            - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
-            - TZ=Europe/Brussels
         depends_on:
             - inventree-db
             - inventree-cache
@@ -99,9 +91,6 @@ services:
         image: inventree/inventree:${INVENTREE_TAG:-stable}
         container_name: inventree-worker
         command: invoke worker
-        environment:
-            - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
-            - TZ=Europe/Brussels
         depends_on:
             - inventree-server
         env_file:
@@ -118,15 +107,11 @@ services:
         container_name: inventree-proxy
         image: caddy:alpine
         restart: always
-        environment:
-            - TZ=Europe/Brussels
-            - LOCAL_IP=${LOCAL_IP}
         depends_on:
             - inventree-server
         ports:
             - ${INVENTREE_HTTP_PORT:-80}:80
             - ${INVENTREE_HTTPS_PORT:-443}:443
-            - 8085:8085
         env_file:
             - .env
         volumes:
@@ -136,31 +121,3 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/var/log:z
             - ${INVENTREE_EXT_VOLUME}:/data:z
             - ${INVENTREE_EXT_VOLUME}:/config:z
-
-
-    # Custom backend and frontend
-    backend:
-      build:
-        context: ./backend
-      depends_on:
-        - inventree-server
-      expose:
-        - "8001"
-      env_file:
-        - .env
-      environment:
-          - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
-          - TZ=Europe/Brussels
-          # Force python to run in unbuffered mode, so print() statements appear in logs.
-          - PYTHONUNBUFFERED=1
-
-
-    frontend:
-      build:
-        context: ./frontend
-        args:
-          VITE_BACKEND_URL: /api
-      depends_on:
-        - backend
-      expose:
-        - "80"

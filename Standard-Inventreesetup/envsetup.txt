@@ -2,19 +2,16 @@
 # For a full list of the available configuration options, refer to the InvenTree documentation:
 # https://docs.inventree.org/en/stable/start/config/
 
-# === NETWORK CONFIGURATION ===
-# Change this IP to your local machine's IP address
-LOCAL_IP=192.168.68.64
-# =============================
-
 # Specify the name of the docker-compose project
 COMPOSE_PROJECT_NAME=inventree
 
 # InvenTree version tag (e.g. 'stable' / 'latest' / 'x.x.x')
 INVENTREE_TAG=stable
 
-# InvenTree server URL - Constructed dynamically in docker-compose.yml using LOCAL_IP
+# InvenTree server URL - update this to match your server URL
 INVENTREE_SITE_URL="http://inventree.localhost"
+#INVENTREE_SITE_URL="http://192.168.1.2"  # You can specify a local IP address here
+#INVENTREE_SITE_URL="https://inventree.my-domain.com"  # Or a public domain name (which you control)
 
 # InvenTree proxy forwarding settings
 INVENTREE_USE_X_FORWARDED_HOST=True
@@ -37,9 +34,9 @@ INVENTREE_AUTO_UPDATE=True
 
 # InvenTree superuser account details
 # Un-comment (and complete) these lines to auto-create an admin account
-INVENTREE_ADMIN_USER=admin
-INVENTREE_ADMIN_PASSWORD=admin
-INVENTREE_ADMIN_EMAIL=ict@maakleerplek.be
+#INVENTREE_ADMIN_USER=
+#INVENTREE_ADMIN_PASSWORD=
+#INVENTREE_ADMIN_EMAIL=
 
 # Database configuration options
 # DO NOT CHANGE THESE SETTINGS (unless you really know what you are doing)
@@ -62,22 +59,3 @@ INVENTREE_CACHE_PORT=6379
 
 # Options for gunicorn server
 INVENTREE_GUNICORN_TIMEOUT=90
-
-# Settings for inventree-proxy container
-INVENTREE_HTTP_PORT=80
-INVENTREE_HTTPS_PORT=443
-
-# Variables for custom backend and frontend
-# Use the internal Docker service with proper Host header to bypass SITE_URL validation
-INVENTREE_URL=http://inventree-server:8000
-INVENTREE_TOKEN=inv-6ee25a8b15a91b7fd8cdc9023dadb86ffb2447f9-20251205
-INVENTREE_PROXY_INTERNAL_URL=http://inventree-proxy
-
-# Custom variables
-VITE_BACKEND_URL=/api
-
-# Backend Configuration
-INVENTREE_URL=http://inventree-server:8000
-INVENTREE_TOKEN=your_inventree_api_token_here
-INVENTREE_SITE_URL=https://10.72.3.141.sslip.io
-INVENTREE_PROXY_INTERNAL_URL=http://inventree-proxy
