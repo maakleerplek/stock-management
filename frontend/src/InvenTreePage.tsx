@@ -6,7 +6,7 @@ interface InvenTreePageProps {
 }
 
 function InvenTreePage({ onBack }: InvenTreePageProps) {
-  const inventreeUrl = 'https://10.72.3.141.sslip.io';
+  const inventreeUrl = `https://192.168.68.64.sslip.io`;
 
   return (
     <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>

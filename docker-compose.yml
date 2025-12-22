@@ -1,9 +1,9 @@
-# Docker compose recipe for a production-ready InvenTree setup, with the following containers:
-# - PostgreSQL as the database backend
-# - gunicorn as the InvenTree web server
-# - django-q as the InvenTree background worker process
+# Docker compose recipe for a production-ready InvenTree setup, with following containers:
+# - PostgreSQL as database backend
+# - gunicorn as InvenTree web server
+# - django-q as InvenTree background worker process
 # - Caddy as a reverse proxy
-# - redis as the cache manager (optional, disabled by default)
+# - redis as cache manager (optional, disabled by default)
 
 # ---------------------
 # READ BEFORE STARTING!
@@ -12,21 +12,21 @@
 # -----------------------------
 # Setting environment variables
 # -----------------------------
-# Shared environment variables should be stored in the .env file
+# Shared environment variables should be stored in .env file
 # Changes made to this file are reflected across all containers!
 #
 # IMPORTANT NOTE:
 # You should not have to change *anything* within this docker-compose.yml file!
-# Instead, make any changes in the .env file!
+# Instead, make any changes in .env file!
 
 # ------------------------
 # InvenTree Image Versions
 # ------------------------
-# By default, this docker-compose script targets the STABLE version of InvenTree,
+# By default, this docker-compose script targets STABLE version of InvenTree,
 # image: inventree/inventree:stable
 #
-# To run the LATEST (development) version of InvenTree,
-# change the INVENTREE_TAG variable (in the .env file) to "latest"
+# To run LATEST (development) version of InvenTree,
+# change INVENTREE_TAG variable (in .env file) to "latest"
 #
 # Alternatively, you could target a specific tagged release version with (for example):
 # INVENTREE_TAG=0.7.5
@@ -35,12 +35,12 @@
 # ----------------------------
 # Docker compose customization
 # ----------------------------
-# If you wish to customize the docker-compose script, you should only do so if you understand the stack!
-# Do not expect support for customizations that are not part of the standard InvenTree setup!
+# If you wish to customize docker-compose script, you should only do so if you understand the stack!
+# Do not expect support for customizations that are not part of standard InvenTree setup!
 
 services:
     # Database service
-    # Use PostgreSQL as the database backend
+    # Use PostgreSQL as database backend
     inventree-db:
         image: postgres:17
         container_name: inventree-db
@@ -49,12 +49,12 @@ services:
         environment:
             - TZ=Europe/Brussels
             - PGDATA=/var/lib/postgresql/data/pgdb
-            - POSTGRES_USER=${INVENTREE_DB_USER:?You must provide the 'INVENTREE_DB_USER' variable in the .env file}
-            - POSTGRES_PASSWORD=${INVENTREE_DB_PASSWORD:?You must provide the 'INVENTREE_DB_PASSWORD' variable in the .env file}
-            - POSTGRES_DB=${INVENTREE_DB_NAME:?You must provide the 'INVENTREE_DB_NAME' variable in the .env file}
+            - POSTGRES_USER=${INVENTREE_DB_USER:?You must provide 'INVENTREE_DB_USER' variable in .env file}
+            - POSTGRES_PASSWORD=${INVENTREE_DB_PASSWORD:?You must provide 'INVENTREE_DB_PASSWORD' variable in .env file}
+            - POSTGRES_DB=${INVENTREE_DB_NAME:?You must provide 'INVENTREE_DB_NAME' variable in .env file}
         volumes:
             # Map 'data' volume such that postgres database is stored externally
-            - ${INVENTREE_EXT_VOLUME:?You must specify the 'INVENTREE_EXT_VOLUME' variable in the .env file!}:/var/lib/postgresql/data/:z
+            - ${INVENTREE_EXT_VOLUME:?You must specify 'INVENTREE_EXT_VOLUME' variable in the .env file!}:/var/lib/postgresql/data/:z
         restart: unless-stopped
 
     # redis acts as database cache manager
@@ -70,7 +70,7 @@ services:
         restart: always
 
     # InvenTree web server service
-    # Uses gunicorn as the web server
+    # Uses gunicorn as web server
     inventree-server:
         # If you wish to specify a particular InvenTree version, do so here
         image: inventree/inventree:${INVENTREE_TAG:-stable}
@@ -79,7 +79,7 @@ services:
         expose:
             - 8000
         environment:
-            # Add the internal service name to the list of allowed hosts.
+            # Add internal service name to the list of allowed hosts.
             - INVENTREE_ALLOWED_HOSTS=inventree-server,${LOCAL_IP}.sslip.io
             - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
             - TZ=Europe/Brussels
@@ -124,8 +124,8 @@ services:
         depends_on:
             - inventree-server
         ports:
-            - ${INVENTREE_HTTP_PORT:-80}:80
-            - ${INVENTREE_HTTPS_PORT:-443}:443
+            - ${INVENTREE_HTTP_PORT:-84}:84
+            - ${INVENTREE_HTTPS_PORT:-444}:444
             - 8085:8085
         env_file:
             - .env
@@ -137,30 +137,44 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/data:z
             - ${INVENTREE_EXT_VOLUME}:/config:z
 
-
-    # Custom backend and frontend
+    # Custom backend
     backend:
-      build:
-        context: ./backend
-      depends_on:
-        - inventree-server
-      expose:
-        - "8001"
-      env_file:
-        - .env
-      environment:
-          - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
-          - TZ=Europe/Brussels
-          # Force python to run in unbuffered mode, so print() statements appear in logs.
-          - PYTHONUNBUFFERED=1
+        build:
+            context: ./backend
+        depends_on:
+            - inventree-server
+        expose:
+            - "8001"
+        env_file:
+            - .env
+        environment:
+            - INVENTREE_SITE_URL=https://${LOCAL_IP}.sslip.io
+            - TZ=Europe/Brussels
+            # Force python to run in unbuffered mode, so print() statements appear in logs.
+            - PYTHONUNBUFFERED=1
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
 
-
+    # Custom frontend
     frontend:
-      build:
-        context: ./frontend
-        args:
-          VITE_BACKEND_URL: /api
-      depends_on:
-        - backend
-      expose:
-        - "80"
+        build:
+            context: ./frontend
+            args:
+                VITE_BACKEND_URL: /api
+                VITE_VOLUNTEER_PASSWORD: ${VITE_VOLUNTEER_PASSWORD:-volunteer}
+        depends_on:
+            - backend
+        expose:
+            - "85"
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:85/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s

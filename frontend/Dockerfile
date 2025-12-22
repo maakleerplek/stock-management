@@ -1,28 +1,36 @@
-# Stage 1: Build the React application
-FROM node:20 AS build
+# Stage 1: Build React application
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm install
+# Copy package files
+COPY package*.json ./
+RUN npm ci
 
+# Copy source code
 COPY . .
 
 # Build with environment variables
 # Default value provides fallback for local development if not provided via docker-compose
-ARG VITE_BACKEND_URL=http://localhost:8001
-RUN VITE_BACKEND_URL=${VITE_BACKEND_URL} npm run build
+ARG VITE_BACKEND_URL=/api
+ARG VITE_VOLUNTEER_PASSWORD=volunteer
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_VOLUNTEER_PASSWORD=${VITE_VOLUNTEER_PASSWORD}
 
-# Stage 2: Serve the built application
-FROM node:20-alpine
+RUN npm run build
 
-WORKDIR /app
+# Stage 2: Serve built application with lightweight web server
+FROM nginx:alpine AS production
 
-RUN npm install -g serve
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-COPY --from=build /app/dist ./dist
+# Copy built app
+COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-CMD ["serve", "-s", "dist", "-l", "80"]
+EXPOSE 85
 
+CMD ["nginx", "-g", "daemon off;"]
