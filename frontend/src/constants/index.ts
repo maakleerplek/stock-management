@@ -2,7 +2,7 @@
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001',
+  BASE_URL: import.meta.env.VITE_BACKEND_URL || '/api',
   ENDPOINTS: {
     GET_ITEM_FROM_QR: '/get-item-from-qr',
     TAKE_ITEM: '/take-item',
@@ -15,6 +15,29 @@ export const API_CONFIG = {
     CREATE_STOCK_ITEM: '/create-stock-item',
     UPLOAD_PART_IMAGE: '/upload-part-image',
   },
+} as const;
+
+// InvenTree Configuration
+// Dynamically determines URL based on how user accesses the app
+const getInvenTreeUrl = (): string => {
+  if (typeof window === 'undefined') {
+    return 'https://inventree.localhost';
+  }
+  
+  const hostname = window.location.hostname;
+  
+  // If accessing via IP address, use IP:8443 for InvenTree
+  const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (ipPattern.test(hostname)) {
+    return `https://${hostname}:8443`;
+  }
+  
+  // If accessing via domain, use inventree.localhost
+  return 'https://inventree.localhost';
+};
+
+export const INVENTREE_CONFIG = {
+  get URL() { return getInvenTreeUrl(); }
 } as const;
 
 // Theme Configuration
@@ -85,11 +108,6 @@ export const SUCCESS_MESSAGES = {
 export const FILE_UPLOAD = {
   MAX_SIZE_MB: 10,
   ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
-} as const;
-
-// InvenTree Configuration
-export const INVENTREE_CONFIG = {
-  URL: 'https://192.168.68.64.sslip.io',
 } as const;
 
 // Authentication

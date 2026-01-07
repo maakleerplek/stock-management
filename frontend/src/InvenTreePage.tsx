@@ -1,12 +1,14 @@
 import { Box, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { INVENTREE_CONFIG } from './constants';
 
 interface InvenTreePageProps {
   onBack: () => void;
 }
 
 function InvenTreePage({ onBack }: InvenTreePageProps) {
-  const inventreeUrl = `https://192.168.68.64.sslip.io`;
+  // Use the configured InvenTree URL (relative path proxied by Caddy)
+  const inventreeUrl = INVENTREE_CONFIG.URL;
 
   return (
     <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -15,19 +15,17 @@ load_dotenv()
 
 # ==================== Environment Configuration ====================
 
-INVENTREE_URL = os.getenv("INVENTREE_URL")
+INVENTREE_URL = os.getenv("INVENTREE_URL", "http://inventree-server:8000")
 INVENTREE_TOKEN = os.getenv("INVENTREE_TOKEN")
-INVENTREE_SITE_URL = os.getenv("INVENTREE_SITE_URL")
-INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy") # Default to inventree-proxy for internal use
+# SITE_DOMAIN is used for Host header spoofing to bypass InvenTree's SITE_URL validation
+SITE_DOMAIN = os.getenv("SITE_DOMAIN", "localhost")
 
-if not all([INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL]):
-    raise RuntimeError(
-        "Missing required environment variables: "
-        "INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL, INVENTREE_PROXY_INTERNAL_URL"
-    )
+if not INVENTREE_TOKEN:
+    raise RuntimeError("Missing required environment variable: INVENTREE_TOKEN")
 
-print(f"InvenTree Proxy Host: {INVENTREE_PROXY_INTERNAL_URL}")
-print(f"InvenTree Token: {'*' * 10}{'*' * (len(INVENTREE_TOKEN) - 10) if INVENTREE_TOKEN else 'Not Set'}")
+print(f"InvenTree URL: {INVENTREE_URL}")
+print(f"Site Domain: {SITE_DOMAIN}")
+print(f"InvenTree Token: {'*' * 10}...")
 
 
 # ==================== InvenTree API Client ====================
@@ -37,22 +35,22 @@ class InvenTreeClient:
     """
     Custom HTTP client for InvenTree API with host header spoofing.
     
-    This client adds the SITE_URL as the Host header in requests to bypass
+    This client adds the SITE_DOMAIN as the Host header in requests to bypass
     InvenTree's SITE_URL validation, allowing internal container access.
     """
 
-    def __init__(self, base_url: str, token: str, site_url: str):
+    def __init__(self, base_url: str, token: str, site_domain: str):
         """
         Initialize the InvenTree API client.
         
         Args:
             base_url: Base URL of InvenTree server (e.g., http://inventree-server:8000)
             token: Authentication token for InvenTree API
-            site_url: SITE_URL configured in InvenTree (used as Host header)
+            site_domain: Domain configured for the site (used as Host header)
         """
         self.base_url = f"{base_url}/api"
         self.token = token
-        self.host_header = site_url.replace("http://", "").replace("https://", "")
+        self.host_header = site_domain
         
         # Create session with auth headers
         self.session = requests.Session()
@@ -161,7 +159,7 @@ class InvenTreeClient:
 
 
 # Initialize global API client
-api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, INVENTREE_SITE_URL)
+api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, SITE_DOMAIN)
 
 
 # ==================== Stock Management Functions ====================
@@ -427,10 +425,7 @@ def get_item_details(item_id: int) -> dict:
                 part = api.get(f"/part/{part_id}/")
                 
                 image_path = part.get("image")
-                full_image_url = None
-                if image_path:
-                    # Construct the full URL for the image
-                    full_image_url = urljoin(INVENTREE_SITE_URL, image_path)
+                # Image path is relative, frontend will use /api/image-proxy/ to fetch it
 
                 part_details = {
                     "name": part.get("name"),

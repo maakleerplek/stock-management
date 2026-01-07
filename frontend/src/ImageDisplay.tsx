@@ -44,9 +44,7 @@ interface ImageDisplayProps {
  * Displays images from InvenTree with robust error handling:
  * - Shows loading skeleton while fetching
  * - Displays fallback icon on failure
- * - Implements retry logic automatically
- * - Caches successful images
- * - Properly cleans up blob URLs on unmount to prevent memory leaks
+ * - Validates image before rendering
  * 
  * @example
  * <ImageDisplay
@@ -69,17 +67,17 @@ export default function ImageDisplay({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [renderFailed, setRenderFailed] = useState(false);
 
     useEffect(() => {
+        // Track if component is still mounted
+        let isMounted = true;
+
         // Reset state when imagePath changes
         setIsLoading(true);
         setError(null);
-        
-        // Cleanup: revoke old blob URL before loading new one (not data URLs)
-        if (imageUrl?.startsWith('blob:')) {
-            URL.revokeObjectURL(imageUrl);
-        }
         setImageUrl(null);
+        setRenderFailed(false);
 
         // Don't load if no path provided
         if (!imagePath) {
@@ -94,6 +92,8 @@ export default function ImageDisplay({
             try {
                 const result = await loadImage(imagePath);
 
+                if (!isMounted) return;
+
                 if (result.success && result.url) {
                     setImageUrl(result.url);
                     setError(null);
@@ -104,23 +104,25 @@ export default function ImageDisplay({
                     onError?.(errorMsg);
                 }
             } catch (err) {
+                if (!isMounted) return;
                 const errorMsg = err instanceof Error ? err.message : 'Unknown error';
                 setError(errorMsg);
                 onError?.(errorMsg);
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         };
 
         loadImg();
 
-        // Cleanup function: revoke blob URL when component unmounts (not data URLs)
+        // Cleanup function
         return () => {
-            if (imageUrl?.startsWith('blob:')) {
-                URL.revokeObjectURL(imageUrl);
-            }
+            isMounted = false;
         };
-    }, [imagePath, onLoad, onError, imageUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imagePath]); // Only re-run when imagePath changes
 
     // ========================================================================
     // RENDER STATES
@@ -141,8 +143,8 @@ export default function ImageDisplay({
         );
     }
 
-    // Error state
-    if (error) {
+    // Error state (from loading or rendering)
+    if (error || renderFailed) {
         return (
             <Box
                 sx={{
@@ -167,7 +169,7 @@ export default function ImageDisplay({
                     }}
                 />
                 <Typography variant="caption" color="text.disabled" align="center" sx={{ px: 1 }}>
-                    {error}
+                    {error || 'Image failed to render'}
                 </Typography>
             </Box>
         );
@@ -181,8 +183,11 @@ export default function ImageDisplay({
                 src={imageUrl}
                 alt={alt}
                 onError={() => {
-                    console.warn(`Image failed to render even after successful load: ${imagePath}`);
-                    setError('Image failed to render');
+                    // Only log once, don't cause infinite loops
+                    if (!renderFailed) {
+                        console.warn(`Image failed to render: ${imagePath}`);
+                        setRenderFailed(true);
+                    }
                 }}
                 sx={{
                     width,
@@ -197,4 +202,7 @@ export default function ImageDisplay({
             />
         );
     }
+
+    // No image to display (shouldn't reach here normally)
+    return null;
 }

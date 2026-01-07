@@ -12,7 +12,7 @@ export const getInitialTheme = (): 'light' | 'dark' => {
 
 // API utilities
 export const createApiUrl = (endpoint: string, baseUrl?: string): string => {
-  const base = baseUrl || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+  const base = baseUrl || import.meta.env.VITE_BACKEND_URL || '/api';
   return `${base}${endpoint}`;
 };
 
