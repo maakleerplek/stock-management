@@ -40,14 +40,10 @@ interface ApiResponse {
 // CONFIGURATION
 // ============================================================================
 
-export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
-
-export const API_ENDPOINTS = {
-    GET_ITEM_FROM_QR: '/get-item-from-qr',
-    TAKE_ITEM: '/take-item',
-    ADD_ITEM: '/add-item',
-    SET_ITEM: '/set-item',
-};
+import { API_CONFIG } from './constants';
+export { API_CONFIG };
+export const API_BASE_URL = API_CONFIG.BASE_URL;
+export const API_ENDPOINTS = API_CONFIG.ENDPOINTS;
 
 interface ApiCallOptions {
     method: string;

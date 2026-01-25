@@ -10,22 +10,22 @@ import {
     Alert,
 } from '@mui/material';
 import { useVolunteer } from './VolunteerContext';
+import { AUTH } from './constants';
 
 interface VolunteerModalProps {
     open: boolean;
     onClose: () => void;
 }
 
-// Password for volunteer mode - you can change this
-const VOLUNTEER_PASSWORD = "volunteer"
+// Volunteer password from environment or default
 
 export default function VolunteerModal({ open, onClose }: VolunteerModalProps) {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { setIsVolunteerMode } = useVolunteer();
 
-    const handleSubmit = () => {
-        if (password === VOLUNTEER_PASSWORD) {
+const handleSubmit = () => {
+        if (password === AUTH.VOLUNTEER_PASSWORD) {
             setIsVolunteerMode(true);
             setPassword('');
             setError('');

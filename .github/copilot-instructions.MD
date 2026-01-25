@@ -11,13 +11,25 @@
   - Python FastAPI API
   - InvenTree as the inventory system
   - PostgreSQL database
-  - Caddy as reverse proxy, Nginx for static serving in some setups
+  - Caddy as single reverse proxy for all services
 - DevOps:
   - Docker & Docker Compose for local/dev/prod
-- Default URLs (Docker) Check the .env for relevent ulr's:
-  - Frontend: http://localhost:8081
-  - Backend API: http://localhost:8001
-  - InvenTree: http://localhost:8000
+
+## Network Architecture
+
+All traffic routes through Caddy reverse proxy on a single domain:
+```
+https://{SITE_DOMAIN}/           -> Frontend (React)
+https://{SITE_DOMAIN}/api/       -> Backend API (FastAPI)
+https://{SITE_DOMAIN}/inventree/ -> InvenTree UI
+https://{SITE_DOMAIN}/static/    -> InvenTree static files
+https://{SITE_DOMAIN}/media/     -> InvenTree media files
+```
+
+Default URLs (with `SITE_DOMAIN=localhost`):
+- Application: https://localhost/
+- Backend API: https://localhost/api/
+- InvenTree: https://localhost/inventree/
 
 ## Styling & UI Rules
 
@@ -27,12 +39,11 @@
   - Replace MUI components with shadcn or Tailwind-based components.
 - Do:
   - Use MUI patterns and theming (see `frontend/src/theme.ts`).
-  - Keep existing structure of components in `frontend/src/components`.
-
+  - Keep existing structure of components in `frontend/src/`.
 
 ## Project Structure (Important Paths)
 
-- `frontend/src/components/` – React UI components
+- `frontend/src/constants/` – Application configuration
 - `frontend/src/App.tsx` – main React application component
 - `frontend/src/theme.ts` – MUI theme configuration
 - `frontend/src/sendCodeHandler.tsx` – frontend → backend API communication
@@ -40,15 +51,13 @@
 - `backend/main.py` – FastAPI server entrypoint
 - `backend/inventree_client.py` – InvenTree integration
 - `docker-compose.yml` – Docker services
-- `Caddyfile` – Caddy configuration
-- `Inventree-data` – All inventree data
-
+- `Caddyfile` – Reverse proxy configuration
+- `inventree-data/` – All InvenTree data
 
 ## Development & Environment
 
 - Docker (recommended):
   - `docker compose up -d --build`
-
 
 ## Behaviors to Avoid
 
@@ -56,9 +65,12 @@
   - Suggest changing the tech stack (React/TS/MUI/FastAPI/InvenTree/Postgres).
   - Replace the architecture (e.g., switching to Next.js, Tailwind, or other UI kits).
   - Rewrite the whole project when only small changes are needed.
+  - Use hardcoded URLs - always use constants from `frontend/src/constants/`
 
 ## Behaviors to Prefer
 
 - Use:
   - Type-safe React patterns (modern hooks, strict TypeScript).
-  - MUI best
+  - MUI best practices and theming.
+  - Relative URLs via constants (`/api`, `/inventree`).
+  - Environment variables for configuration.

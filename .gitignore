@@ -1,3 +1,39 @@
+# InvenTree data directory
 inventree-data/
-node_modules
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/.venv/
+**/__pycache__/
+**/*.pyc
+
+# Environment and configuration files
+.env
+.env.*
+temp.env
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build and distribution
+frontend/dist/
+frontend/build/
+backend/__pycache__/
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# Development files
 GEMINI.MD

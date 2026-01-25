@@ -16,14 +16,15 @@ from dotenv import load_dotenv
 from urllib.parse import urljoin
 from typing import Optional
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, INVENTREE_SITE_URL, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
 
 # Suppress SSL warnings for internal Docker network communication
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 
-INVENTREE_PROXY_INTERNAL_URL = os.getenv("INVENTREE_PROXY_INTERNAL_URL", "http://inventree-proxy")
+# Internal URL for image proxying - uses inventree-server directly
+INVENTREE_SERVER_URL = os.getenv("INVENTREE_URL", "http://inventree-server:8000")
 
 app = FastAPI(title="InvenTree Stock Management API")
 
@@ -345,52 +346,48 @@ async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> dict:
 async def image_proxy(image_path: str):
     """
     Proxy image requests to the InvenTree server with authentication.
-    Uses the Caddy reverse proxy which handles authentication properly.
     
-    CRITICAL: This endpoint is essential for displaying images in the frontend.
-    Do NOT modify without thorough testing. The key aspects:
+    Routes: Frontend → Backend → InvenTree Proxy (Caddy)
     
-    1. Uses INVENTREE_PROXY_INTERNAL_URL (Caddy reverse proxy)
-       - Routes: Frontend → Backend → Caddy → InvenTree
-       - Caddy handles auth, media serving, and proper headers
-       
-    2. Uses api.session.get() for authenticated requests
-       - Session already has Authorization token and Host headers
-       - Follows proper HTTP redirects (allow_redirects=True)
-       
-    3. Streams response in chunks (chunk_size=8192)
-       - Efficient for large images
-       - Prevents memory issues
-       
-    4. Sets proper CORS headers for cross-origin requests
-       - Allows frontend to access the image proxy
-    
-    If images don't display in frontend, check:
-    - INVENTREE_PROXY_INTERNAL_URL in .env (should be http://inventree-proxy)
-    - Caddy container is running (docker ps should show inventree-proxy)
-    - Backend logs show "Successfully fetched image" with Content-Type
+    Fetches images through the Caddy proxy which serves media files directly
+    from the volume without requiring InvenTree authentication.
     """
     try:
-        # Construct the full URL to the image on the InvenTree server
-        # The image_path already includes "media/"
-        full_inventree_image_url = urljoin(INVENTREE_PROXY_INTERNAL_URL, image_path)
+        # Use the Caddy proxy to fetch media files
+        # Caddy serves /media/* directly from the volume
+        caddy_url = "http://inventree-proxy:8081"
+        full_url = urljoin(caddy_url + "/", image_path)
 
-        print(f"DEBUG: Proxying image request to: {full_inventree_image_url}")
+        print(f"DEBUG: Proxying image request to: {full_url}")
 
-        # Make an authenticated request to the InvenTree server for the image
-        # Using api.session which has proper auth headers already set up
-        # Disable SSL verification for internal Docker network communication
-        response = api.session.get(full_inventree_image_url, stream=True, verify=False)
+        # Simple GET request - no auth needed for static files through Caddy
+        response = requests.get(full_url, stream=True, verify=False, timeout=10)
         response.raise_for_status()
-
-        # Log response info
-        print(f"DEBUG: Successfully fetched image")
-        print(f"  Status: {response.status_code}")
-        print(f"  Content-Type: {response.headers.get('Content-Type', 'Not set')}")
-        print(f"  Content-Length: {response.headers.get('Content-Length', 'Not set')}")
 
         # Determine content type
         content_type = response.headers.get("Content-Type", "application/octet-stream")
+        
+        # Log response info
+        print(f"DEBUG: Fetched response from Caddy")
+        print(f"  Status: {response.status_code}")
+        print(f"  Content-Type: {content_type}")
+
+        # CRITICAL: Validate that response is actually an image
+        # If we get HTML back, it's probably an error page or redirect
+        if content_type.startswith("text/html"):
+            print(f"ERROR: Received HTML instead of image for: {image_path}")
+            print(f"  This usually means the image doesn't exist")
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Image not found or server returned HTML instead of image"
+            )
+        
+        # Validate it's an image content type
+        valid_image_types = ["image/", "application/octet-stream"]
+        is_valid_image = any(content_type.startswith(t) for t in valid_image_types)
+        
+        if not is_valid_image:
+            print(f"WARNING: Unexpected content type '{content_type}' for image: {image_path}")
 
         return StreamingResponse(
             response.iter_content(chunk_size=8192),
@@ -400,9 +397,11 @@ async def image_proxy(image_path: str):
                 "Content-Disposition": f"inline; filename={os.path.basename(image_path)}"
             }
         )
+    except HTTPException:
+        raise
     except requests.exceptions.RequestException as e:
         print(f"Error in image_proxy RequestException: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to fetch image from InvenTree: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch image: {e}")
     except Exception as e:
         print(f"Error in image_proxy: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
