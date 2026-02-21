@@ -72,6 +72,7 @@ export default function ImageDisplay({
     useEffect(() => {
         // Track if component is still mounted
         let isMounted = true;
+        let currentUrl: string | null = null;
 
         // Reset state when imagePath changes
         setIsLoading(true);
@@ -92,9 +93,14 @@ export default function ImageDisplay({
             try {
                 const result = await loadImage(imagePath);
 
-                if (!isMounted) return;
+                if (!isMounted) {
+                    // Revoke URL if component unmounted during load
+                    if (result.url) URL.revokeObjectURL(result.url);
+                    return;
+                }
 
                 if (result.success && result.url) {
+                    currentUrl = result.url;
                     setImageUrl(result.url);
                     setError(null);
                     onLoad?.();
@@ -117,11 +123,14 @@ export default function ImageDisplay({
 
         loadImg();
 
-        // Cleanup function
+        // Cleanup: revoke Object URL when component unmounts or imagePath changes
         return () => {
             isMounted = false;
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
+            }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imagePath]); // Only re-run when imagePath changes
 
     // ========================================================================

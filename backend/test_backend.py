@@ -111,9 +111,9 @@ def test_get_item_name() -> bool:
     test_item_id = 1
     
     try:
-        response = requests.post(
+        response = requests.get(
             f"{BACKEND_URL}/get-item-name",
-            json={"item_id": test_item_id},
+            params={"item_id": test_item_id},
             timeout=TIMEOUT
         )
         

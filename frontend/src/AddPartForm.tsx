@@ -395,23 +395,23 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               </Grid>
 
               {/* Unit Price */}
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Purchase Price"
-                                  name="purchasePrice"
-                                  value={formData.purchasePrice}
-                                  onChange={handleChange}
-                                  error={!!errors.purchasePrice}
-                                  helperText={errors.purchasePrice}
-                                  type="number"
-                                  inputProps={{ step: '0.01', min: '0' }}
-                                  InputProps={{
-                                    startAdornment: <InputAdornment position="start">{formData.purchasePriceCurrency}</InputAdornment>,
-                                  }}
-                                  placeholder="0.00"
-                                />
-                              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Purchase Price"
+                  name="purchasePrice"
+                  value={formData.purchasePrice}
+                  onChange={handleChange}
+                  error={!!errors.purchasePrice}
+                  helperText={errors.purchasePrice}
+                  type="number"
+                  inputProps={{ step: '0.01', min: '0' }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">{formData.purchasePriceCurrency}</InputAdornment>,
+                  }}
+                  placeholder="0.00"
+                />
+              </Grid>
               {/* Purchase Price Currency */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
@@ -499,20 +499,21 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 </FormControl>
               </Grid>
 
-                              {/* Barcode Scanner and Display */}
-                              <Grid item xs={12}>
-                                <Box sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 2,
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                  borderRadius: 1.5,
-                                  p: 2,
-                                  mt: 2
-                                }}>
-                                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
-                                  <Scanner addLog={() => {}} onItemScanned={handleBarcodeScanned} />                  {errors.barcode && (
+              {/* Barcode Scanner and Display */}
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  p: 2,
+                  mt: 2
+                }}>
+                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
+                  <Scanner onScan={handleBarcodeScanned} />
+                  {errors.barcode && (
                     <FormHelperText error sx={{ mt: 1 }}>
                       {errors.barcode}
                     </FormHelperText>

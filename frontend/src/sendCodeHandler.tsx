@@ -5,7 +5,8 @@
  * It provides functions to:
  * - Fetch items by barcode/QR code
  * - Remove items from stock (checkout)
- * - Fetch item thumbnails
+ * - Add items to stock (volunteer mode)
+ * - Set stock to absolute quantity
  */
 
 // ============================================================================
@@ -24,7 +25,7 @@ export interface ItemData {
     name: string;                  // Item name
     description: string;           // Item description
     price: number;                 // Price per unit
-    image: string | null;      // URL to item image
+    image: string | null;          // URL to item image
     part_id: number | null;        // Part ID from inventory system
 }
 
@@ -41,40 +42,38 @@ interface ApiResponse {
 // ============================================================================
 
 import { API_CONFIG } from './constants';
-export { API_CONFIG };
-export const API_BASE_URL = API_CONFIG.BASE_URL;
-export const API_ENDPOINTS = API_CONFIG.ENDPOINTS;
 
-interface ApiCallOptions {
-    method: string;
-    body?: object;
-    addLog: (log: string) => void;
-}
+const API_BASE_URL = API_CONFIG.BASE_URL;
+const API_ENDPOINTS = API_CONFIG.ENDPOINTS;
+
+// ============================================================================
+// INTERNAL API HELPER
+// ============================================================================
 
 async function apiCall<T>(
     endpoint: string,
-    options: ApiCallOptions,
+    method: string,
+    body?: object,
 ): Promise<T | null> {
-    const { method, body, addLog } = options;
     const url = `${API_BASE_URL}${endpoint}`;
 
     try {
         const response = await fetch(url, {
-            method: method,
+            method,
             headers: { "Content-Type": "application/json" },
             body: body ? JSON.stringify(body) : undefined,
         });
 
         if (!response.ok) {
             const text = await response.text();
-            addLog(`Error: Server returned ${response.status} - ${text}`);
+            console.debug(`API error: ${method} ${endpoint} returned ${response.status} - ${text}`);
             return null;
         }
 
         return await response.json() as T;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        addLog(`Network error during ${method} ${endpoint}: ${errorMessage}`);
+        console.debug(`Network error during ${method} ${endpoint}: ${errorMessage}`);
         return null;
     }
 }
@@ -87,148 +86,90 @@ async function apiCall<T>(
  * Fetch item data using a barcode or QR code
  * 
  * @param code - The barcode/QR code to look up
- * @param addLog - Function to log messages to the UI
  * @returns The item data if found, null if not found or error occurred
- * 
- * @example
- * const item = await handleSend("ABC123", addLog);
  */
-export async function handleSend(
-    code: string,
-    addLog: (log: string) => void,
-): Promise<ItemData | null> {
-    // Validate input
+export async function handleSend(code: string): Promise<ItemData | null> {
     if (!code || code === "No result") {
-        addLog("Error: No barcode data to send.");
+        console.debug("No barcode data to send.");
         return null;
     }
 
-    addLog(`Fetching item for barcode: ${code}`);
+    console.debug(`Fetching item for barcode: ${code}`);
 
     const data = await apiCall<ApiResponse>(
         API_ENDPOINTS.GET_ITEM_FROM_QR,
-        {
-            method: "POST",
-            body: { qr_id: code },
-            addLog,
-        }
+        "POST",
+        { qr_id: code },
     );
 
     if (!data) {
-        // apiCall handles logging for network errors or !response.ok
-        addLog("Error: Could not retrieve item data."); // Generic error if apiCall returned null
+        console.debug("Could not retrieve item data.");
         return null;
     }
 
-    // Return item if found
     if (data.item) {
         const { name, quantity, price } = data.item;
-        addLog(`✓ Found: ${name} (Qty: ${quantity}, €${price.toFixed(2)})`);
+        console.debug(`Found: ${name} (Qty: ${quantity}, €${price.toFixed(2)})`);
         return data.item;
     }
 
-    addLog("Error: No item found for this barcode.");
+    console.debug("No item found for this barcode.");
     return null;
 }
 
 /**
  * Remove item from stock (checkout operation)
- * 
- * @param itemId - The ID of the item to remove
- * @param quantity - How many units to remove
- * @param addLog - Function to log messages to the UI
- * @returns True if successful, false if failed
- * 
- * @example
- * const success = await handleTakeItem(5, 2, addLog);
  */
 export async function handleTakeItem(
     itemId: number,
     quantity: number,
-    addLog: (log: string) => void,
 ): Promise<boolean> {
     const result = await apiCall<unknown>(
         API_ENDPOINTS.TAKE_ITEM,
-        {
-            method: "POST",
-            body: { itemId, quantity },
-            addLog,
-        }
+        "POST",
+        { itemId, quantity },
     );
-
     if (!result) {
-        addLog(`Error: Failed to remove item ${itemId}.`);
+        console.debug(`Failed to remove item ${itemId}.`);
         return false;
     }
-
-    // Assuming apiCall returns null on error and result on success
     return true;
 }
 
 /**
  * Add item to stock (volunteer mode operation)
- * 
- * @param itemId - The ID of the item to add
- * @param quantity - How many units to add
- * @param addLog - Function to log messages to the UI
- * @returns True if successful, false if failed
- * 
- * @example
- * const success = await handleAddItem(5, 2, addLog);
  */
 export async function handleAddItem(
     itemId: number,
     quantity: number,
-    addLog: (log: string) => void,
 ): Promise<boolean> {
     const result = await apiCall<unknown>(
         API_ENDPOINTS.ADD_ITEM,
-        {
-            method: "POST",
-            body: { itemId, quantity },
-            addLog,
-        }
+        "POST",
+        { itemId, quantity },
     );
-
     if (!result) {
-        addLog(`Error: Failed to add item ${itemId}.`);
+        console.debug(`Failed to add item ${itemId}.`);
         return false;
     }
-
-    // Assuming apiCall returns null on error and result on success
     return true;
 }
 
 /**
- * Set stock to an absolute quantity by calling the backend API.
- * 
- * @param itemId - The ID of the stock item to update
- * @param quantity - The absolute quantity to set
- * @param addLog - Logging function to record events
- * @returns Promise<boolean> - true if successful, false otherwise
- * 
- * @example
- * const success = await handleSetItem(5, 10, addLog);
+ * Set stock to an absolute quantity
  */
 export async function handleSetItem(
     itemId: number,
     quantity: number,
-    addLog: (log: string) => void,
 ): Promise<boolean> {
     const result = await apiCall<unknown>(
         API_ENDPOINTS.SET_ITEM,
-        {
-            method: "POST",
-            body: { itemId, quantity },
-            addLog,
-        }
+        "POST",
+        { itemId, quantity },
     );
-
     if (!result) {
-        addLog(`Error: Failed to set item ${itemId}.`);
+        console.debug(`Failed to set item ${itemId}.`);
         return false;
     }
-
-    // Assuming apiCall returns null on error and result on success
     return true;
 }

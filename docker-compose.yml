@@ -80,6 +80,8 @@ services:
             - inventree-cache
         env_file:
             - .env
+        environment:
+            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost
         volumes:
             # Data volume must map to /home/inventree/data
             - ${INVENTREE_EXT_VOLUME}:/home/inventree/data:z
@@ -124,6 +126,8 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/var/log:z
             - ${INVENTREE_EXT_VOLUME}:/data:z
             - ${INVENTREE_EXT_VOLUME}:/config:z
+        environment:
+            SITE_IP: ${SITE_IP}
 
     # =========================================================================
     # Custom Stock Management Services
@@ -151,9 +155,12 @@ services:
             context: ./frontend
             args:
                 VITE_BACKEND_URL: /api
-                # INVENTREE_PUBLIC_URL is the URL users access InvenTree from (for iframe)
-                VITE_INVENTREE_URL: ${INVENTREE_PUBLIC_URL:-http://inventree.localhost}
+                VITE_INVENTREE_URL: https://${SITE_IP}:8443
                 VITE_VOLUNTEER_PASSWORD: ${VITE_VOLUNTEER_PASSWORD:-volunteer}
+                VITE_LASER_PRICE_PER_MIN: ${VITE_LASER_PRICE_PER_MIN:-0.50}
+                VITE_PRINT_PRICE_PER_GRAM: ${VITE_PRINT_PRICE_PER_GRAM:-0.10}
+                VITE_CURRENCY: ${VITE_CURRENCY:-EUR}
+                VITE_PAYCONIQ_MERCHANT_ID: ${VITE_PAYCONIQ_MERCHANT_ID}
         container_name: stock-frontend
         depends_on:
             - backend

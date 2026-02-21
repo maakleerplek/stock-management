@@ -14,19 +14,17 @@ import { ToastProvider, useToast } from './ToastContext';
 import { VolunteerProvider } from './VolunteerContext';
 import VolunteerModal from './VolunteerModal';
 import { API_CONFIG, STORAGE_KEYS, DEFAULTS } from './constants';
-import { 
-  getInitialTheme, 
-  createApiUrl, 
-  getErrorMessage, 
+import {
+  getInitialTheme,
+  createApiUrl,
+  getErrorMessage,
   parseNumericFields,
-  createApiErrorHandler
 } from './utils/helpers';
 
 function AppContent() {
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme);
   const [currentPage, setCurrentPage] = useState<'main' | 'inventree'>('main');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
-  const [, setLogs] = useState<string[]>([]); // Ignore logs variable
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
@@ -34,13 +32,15 @@ function AppContent() {
   const [checkoutTotal, setCheckoutTotal] = useState<number | null>(null);
   const { addToast } = useToast();
 
-  const addLog = useCallback((msg: string) => {
-    setLogs((prev) => [...prev, msg]);
-  }, []);
+  const handleApiError = useCallback(
+    (error: unknown, context: string, showWarning = false) => {
+      const message = getErrorMessage(error, context);
+      addToast(message, showWarning ? 'warning' : 'error');
+    },
+    [addToast]
+  );
 
-  const handleApiError = useCallback(createApiErrorHandler(addToast), [addToast]);
-
-// Fetch categories and locations on component mount
+  // Fetch categories and locations on component mount
   useEffect(() => {
     const fetchCategoriesAndLocations = async () => {
       try {
@@ -86,12 +86,12 @@ function AppContent() {
     fetchCategoriesAndLocations();
   }, [addToast, handleApiError]);
 
-// Helper function to upload image
+  // Helper function to upload image
   const uploadPartImage = async (image: File, partId: string): Promise<void> => {
     try {
       const imageFormData = new FormData();
       imageFormData.append('file', image);
-      
+
       const imageResponse = await fetch(
         createApiUrl(API_CONFIG.ENDPOINTS.UPLOAD_PART_IMAGE, undefined).replace('{part_id}', partId),
         { method: 'POST', body: imageFormData }
@@ -101,7 +101,7 @@ function AppContent() {
         const errorData = await imageResponse.json();
         throw new Error(errorData.detail || 'Failed to upload image');
       }
-      
+
       addToast('Image uploaded successfully!', 'success');
     } catch (error) {
       addToast(`Warning: Image upload failed: ${getErrorMessage(error)}`, 'warning');
@@ -114,7 +114,7 @@ function AppContent() {
 
     if (initialQuantity > 0 && partId && locationId > 0) {
       addToast('Creating initial stock...', 'info');
-      
+
       const stockResponse = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.CREATE_STOCK_ITEM), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,7 +133,7 @@ function AppContent() {
         const errorData = await stockResponse.json();
         throw new Error(errorData.detail || 'Failed to create initial stock');
       }
-      
+
       addToast('Initial stock created successfully!', 'success');
     }
   };
@@ -212,7 +212,7 @@ function AppContent() {
     }
   };
 
-const toggleTheme = useCallback(() => {
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
 
     const updateTheme = () => {
@@ -234,15 +234,15 @@ const toggleTheme = useCallback(() => {
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <CssBaseline />
 
-<motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: DEFAULTS.MOTION_DURATION, ease: 'easeOut' }}
-          style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
-        >
-          {currentPage === 'inventree' ? (
-            <InvenTreePage onBack={() => setCurrentPage('main')} />
-          ) : (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: DEFAULTS.MOTION_DURATION, ease: 'easeOut' }}
+        style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+      >
+        {currentPage === 'inventree' ? (
+          <InvenTreePage onBack={() => setCurrentPage('main')} />
+        ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'background.default' }}>
             <Header
               theme={theme}
@@ -251,42 +251,41 @@ const toggleTheme = useCallback(() => {
               setAddPartFormModalOpen={setAddPartFormModalOpen}
               onOpenInvenTree={() => setCurrentPage('inventree')}
             />
-          <Box sx={{ flex: 1, py: 4 }}>
-            <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
-                <BarcodeScannerContainer 
-                  onItemScanned={(item) => {
-                    setScannedItem(null); // Reset first to ensure re-trigger
-                    setScannedItem(item);
-                  }}
-                  checkoutTotal={checkoutTotal}
-                />
-                <Box>
-                  <ShoppingWindow 
-                    addLog={addLog} 
-                    scannedItem={scannedItem}
-                    onCheckoutTotalChange={setCheckoutTotal}
+            <Box sx={{ flex: 1, py: 4 }}>
+              <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
+                  <BarcodeScannerContainer
+                    onItemScanned={(item) => {
+                      setScannedItem(null); // Reset first to ensure re-trigger
+                      setScannedItem(item);
+                    }}
+                    checkoutTotal={checkoutTotal}
                   />
+                  <Box>
+                    <ShoppingWindow
+                      scannedItem={scannedItem}
+                      onCheckoutTotalChange={setCheckoutTotal}
+                    />
+                  </Box>
                 </Box>
               </Box>
             </Box>
-          </Box>
 
-          <Footer />
-        </Box>
-          )}
-        </motion.div>
-        <VolunteerModal open={volunteerModalOpen} onClose={() => setVolunteerModalOpen(false)} />
-        
-        <Dialog open={addPartFormModalOpen} onClose={() => setAddPartFormModalOpen(false)} maxWidth="md" fullWidth>
-          <DialogContent>
-            <AddPartForm
-              onSubmit={handleAddPartSubmit}
-              categories={categories}
-              locations={locations}
-            />
-          </DialogContent>
-        </Dialog>
+            <Footer />
+          </Box>
+        )}
+      </motion.div>
+      <VolunteerModal open={volunteerModalOpen} onClose={() => setVolunteerModalOpen(false)} />
+
+      <Dialog open={addPartFormModalOpen} onClose={() => setAddPartFormModalOpen(false)} maxWidth="md" fullWidth>
+        <DialogContent>
+          <AddPartForm
+            onSubmit={handleAddPartSubmit}
+            categories={categories}
+            locations={locations}
+          />
+        </DialogContent>
+      </Dialog>
 
     </ThemeProvider>
   );

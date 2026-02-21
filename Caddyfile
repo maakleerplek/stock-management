@@ -2,7 +2,7 @@
 
 # Global options - set default SNI for IP access
 {
-	default_sni 192.168.68.65
+	default_sni {$SITE_IP}
 }
 
 # Logging
@@ -116,14 +116,14 @@ inventree.localhost {
 # NETWORK IP ACCESS (HTTPS)
 # =============================================================================
 
-192.168.68.65 {
+{$SITE_IP} {
 	tls internal
 	import log_common stock-ip
 	import common
 	import stock-routes
 }
 
-192.168.68.65:8443 {
+{$SITE_IP}:8443 {
 	tls internal
 	import log_common inventree-ip
 	import common

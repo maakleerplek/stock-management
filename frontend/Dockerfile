@@ -1,6 +1,9 @@
 # Stage 1: Build React application
 FROM node:20-alpine AS build
 
+# Patch base image system packages to resolve vulnerability scanner warnings
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 # Copy package files
@@ -14,16 +17,27 @@ COPY . .
 ARG VITE_BACKEND_URL=/api
 ARG VITE_INVENTREE_URL=http://inventree.localhost
 ARG VITE_VOLUNTEER_PASSWORD=volunteer
+ARG VITE_LASER_PRICE_PER_MIN=0.50
+ARG VITE_PRINT_PRICE_PER_GRAM=0.10
+ARG VITE_CURRENCY=EUR
+ARG VITE_PAYCONIQ_MERCHANT_ID
 
 # Set environment variables for build
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 ENV VITE_INVENTREE_URL=${VITE_INVENTREE_URL}
 ENV VITE_VOLUNTEER_PASSWORD=${VITE_VOLUNTEER_PASSWORD}
+ENV VITE_LASER_PRICE_PER_MIN=${VITE_LASER_PRICE_PER_MIN}
+ENV VITE_PRINT_PRICE_PER_GRAM=${VITE_PRINT_PRICE_PER_GRAM}
+ENV VITE_CURRENCY=${VITE_CURRENCY}
+ENV VITE_PAYCONIQ_MERCHANT_ID=${VITE_PAYCONIQ_MERCHANT_ID}
 
 RUN npm run build
 
 # Stage 2: Serve with lightweight static server
 FROM nginx:alpine AS production
+
+# Patch base image system packages to resolve vulnerability scanner warnings
+RUN apk update && apk upgrade --no-cache
 
 # Copy built app to nginx html directory
 COPY --from=build /app/dist /usr/share/nginx/html
@@ -34,13 +48,13 @@ RUN echo 'server { \
     root /usr/share/nginx/html; \
     index index.html; \
     location / { \
-        try_files $uri $uri/ /index.html; \
+    try_files $uri $uri/ /index.html; \
     } \
     location /health { \
-        return 200 "ok"; \
-        add_header Content-Type text/plain; \
+    return 200 "ok"; \
+    add_header Content-Type text/plain; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+    }' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
