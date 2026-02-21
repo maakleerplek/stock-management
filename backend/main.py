@@ -15,7 +15,7 @@ import urllib3
 import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
 
@@ -90,31 +90,50 @@ class CreateStockItemRequest(BaseModel):
 
 
 @app.post("/take-item")
-def take_item(data: TakeItemRequest) -> dict:
-    """Remove stock from inventory."""
+def take_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Remove stock from inventory.
+    
+    Delegates to the InvenTree client to subtract the specified quantity
+    from the given stock item.
+    """
     response = remove_stock(data.itemId, data.quantity, data.notes)
     return response
 
 
 @app.post("/add-item")
-def add_item(data: TakeItemRequest) -> dict:
-    """Add stock to inventory."""
+def add_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Add stock to inventory.
+    
+    Delegates to the InvenTree client to add the specified quantity
+    to the given stock item.
+    """
     notes = data.notes.replace("Removed", "Added")
     response = add_stock(data.itemId, data.quantity, notes)
     return response
 
 
 @app.post("/set-item")
-def set_item(data: TakeItemRequest) -> dict:
-    """Set stock to an absolute quantity."""
+def set_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Set stock to an absolute quantity.
+    
+    Delegates to the InvenTree client to calculate the difference and
+    adjust the stock to exactly match the target quantity.
+    """
     notes = data.notes.replace("Removed", "Set").replace("Added", "Set")
     response = set_stock(data.itemId, data.quantity, notes)
     return response
 
 
 @app.post("/create-part")
-async def create_part_endpoint(data: CreatePartRequest) -> dict:
-    """Create a new part in inventory and optionally add initial stock."""
+async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
+    """
+    Create a new part in inventory.
+    
+    Will randomly generate an IPN if one is not provided.
+    """
     try:
         part_ipn = data.ipn if data.ipn else f"TEMP-{data.partName}-{os.urandom(4).hex()}"
 
@@ -144,8 +163,12 @@ async def create_part_endpoint(data: CreatePartRequest) -> dict:
 
 
 @app.patch("/update-part/{part_pk}")
-async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> dict:
-    """Update an existing part in inventory."""
+async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> Dict[str, Any]:
+    """
+    Update an existing part in inventory.
+    
+    Allows changing the category or default storage location of a part.
+    """
     try:
         category_id = int(data.category) if data.category else None
         location_id = int(data.storageLocation) if data.storageLocation else None
@@ -171,8 +194,13 @@ async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> dict:
 
 
 @app.post("/create-stock-item")
-async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
-    """Create a new stock item in inventory."""
+async def create_stock_item_endpoint(data: CreateStockItemRequest) -> Dict[str, Any]:
+    """
+    Create a new stock item in inventory.
+    
+    Creates physical stock for a specific part at a specific location.
+    If a barcode is provided, it will automatically link it to the new stock item.
+    """
     try:
         stock_creation_response = create_stock_item(
             part_id=data.partId,
@@ -219,22 +247,35 @@ async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
 
 
 @app.post("/get-item-from-qr")
-def get_item_from_qr(data: BarcodeRequest) -> dict:
-    """Get item info from a QR/barcode."""
+def get_item_from_qr(data: BarcodeRequest) -> Dict[str, Any]:
+    """
+    Get item info from a QR/barcode.
+    
+    Takes the raw scanned string, resolves it to a stock item via InvenTree,
+    and returns the fully populated item details.
+    """
     response = get_stock_from_qrid(data.qr_id)
     return response
 
 
 @app.get("/get-item-name")
-def get_item_name(item_id: int = Query(..., description="The ID of the item to get details for")) -> dict:
-    """Get item details by ID."""
+def get_item_name(item_id: int = Query(..., description="The ID of the stock item to get details for")) -> Dict[str, Any]:
+    """
+    Get item details by stock ID.
+    
+    Returns a unified view of the stock item and its parent part.
+    """
     response = get_item_details(item_id)
     return response
 
 
 @app.get("/get-categories")
-def get_categories() -> dict:
-    """Fetch all part categories from InvenTree."""
+def get_categories() -> Dict[str, Any]:
+    """
+    Fetch all part categories from InvenTree.
+    
+    Returns a simplified list of category IDs and names for frontend dropdowns.
+    """
     try:
         categories = api.get("/part/category/")
         category_list = [
@@ -248,8 +289,12 @@ def get_categories() -> dict:
 
 
 @app.get("/get-locations")
-def get_locations() -> dict:
-    """Fetch all storage locations from InvenTree."""
+def get_locations() -> Dict[str, Any]:
+    """
+    Fetch all storage locations from InvenTree.
+    
+    Returns a simplified list of location IDs and names for frontend dropdowns.
+    """
     try:
         locations = api.get("/stock/location/")
         location_list = [
@@ -263,8 +308,13 @@ def get_locations() -> dict:
 
 
 @app.post("/upload-part-image/{part_id}")
-async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> dict:
-    """Upload an image to a part in InvenTree."""
+async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[str, Any]:
+    """
+    Upload an image to a part in InvenTree.
+    
+    Validates that the file is an image and under 10MB before proxying
+    the upload to the InvenTree API.
+    """
     try:
         if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")

@@ -37,3 +37,5 @@ docker-compose.override.yml
 
 # Development files
 GEMINI.MD
+
+*.txt

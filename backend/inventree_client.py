@@ -7,7 +7,7 @@ to bypass SITE_URL validation from internal Docker containers.
 import logging
 import os
 from urllib.parse import urljoin
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import requests
 from dotenv import load_dotenv
@@ -53,8 +53,19 @@ class InvenTreeClient:
             "Host": self.host_header,
         })
 
-    def get(self, endpoint: str) -> dict:
-        """Perform a GET request to the InvenTree API."""
+    def get(self, endpoint: str) -> Dict[str, Any]:
+        """
+        Perform a GET request to the InvenTree API.
+        
+        Args:
+            endpoint: API path (e.g., "/part/1/")
+            
+        Returns:
+            Dict containing the JSON response.
+            
+        Raises:
+            Exception: If the HTTP request fails.
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
         try:
             response = self.session.get(url, params={"format": "json"})
@@ -63,8 +74,17 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"GET {endpoint} failed: {e}") from e
 
-    def post(self, endpoint: str, data: dict) -> dict:
-        """Perform a POST request to the InvenTree API."""
+    def post(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Perform a POST request to the InvenTree API.
+        
+        Args:
+            endpoint: API path.
+            data: Dictionary payload to submit.
+            
+        Returns:
+            Dict containing the JSON response.
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
         try:
             response = self.session.post(url, json=data, params={"format": "json"})
@@ -73,8 +93,17 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"POST {endpoint} failed: {e}") from e
 
-    def patch(self, endpoint: str, data: dict) -> dict:
-        """Perform a PATCH request to the InvenTree API."""
+    def patch(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Perform a PATCH request to the InvenTree API.
+        
+        Args:
+            endpoint: API path.
+            data: Dictionary payload with fields to update.
+            
+        Returns:
+            Dict containing the JSON response.
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
         try:
             response = self.session.patch(url, json=data, params={"format": "json"})
@@ -83,8 +112,19 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"PATCH {endpoint} failed: {e}") from e
 
-    def upload_file(self, endpoint: str, file_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
-        """Upload a file to the InvenTree API using multipart/form-data."""
+    def upload_file(self, endpoint: str, file_data: bytes, filename: str, content_type: str = "image/jpeg") -> Dict[str, Any]:
+        """
+        Upload a file to the InvenTree API using multipart/form-data.
+        
+        Args:
+            endpoint: API path (e.g., "/part/1/").
+            file_data: Raw byte content of the file.
+            filename: Name of the file being uploaded.
+            content_type: MIME type of the file.
+            
+        Returns:
+            Dict containing the JSON response.
+        """
         url = urljoin(self.base_url + "/", endpoint.lstrip("/"))
         try:
             files = {"image": (filename, file_data, content_type)}
@@ -102,16 +142,19 @@ api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, SITE_DOMAIN)
 # ==================== Stock Management Functions ====================
 
 
-def _modify_stock(endpoint: str, item_id: int, quantity: int, notes: str, action_verb: str) -> dict:
+def _modify_stock(endpoint: str, item_id: int, quantity: int, notes: str, action_verb: str) -> Dict[str, Any]:
     """
     Shared helper for add/remove stock operations.
     
     Args:
         endpoint: API endpoint (e.g., "/stock/add/" or "/stock/remove/")
-        item_id: The ID of the stock item
-        quantity: The quantity to add/remove
-        notes: Operation notes
-        action_verb: For logging (e.g., "adding", "removing")
+        item_id: The ID of the stock item to modify
+        quantity: The quantity to add/remove (absolute value)
+        notes: Operation notes for audit trail
+        action_verb: String for logging context (e.g., "adding", "removing")
+        
+    Returns:
+        Dict indicating status ("ok" or "error") and operation details.
     """
     try:
         payload = {
@@ -133,18 +176,49 @@ def _modify_stock(endpoint: str, item_id: int, quantity: int, notes: str, action
         }
 
 
-def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") -> dict:
-    """Remove items from stock in InvenTree."""
+def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") -> Dict[str, Any]:
+    """
+    Remove items from stock in InvenTree.
+    
+    Args:
+        item_id: The numeric primary key of the stock item.
+        quantity: Amount to remove.
+        notes: Audit trail text.
+        
+    Returns:
+        Operation status dictionary.
+    """
     return _modify_stock("/stock/remove/", item_id, quantity, notes, "removing")
 
 
-def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> dict:
-    """Add items to stock in InvenTree."""
+def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> Dict[str, Any]:
+    """
+    Add items to stock in InvenTree.
+    
+    Args:
+        item_id: The numeric primary key of the stock item.
+        quantity: Amount to add.
+        notes: Audit trail text.
+        
+    Returns:
+        Operation status dictionary.
+    """
     return _modify_stock("/stock/add/", item_id, quantity, notes, "adding")
 
 
-def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> dict:
-    """Set stock to an absolute quantity in InvenTree."""
+def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> Dict[str, Any]:
+    """
+    Set stock to an absolute quantity in InvenTree. 
+    Calculates the delta and performs an add or remove operation.
+    
+    Args:
+        item_id: The numeric primary key of the stock item.
+        quantity: The absolute target quantity.
+        notes: Audit trail text.
+        
+    Returns:
+        Operation status dictionary, including previous quantity.
+    """
     try:
         stock_item = api.get(f"/stock/{item_id}/")
         current_quantity = stock_item.get("quantity", 0)
@@ -189,8 +263,26 @@ def create_part(
     active: bool = True,
     purchaseable: bool = True,
     minimum_stock: Optional[float] = None,
-) -> dict:
-    """Create a new part in InvenTree."""
+) -> Dict[str, Any]:
+    """
+    Create a new part definition in InvenTree.
+    
+    Args:
+        name: The name of the new part.
+        ipn: Internal Part Number. Must be unique.
+        description: Part description text.
+        category: ID of the parent category.
+        units: Unit of measure (e.g., 'pcs', 'kg').
+        default_location: ID of the default storage location.
+        default_supplier: ID of the default supplier.
+        notes: Additional notes for the part.
+        active: Whether the part is currently active.
+        purchaseable: Whether the part can be purchased.
+        minimum_stock: The threshold at which stock is considered low.
+        
+    Returns:
+        Dict returning status and the created part data.
+    """
     try:
         payload = {
             "name": name,
@@ -226,8 +318,22 @@ def create_stock_item(
     barcode: str = "",
     purchase_price: Optional[float] = None,
     purchase_price_currency: Optional[str] = None
-) -> dict:
-    """Create a new stock item in InvenTree for a given part."""
+) -> Dict[str, Any]:
+    """
+    Create a new stock item instance for a given part.
+    
+    Args:
+        part_id: ID of the part this stock represents.
+        location_id: ID of the storage location.
+        quantity: Initial quantity to create.
+        notes: Audit trail notes.
+        barcode: A barcode string to immediately link to this item.
+        purchase_price: Initial purchase price.
+        purchase_price_currency: ISO currency code for the price.
+        
+    Returns:
+        Dict with status and the created stock item data.
+    """
     try:
         payload = {
             "part": part_id,
@@ -248,8 +354,17 @@ def create_stock_item(
         return {"status": "error", "message": str(e)}
 
 
-def get_item_details(item_id: int) -> dict:
-    """Fetch complete item details including part information."""
+def get_item_details(item_id: int) -> Dict[str, Any]:
+    """
+    Fetch complete item details by combining stock and part endpoints.
+    
+    Args:
+        item_id: The specific stock item ID to fetch.
+        
+    Returns:
+        Dict containing a consolidated view of stock and part details,
+        ideal for frontend consumption.
+    """
     try:
         stock_item = api.get(f"/stock/{item_id}/")
         if not stock_item:
@@ -297,8 +412,19 @@ def get_item_details(item_id: int) -> dict:
         }
 
 
-def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg") -> dict:
-    """Upload an image to a part in InvenTree."""
+def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg") -> Dict[str, Any]:
+    """
+    Upload an image file directly to a part in InvenTree.
+    
+    Args:
+        part_id: ID of the target part.
+        image_data: Raw byte array of the image.
+        filename: Original filename to store.
+        content_type: MIME type of the upload.
+        
+    Returns:
+        Status dict containing the API response.
+    """
     try:
         response = api.upload_file(f"/part/{part_id}/", image_data, filename, content_type)
         return {
@@ -316,8 +442,19 @@ def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content
         }
 
 
-def get_stock_from_qrid(qr_id: str) -> dict:
-    """Look up stock item by QR/barcode ID."""
+def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
+    """
+    Look up stock item by an associated QR/barcode string.
+    
+    Queries the /barcode/ endpoint to resolve the scanned text into a stock mapping,
+    and then fetches the detailed item view if successful.
+    
+    Args:
+        qr_id: The raw string decoded from the scanner.
+        
+    Returns:
+        Dict consolidating the item details, or an error status if not found.
+    """
     try:
         barcode_response = api.post("/barcode/", {"barcode": qr_id})
         stock_id = barcode_response.get("stockitem", {}).get("pk")
