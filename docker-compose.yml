@@ -115,9 +115,9 @@ services:
             - frontend
             - backend
         ports:
-            - 80:80
-            - 443:443
-            - 8443:8443
+            - ${HTTP_PORT:-80}:80
+            - ${HTTPS_PORT:-443}:443
+            - ${INVENTREE_PORT:-8443}:8443
             - ${STOCK_PORT:-8080}:${STOCK_PORT:-8080}
         env_file:
             - .env
