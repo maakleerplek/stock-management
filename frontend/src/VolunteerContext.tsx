@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { STORAGE_KEYS } from './constants';
 
 interface VolunteerContextType {
     isVolunteerMode: boolean;
@@ -8,7 +9,19 @@ interface VolunteerContextType {
 const VolunteerContext = createContext<VolunteerContextType | undefined>(undefined);
 
 export function VolunteerProvider({ children }: { children: ReactNode }) {
-    const [isVolunteerMode, setIsVolunteerMode] = useState(false);
+    const [isVolunteerMode, setIsVolunteerModeState] = useState<boolean>(() => {
+        const stored = localStorage.getItem(STORAGE_KEYS.VOLUNTEER_MODE);
+        return stored === 'true';
+    });
+
+    const setIsVolunteerMode = (mode: boolean) => {
+        setIsVolunteerModeState(mode);
+        if (mode) {
+            localStorage.setItem(STORAGE_KEYS.VOLUNTEER_MODE, 'true');
+        } else {
+            localStorage.removeItem(STORAGE_KEYS.VOLUNTEER_MODE);
+        }
+    };
 
     return (
         <VolunteerContext.Provider value={{ isVolunteerMode, setIsVolunteerMode }}>

@@ -26,6 +26,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Scanner from './barcodescanner'; // Import the Barcode Scanner
+import IconPicker from './IconPicker';
 
 // Define interfaces for common data structures
 export interface SelectOption {
@@ -49,6 +50,7 @@ export interface PartFormData {
   purchasePrice: string; // Add purchasePrice field
   purchasePriceCurrency: string; // Add purchasePriceCurrency field
   image?: File; // Add image file field
+  icon?: string; // Add icon field
 }
 
 export interface PartFormErrors {
@@ -59,6 +61,7 @@ export interface PartFormErrors {
   initialQuantity?: string;
   minimumStock?: string; // Add minimumStock error field
   barcode?: string;
+  icon?: string;
   submit?: string; // For general form submission errors
 }
 
@@ -89,6 +92,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     barcode: '', // Initialize barcode
     purchasePrice: '', // Initialize purchasePrice
     purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency
+    icon: '', // Initialize icon
   });
 
   const [errors, setErrors] = useState<PartFormErrors>({});
@@ -148,6 +152,13 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
         ...prev,
         [name]: undefined, // Clear specific error
       }));
+    }
+  };
+
+  const handleIconChange = (iconName: string) => {
+    setFormData((prev) => ({ ...prev, icon: iconName }));
+    if (errors.icon) {
+      setErrors((prev) => ({ ...prev, icon: undefined }));
     }
   };
 
@@ -248,6 +259,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       purchasePrice: '', // Initialize purchasePrice here
       purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency here
       image: undefined,
+      icon: '', // Initialize icon here
     });
     setErrors({});
     setSuccessMessage(''); // Clear success message on reset
@@ -361,6 +373,17 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 </Box>
               </Grid>
 
+              {/* Icon Picker (Alternative to Image) */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="subtitle2">Part Icon (Optional if Image Provided)</Typography>
+                  <IconPicker value={formData.icon || ''} onChange={handleIconChange} label="Select Predefined Icon" />
+                  {errors.icon && (
+                    <FormHelperText error>{errors.icon}</FormHelperText>
+                  )}
+                </Box>
+              </Grid>
+
               {/* Initial Quantity */}
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -395,23 +418,23 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               </Grid>
 
               {/* Unit Price */}
-                              <Grid item xs={12} sm={6}>
-                                <TextField
-                                  fullWidth
-                                  label="Purchase Price"
-                                  name="purchasePrice"
-                                  value={formData.purchasePrice}
-                                  onChange={handleChange}
-                                  error={!!errors.purchasePrice}
-                                  helperText={errors.purchasePrice}
-                                  type="number"
-                                  inputProps={{ step: '0.01', min: '0' }}
-                                  InputProps={{
-                                    startAdornment: <InputAdornment position="start">{formData.purchasePriceCurrency}</InputAdornment>,
-                                  }}
-                                  placeholder="0.00"
-                                />
-                              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Purchase Price"
+                  name="purchasePrice"
+                  value={formData.purchasePrice}
+                  onChange={handleChange}
+                  error={!!errors.purchasePrice}
+                  helperText={errors.purchasePrice}
+                  type="number"
+                  inputProps={{ step: '0.01', min: '0' }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">{formData.purchasePriceCurrency}</InputAdornment>,
+                  }}
+                  placeholder="0.00"
+                />
+              </Grid>
               {/* Purchase Price Currency */}
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
@@ -499,20 +522,21 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 </FormControl>
               </Grid>
 
-                              {/* Barcode Scanner and Display */}
-                              <Grid item xs={12}>
-                                <Box sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 2,
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                  borderRadius: 1.5,
-                                  p: 2,
-                                  mt: 2
-                                }}>
-                                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
-                                  <Scanner addLog={() => {}} onItemScanned={handleBarcodeScanned} />                  {errors.barcode && (
+              {/* Barcode Scanner and Display */}
+              <Grid item xs={12}>
+                <Box sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.5,
+                  p: 2,
+                  mt: 2
+                }}>
+                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
+                  <Scanner onScan={handleBarcodeScanned} />
+                  {errors.barcode && (
                     <FormHelperText error sx={{ mt: 1 }}>
                       {errors.barcode}
                     </FormHelperText>

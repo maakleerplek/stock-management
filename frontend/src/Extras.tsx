@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, TextField, Typography, Box } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings'; // Replaced GearIcon with MUI SettingsIcon
+import SettingsIcon from '@mui/icons-material/Settings';
+import { PRICING } from './constants';
 
 interface ExtrasProps {
     onExtraCostChange: (cost: number) => void;
@@ -10,8 +11,8 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
     const [lasertimeMinutes, setLasertimeMinutes] = useState(0);
     const [printingGrams, setPrintingGrams] = useState(0);
 
-    const lasertimeCost = lasertimeMinutes * 0.50
-    const printingCost = printingGrams * 0.10
+    const lasertimeCost = lasertimeMinutes * PRICING.LASER_PER_MINUTE;
+    const printingCost = printingGrams * PRICING.PRINTING_PER_GRAM;
     const totalExtraCost = lasertimeCost + printingCost;
 
     useEffect(() => {

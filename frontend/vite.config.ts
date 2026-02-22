@@ -9,6 +9,14 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // Listen on all network interfaces
     port: 5173, // Default Vite port
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8001',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   preview: {
     host: '0.0.0.0',
@@ -29,5 +37,5 @@ export default defineConfig({
       },
     },
   },
-  
+
 })

@@ -4,19 +4,19 @@ import ImageDisplay from './ImageDisplay';
 import { useToast } from './ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Card,
-  CardHeader,
-  CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Button,
-  Typography,
-  Box,
-  InputBase, // For quantity input
-  Switch,
-  FormControlLabel,
+    Card,
+    CardHeader,
+    CardContent,
+    List,
+    ListItem,
+    ListItemText,
+    IconButton,
+    Button,
+    Typography,
+    Box,
+    InputBase, // For quantity input
+    Switch,
+    FormControlLabel,
 } from '@mui/material';
 
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -71,14 +71,15 @@ function ShoppingCart({
     };
     // Don't render if cart is empty and no recent checkout
     return (
-        <Card sx={{ 
-            maxWidth: 420, 
-            minWidth: 320, 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: 2, 
-            borderTop: isVolunteerMode ? 4 : 0, 
-            borderTopColor: isVolunteerMode ? 'info.main' : 'transparent' 
+        <Card sx={{
+            maxWidth: 420,
+            minWidth: { xs: '100%', sm: 320 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            borderTop: isVolunteerMode ? 4 : 0,
+            borderTopColor: isVolunteerMode ? 'info.main' : 'transparent',
+            width: '100%'
         }}>
             <CardHeader
                 title={isVolunteerMode ? (isSetMode ? "Set Stock" : "Add to Stock") : "Shopping Cart"}
@@ -138,66 +139,66 @@ function ShoppingCart({
                                                     overflow: 'hidden',
                                                 }}
                                             >
-                                        {/* Item Image */}
-                                        <Box sx={{ flexShrink: 0 }}>
-                                            <ImageDisplay
-                                                imagePath={item.image}
-                                                alt={item.name}
-                                                width={100}
-                                                height={100}
-                                            />
-                                        </Box>
+                                                {/* Item Image */}
+                                                <Box sx={{ flexShrink: 0 }}>
+                                                    <ImageDisplay
+                                                        imagePath={item.image}
+                                                        alt={item.name}
+                                                        width={100}
+                                                        height={100}
+                                                    />
+                                                </Box>
 
-                                        <ListItemText
-                                            primary={<Typography variant="h6">{item.name}</Typography>}
-                                            secondary={
-                                                <>
-                                                    <Typography variant="body2" color="text.secondary">{item.description}</Typography>
-                                                    <Typography variant="body2">Quantity in cart: {item.cartQuantity} / Available in stock: {item.quantity}</Typography>
-                                                    <Typography variant="body2">Price: €{item.price.toFixed(2)}</Typography>
-                                                </>
-                                            }
-                                        />
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <IconButton
-                                                    onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}
-                                                    size="small"
-                                                >
-                                                    <RemoveIcon />
-                                                </IconButton>
-                                                <InputBase
-                                                    type="number"
-                                                    value={item.cartQuantity}
-                                                    onChange={(e) =>
-                                                        onUpdateQuantity(
-                                                            item.id,
-                                                            Math.min(
-                                                                parseInt(e.target.value, 10) || 0,
-                                                                item.quantity
-                                                            )
-                                                        )
+                                                <ListItemText
+                                                    primary={<Typography variant="h6">{item.name}</Typography>}
+                                                    secondary={
+                                                        <>
+                                                            <Typography variant="body2" color="text.secondary">{item.description}</Typography>
+                                                            <Typography variant="body2">Quantity in cart: {item.cartQuantity} / Available in stock: {item.quantity}</Typography>
+                                                            <Typography variant="body2">Price: €{item.price.toFixed(2)}</Typography>
+                                                        </>
                                                     }
-                                                    inputProps={{ min: 1, max: item.quantity, style: { textAlign: 'center' } }}
-                                                    sx={{ width: 45 }}
                                                 />
-                                                <IconButton
-                                                    onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)}
-                                                    disabled={item.cartQuantity >= item.quantity}
-                                                    size="small"
-                                                >
-                                                    <AddIcon />
-                                                </IconButton>
-                                            </Box>
-                                            <IconButton
-                                                color="error"
-                                                onClick={() => handleRemoveItem(item.id)}
-                                                sx={{ bgcolor: 'error.main', color: 'error.contrastText', '&:hover': { bgcolor: 'error.dark' } }}
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Box>
-                                        </ListItem>
+                                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <IconButton
+                                                            onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}
+                                                            size="small"
+                                                        >
+                                                            <RemoveIcon />
+                                                        </IconButton>
+                                                        <InputBase
+                                                            type="number"
+                                                            value={item.cartQuantity}
+                                                            onChange={(e) =>
+                                                                onUpdateQuantity(
+                                                                    item.id,
+                                                                    Math.min(
+                                                                        parseInt(e.target.value, 10) || 0,
+                                                                        item.quantity
+                                                                    )
+                                                                )
+                                                            }
+                                                            inputProps={{ min: 1, max: item.quantity, style: { textAlign: 'center' } }}
+                                                            sx={{ width: 45 }}
+                                                        />
+                                                        <IconButton
+                                                            onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)}
+                                                            disabled={item.cartQuantity >= item.quantity}
+                                                            size="small"
+                                                        >
+                                                            <AddIcon />
+                                                        </IconButton>
+                                                    </Box>
+                                                    <IconButton
+                                                        color="error"
+                                                        onClick={() => handleRemoveItem(item.id)}
+                                                        sx={{ bgcolor: 'error.main', color: 'error.contrastText', '&:hover': { bgcolor: 'error.dark' } }}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </Box>
+                                            </ListItem>
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
@@ -215,11 +216,11 @@ function ShoppingCart({
                                         Total: €{(totalPrice + extraCosts).toFixed(2)}
                                     </Typography>
                                 )}
-                                <Button 
-                                    variant="contained" 
-                                    color={isVolunteerMode ? "info" : "primary"} 
-                                    fullWidth 
-                                    onClick={onCheckout} 
+                                <Button
+                                    variant="contained"
+                                    color={isVolunteerMode ? "info" : "primary"}
+                                    fullWidth
+                                    onClick={onCheckout}
                                     sx={{ mt: 2 }}
                                 >
                                     {isVolunteerMode ? (isSetMode ? 'Set Stock' : 'Add to Stock') : 'Checkout'}
@@ -230,5 +231,6 @@ function ShoppingCart({
                 )}
             </CardContent>
         </Card>
-    );}
+    );
+}
 export default ShoppingCart;

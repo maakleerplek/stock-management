@@ -10,10 +10,12 @@ interface HeaderProps {
   toggleTheme: () => void;
   setVolunteerModalOpen: (open: boolean) => void;
   setAddPartFormModalOpen: (open: boolean) => void;
+  setAddCategoryModalOpen: (open: boolean) => void;
+  setAddLocationModalOpen: (open: boolean) => void;
   onOpenInvenTree?: () => void;
 }
 
-function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, onOpenInvenTree }: HeaderProps) {
+function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, setAddCategoryModalOpen, setAddLocationModalOpen, onOpenInvenTree }: HeaderProps) {
   const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
 
   const handleVolunteerToggle = () => {
@@ -29,13 +31,14 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
 
   return (
     <Box sx={{ width: '100%', backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
-      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: 2, justifyContent: 'space-between', alignItems: 'center' }}>
+      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: 2, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
         <Box>
           <Logo />
           {isVolunteerMode && (
             <Box sx={{
               display: 'inline-block',
-              ml: 2,
+              ml: { xs: 0, sm: 2 },
+              mt: { xs: 1, sm: 0 },
               px: 2,
               py: 0.5,
               backgroundColor: 'info.dark',
@@ -48,7 +51,7 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
             </Box>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
           <Tooltip title="Open InvenTree">
             <IconButton
               color="primary"
@@ -59,14 +62,32 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
             </IconButton>
           </Tooltip>
           {isVolunteerMode && (
-            <Button
-              variant="contained"
-              color="info"
-              onClick={() => setAddPartFormModalOpen(true)}
-              size="small"
-            >
-              Add New Part
-            </Button>
+            <>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={() => setAddCategoryModalOpen(true)}
+                size="small"
+              >
+                Add Category
+              </Button>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={() => setAddLocationModalOpen(true)}
+                size="small"
+              >
+                Add Location
+              </Button>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={() => setAddPartFormModalOpen(true)}
+                size="small"
+              >
+                Add New Part
+              </Button>
+            </>
           )}
           <Button
             variant={isVolunteerMode ? 'contained' : 'outlined'}

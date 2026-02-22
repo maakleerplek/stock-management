@@ -3,6 +3,7 @@ FastAPI backend for InvenTree stock management system.
 Provides endpoints for item retrieval, stock removal, and image proxying.
 """
 
+import logging
 from io import BytesIO
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Query
@@ -14,24 +15,30 @@ import urllib3
 import os
 from dotenv import load_dotenv
 from urllib.parse import urljoin
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part, create_category, create_location
 
 # Suppress SSL warnings for internal Docker network communication
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Internal URL for image proxying - uses inventree-server directly
 INVENTREE_SERVER_URL = os.getenv("INVENTREE_URL", "http://inventree-server:8000")
+
+# Allowed CORS origins - restrict in production
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 
 app = FastAPI(title="InvenTree Stock Management API")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,8 +48,7 @@ app.add_middleware(
 
 
 class TakeItemRequest(BaseModel):
-    """Request model for removing items from stock."""
-
+    """Request model for removing/adding items from/to stock."""
     itemId: int
     quantity: int = 1
     notes: str = "Removed via API"
@@ -50,23 +56,18 @@ class TakeItemRequest(BaseModel):
 
 class BarcodeRequest(BaseModel):
     """Request model for QR/barcode lookup."""
-
     qr_id: str
 
 
 class CreatePartRequest(BaseModel):
     """Request model for creating a new part."""
     partName: str
-    ipn: str = "" # Add ipn field
+    ipn: str = ""
     description: str = ""
-    initialQuantity: float = 0 # Initial quantity for stock item to be created with part
-    minimumStock: Optional[float] = None # Add minimumStock field
+    initialQuantity: float = 0
+    minimumStock: Optional[float] = None
+    icon: str = ""
 
-    # unit: str = "" # Removed
-    # Removed from initial creation
-    # storageLocation: str
-    # supplier: str = "" # Removed
-    # notes: str = "" # Removed
 
 class UpdatePartRequest(BaseModel):
     """Request model for updating an existing part."""
@@ -75,55 +76,96 @@ class UpdatePartRequest(BaseModel):
     barcode: str = ""
 
 
+class CreateStockItemRequest(BaseModel):
+    """Request model for creating a stock item."""
+    partId: int
+    quantity: float
+    locationId: int
+    notes: str = ""
+    barcode: str = ""
+    purchasePrice: Optional[float] = None
+    purchasePriceCurrency: Optional[str] = None
+
+
+class CreateCategoryRequest(BaseModel):
+    """Request model for creating a category."""
+    name: str
+    description: str = ""
+    parent: Optional[str] = None
+    defaultLocation: Optional[str] = None
+    defaultKeywords: str = ""
+    structural: bool = False
+    icon: str = ""
+
+
+class CreateLocationRequest(BaseModel):
+    """Request model for creating a location."""
+    name: str
+    description: str = ""
+    parent: Optional[str] = None
+    structural: bool = False
+    external: bool = False
+    locationType: Optional[str] = None
+    icon: str = ""
+
+
 # ==================== Endpoints ====================
 
 
 @app.post("/take-item")
-def take_item(data: TakeItemRequest) -> dict:
-    """Remove stock from inventory."""
+def take_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Remove stock from inventory.
+    
+    Delegates to the InvenTree client to subtract the specified quantity
+    from the given stock item.
+    """
     response = remove_stock(data.itemId, data.quantity, data.notes)
     return response
 
 
 @app.post("/add-item")
-def add_item(data: TakeItemRequest) -> dict:
-    """Add stock to inventory."""
+def add_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Add stock to inventory.
+    
+    Delegates to the InvenTree client to add the specified quantity
+    to the given stock item.
+    """
     notes = data.notes.replace("Removed", "Added")
     response = add_stock(data.itemId, data.quantity, notes)
     return response
 
 
 @app.post("/set-item")
-def set_item(data: TakeItemRequest) -> dict:
-    """Set stock to an absolute quantity."""
+def set_item(data: TakeItemRequest) -> Dict[str, Any]:
+    """
+    Set stock to an absolute quantity.
+    
+    Delegates to the InvenTree client to calculate the difference and
+    adjust the stock to exactly match the target quantity.
+    """
     notes = data.notes.replace("Removed", "Set").replace("Added", "Set")
     response = set_stock(data.itemId, data.quantity, notes)
     return response
 
 
 @app.post("/create-part")
-async def create_part_endpoint(data: CreatePartRequest) -> dict:
-    """Create a new part in inventory and optionally add initial stock."""
+async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
+    """
+    Create a new part in inventory.
+    
+    Will randomly generate an IPN if one is not provided.
+    """
     try:
-        # Note: category, default_location are now handled in update_part_endpoint
-        # For now, assume they are sent as appropriate types or handle potential
-        # None/empty string values for optional fields.
-        
-        # supplier is now handled in the update step
-
-        
         part_ipn = data.ipn if data.ipn else f"TEMP-{data.partName}-{os.urandom(4).hex()}"
 
         part_creation_response = create_part(
             name=data.partName,
             ipn=part_ipn,
             description=data.description,
-            minimum_stock=data.minimumStock, # Pass minimumStock to create_part
-            # category is now set in the update step
-            # units is now set in the update step
-            # default_location is now set in the update step
-            # default_supplier is not directly supported in create_part for inventree_client
-            # notes is now set in the update step
+            minimum_stock=data.minimumStock,
+            icon=data.icon,
         )
 
         if part_creation_response.get("status") == "error":
@@ -132,39 +174,96 @@ async def create_part_endpoint(data: CreatePartRequest) -> dict:
         created_part = part_creation_response.get("part")
         part_pk = created_part.get("pk")
 
-        
         return {
             "status": "ok",
             "message": "Part created successfully",
-            "partId": part_pk, # Return partId for the frontend to use in the next step
+            "partId": part_pk,
         }
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"Error creating part: {e}")
+        logger.error("Error creating part: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to create part: {e}")
 
 
-@app.patch("/update-part/{part_pk}")
-async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> dict:
-    """Update an existing part in inventory."""
+@app.post("/create-category")
+async def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any]:
+    """
+    Create a new part category.
+    """
     try:
-        # Convert category and storageLocation to int if they are not empty
+        # Safely parse integer fields which may be empty strings from frontend
+        parent_id = int(data.parent) if data.parent and data.parent.isdigit() else None
+        location_id = int(data.defaultLocation) if data.defaultLocation and data.defaultLocation.isdigit() else None
+
+        response = create_category(
+            name=data.name,
+            description=data.description,
+            parent=parent_id,
+            default_location=location_id,
+            default_keywords=data.defaultKeywords,
+            structural=data.structural,
+            icon=data.icon,
+        )
+        if response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=response.get("message"))
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error("Error in create_category_endpoint: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to create category: {e}")
+
+
+@app.post("/create-location")
+async def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any]:
+    """
+    Create a new storage location.
+    """
+    try:
+        # Safely parse integer fields
+        parent_id = int(data.parent) if data.parent and data.parent.isdigit() else None
+        type_id = int(data.locationType) if data.locationType and data.locationType.isdigit() else None
+
+        response = create_location(
+            name=data.name,
+            description=data.description,
+            parent=parent_id,
+            structural=data.structural,
+            external=data.external,
+            location_type=type_id,
+            icon=data.icon,
+        )
+        if response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=response.get("message"))
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error("Error in create_location_endpoint: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to create location: {e}")
+
+
+@app.patch("/update-part/{part_pk}")
+async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> Dict[str, Any]:
+    """
+    Update an existing part in inventory.
+    
+    Allows changing the category or default storage location of a part.
+    """
+    try:
         category_id = int(data.category) if data.category else None
         location_id = int(data.storageLocation) if data.storageLocation else None
 
         update_payload = {}
-        
-        # Only add fields that are not None
         if category_id is not None:
             update_payload["category"] = category_id
         if location_id is not None:
             update_payload["default_location"] = location_id
 
-        # Update the part only if we have data to update
         if update_payload:
-            part_update_response = api.patch(f"/part/{part_pk}/", update_payload)
-            print(f"Successfully updated part {part_pk} with: {update_payload}")
+            api.patch(f"/part/{part_pk}/", update_payload)
+            logger.info("Successfully updated part %s with: %s", part_pk, update_payload)
         
         return {
             "status": "ok",
@@ -172,24 +271,18 @@ async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> dict:
             "partId": part_pk,
         }
     except Exception as e:
-        print(f"Error updating part: {e}")
+        logger.error("Error updating part: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to update part: {str(e)}")
 
 
-
-class CreateStockItemRequest(BaseModel):
-    """Request model for creating a stock item."""
-    partId: int
-    quantity: float
-    locationId: int
-    notes: str = ""
-    barcode: str = "" # Add optional barcode field
-    purchasePrice: Optional[float] = None
-    purchasePriceCurrency: Optional[str] = None
-
 @app.post("/create-stock-item")
-async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
-    """Create a new stock item in inventory."""
+async def create_stock_item_endpoint(data: CreateStockItemRequest) -> Dict[str, Any]:
+    """
+    Create a new stock item in inventory.
+    
+    Creates physical stock for a specific part at a specific location.
+    If a barcode is provided, it will automatically link it to the new stock item.
+    """
     try:
         stock_creation_response = create_stock_item(
             part_id=data.partId,
@@ -213,15 +306,14 @@ async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
                 try:
                     barcode_payload = {
                         "barcode": data.barcode,
-                        "stockitem": stock_item_pk, # Link to stock_item PK
+                        "stockitem": stock_item_pk,
                     }
-                    api.post("/barcode/link/", barcode_payload) # Use the specific link endpoint
-                    print(f"Successfully added barcode {data.barcode} to stock item {stock_item_pk}")
+                    api.post("/barcode/link/", barcode_payload)
+                    logger.info("Successfully added barcode %s to stock item %s", data.barcode, stock_item_pk)
                 except Exception as barcode_error:
-                    print(f"Warning: Failed to add barcode {data.barcode} to stock item {stock_item_pk}: {barcode_error}")
-                    # Don't fail the entire stock creation if barcode fails
-                    pass
-            print(f"Successfully created stock item for part {data.partId} at location {data.locationId}: {data.quantity}")
+                    logger.warning("Failed to add barcode %s to stock item %s: %s", data.barcode, stock_item_pk, barcode_error)
+
+            logger.info("Successfully created stock item for part %s at location %s: %s", data.partId, data.locationId, data.quantity)
             return {
                 "status": "ok",
                 "message": "Stock item created successfully",
@@ -232,98 +324,88 @@ async def create_stock_item_endpoint(data: CreateStockItemRequest) -> dict:
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"Error creating stock item: {e}")
+        logger.error("Error creating stock item: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to create stock item: {e}")
 
+
 @app.post("/get-item-from-qr")
-def get_item_from_qr(data: BarcodeRequest) -> dict:
-    """Get item info from a QR/barcode."""
+def get_item_from_qr(data: BarcodeRequest) -> Dict[str, Any]:
+    """
+    Get item info from a QR/barcode.
+    
+    Takes the raw scanned string, resolves it to a stock item via InvenTree,
+    and returns the fully populated item details.
+    """
     response = get_stock_from_qrid(data.qr_id)
     return response
 
 
 @app.get("/get-item-name")
-def get_item_name(item_id: int = Query(..., description="The ID of the item to get details for")) -> dict:
-    """Get item details by ID."""
+def get_item_name(item_id: int = Query(..., description="The ID of the stock item to get details for")) -> Dict[str, Any]:
+    """
+    Get item details by stock ID.
+    
+    Returns a unified view of the stock item and its parent part.
+    """
     response = get_item_details(item_id)
     return response
 
 
 @app.get("/get-categories")
-def get_categories() -> dict:
-    """Fetch all part categories from InvenTree."""
+def get_categories() -> Dict[str, Any]:
+    """
+    Fetch all part categories from InvenTree.
+    
+    Returns a simplified list of category IDs and names for frontend dropdowns.
+    """
     try:
-        # Fetch all categories from InvenTree API
         categories = api.get("/part/category/")
-        
-        # Extract only id and name for each category
         category_list = [
             {"id": cat.get("pk"), "name": cat.get("name")}
             for cat in categories
         ]
-        
-        return {
-            "status": "ok",
-            "categories": category_list,
-        }
+        return {"status": "ok", "categories": category_list}
     except Exception as e:
-        print(f"Error fetching categories: {e}")
-        return {
-            "status": "error",
-            "message": str(e),
-        }
+        logger.error("Error fetching categories: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch categories: {e}")
 
 
 @app.get("/get-locations")
-def get_locations() -> dict:
-    """Fetch all storage locations from InvenTree."""
+def get_locations() -> Dict[str, Any]:
+    """
+    Fetch all storage locations from InvenTree.
+    
+    Returns a simplified list of location IDs and names for frontend dropdowns.
+    """
     try:
-        # Fetch all locations from InvenTree API
         locations = api.get("/stock/location/")
-        
-        # Extract only id and name for each location
         location_list = [
             {"id": loc.get("pk"), "name": loc.get("name")}
             for loc in locations
         ]
-        
-        return {
-            "status": "ok",
-            "locations": location_list,
-        }
+        return {"status": "ok", "locations": location_list}
     except Exception as e:
-        print(f"Error fetching locations: {e}")
-        return {
-            "status": "error",
-            "message": str(e),
-        }
+        logger.error("Error fetching locations: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch locations: {e}")
 
 
 @app.post("/upload-part-image/{part_id}")
-async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> dict:
+async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[str, Any]:
     """
     Upload an image to a part in InvenTree.
     
-    Args:
-        part_id: The ID of the part to upload the image to
-        file: The image file to upload
-        
-    Returns:
-        Response dictionary with status and details
+    Validates that the file is an image and under 10MB before proxying
+    the upload to the InvenTree API.
     """
     try:
-        # Validate file type
         if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")
         
-        # Read file content
         image_data = await file.read()
         
-        # Validate file size (max 10MB)
         if len(image_data) > 10 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Image size must be less than 10MB")
         
-        # Upload to InvenTree
         response = upload_image_to_part(
             part_id=part_id,
             image_data=image_data,
@@ -338,7 +420,7 @@ async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> dict:
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"Error uploading image to part {part_id}: {e}")
+        logger.error("Error uploading image to part %s: %s", part_id, e)
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {e}")
 
 
@@ -348,46 +430,24 @@ async def image_proxy(image_path: str):
     Proxy image requests to the InvenTree server with authentication.
     
     Routes: Frontend → Backend → InvenTree Proxy (Caddy)
-    
-    Fetches images through the Caddy proxy which serves media files directly
-    from the volume without requiring InvenTree authentication.
     """
     try:
-        # Use the Caddy proxy to fetch media files
-        # Caddy serves /media/* directly from the volume
         caddy_url = "http://inventree-proxy:8081"
         full_url = urljoin(caddy_url + "/", image_path)
 
-        print(f"DEBUG: Proxying image request to: {full_url}")
+        logger.debug("Proxying image request to: %s", full_url)
 
-        # Simple GET request - no auth needed for static files through Caddy
         response = requests.get(full_url, stream=True, verify=False, timeout=10)
         response.raise_for_status()
 
-        # Determine content type
         content_type = response.headers.get("Content-Type", "application/octet-stream")
-        
-        # Log response info
-        print(f"DEBUG: Fetched response from Caddy")
-        print(f"  Status: {response.status_code}")
-        print(f"  Content-Type: {content_type}")
 
-        # CRITICAL: Validate that response is actually an image
-        # If we get HTML back, it's probably an error page or redirect
+        # Reject HTML responses (error pages, login redirects)
         if content_type.startswith("text/html"):
-            print(f"ERROR: Received HTML instead of image for: {image_path}")
-            print(f"  This usually means the image doesn't exist")
             raise HTTPException(
                 status_code=404, 
-                detail=f"Image not found or server returned HTML instead of image"
+                detail="Image not found or server returned HTML instead of image"
             )
-        
-        # Validate it's an image content type
-        valid_image_types = ["image/", "application/octet-stream"]
-        is_valid_image = any(content_type.startswith(t) for t in valid_image_types)
-        
-        if not is_valid_image:
-            print(f"WARNING: Unexpected content type '{content_type}' for image: {image_path}")
 
         return StreamingResponse(
             response.iter_content(chunk_size=8192),
@@ -400,8 +460,8 @@ async def image_proxy(image_path: str):
     except HTTPException:
         raise
     except requests.exceptions.RequestException as e:
-        print(f"Error in image_proxy RequestException: {e}")
+        logger.error("Image proxy RequestException: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to fetch image: {e}")
     except Exception as e:
-        print(f"Error in image_proxy: {e}")
+        logger.error("Image proxy error: %s", e)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
