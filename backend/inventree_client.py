@@ -263,6 +263,7 @@ def create_part(
     active: bool = True,
     purchaseable: bool = True,
     minimum_stock: Optional[float] = None,
+    icon: str = "",
 ) -> Dict[str, Any]:
     """
     Create a new part definition in InvenTree.
@@ -279,6 +280,7 @@ def create_part(
         active: Whether the part is currently active.
         purchaseable: Whether the part can be purchased.
         minimum_stock: The threshold at which stock is considered low.
+        icon: The name of the icon to associate with the part.
         
     Returns:
         Dict returning status and the created part data.
@@ -302,6 +304,8 @@ def create_part(
             payload["default_supplier"] = default_supplier
         if minimum_stock is not None:
             payload["minimum_stock"] = minimum_stock
+        if icon:
+            payload["icon"] = icon
 
         response = api.post("/part/", payload)
         return {"status": "ok", "part": response}
@@ -474,3 +478,52 @@ def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
             "qr_id": qr_id,
             "message": f"Barcode lookup failed: {str(e)}",
         }
+
+def create_category(name: str, description: str = "", parent: int = None, default_location: int = None, default_keywords: str = "", structural: bool = False, icon: str = "") -> Dict[str, Any]:
+    """
+    Create a new part category in InvenTree.
+    """
+    try:
+        payload = {
+            "name": name, 
+            "description": description,
+            "structural": structural,
+        }
+        if parent is not None:
+            payload["parent"] = parent
+        if default_location is not None:
+            payload["default_location"] = default_location
+        if default_keywords:
+            payload["default_keywords"] = default_keywords
+        if icon:
+            payload["icon"] = icon
+
+        response = api.post("/part/category/", payload)
+        return {"status": "ok", "category": response}
+    except Exception as e:
+        logger.error("Error creating category: %s", e)
+        return {"status": "error", "message": str(e)}
+
+def create_location(name: str, description: str = "", parent: int = None, structural: bool = False, external: bool = False, location_type: int = None, icon: str = "") -> Dict[str, Any]:
+    """
+    Create a new storage location in InvenTree.
+    """
+    try:
+        payload = {
+            "name": name, 
+            "description": description,
+            "structural": structural,
+            "external": external,
+        }
+        if parent is not None:
+            payload["parent"] = parent
+        if location_type is not None:
+            payload["location_type"] = location_type
+        if icon:
+            payload["icon"] = icon
+
+        response = api.post("/stock/location/", payload)
+        return {"status": "ok", "location": response}
+    except Exception as e:
+        logger.error("Error creating location: %s", e)
+        return {"status": "error", "message": str(e)}

@@ -1,18 +1,19 @@
 # Caddyfile for Stock Management System + InvenTree
+# Based on Standard InvenTree Caddyfile + Custom Stock App Additions
 
-# Global options - set default SNI for IP access
+# Global options
 {
 	default_sni {$SITE_IP}
 }
 
-# Logging
+# Logging configuration for Caddy
 (log_common) {
 	log {
 		output file /var/log/caddy/{args[0]}.access.log
 	}
 }
 
-# CORS headers
+# CORS headers control (used for static and media files)
 (cors-headers) {
 	header Allow GET,HEAD,OPTIONS
 	header Access-Control-Allow-Origin *
@@ -20,12 +21,13 @@
 	header Access-Control-Allow-Headers Authorization,Content-Type,User-Agent
 
 	@cors_preflight{args[0]} method OPTIONS
+
 	handle @cors_preflight{args[0]} {
 		respond "" 204
 	}
 }
 
-# Common settings
+# Common settings for Stock App
 (common) {
 	encode gzip
 	request_body {
@@ -33,101 +35,69 @@
 	}
 }
 
-# Stock app routes
-(stock-routes) {
+# =============================================================================
+# INVENTREE (Standard Setup)
+# =============================================================================
+
+# The default server address is configured in the .env file
+# If not specified, the proxy listens for all http/https traffic
+{$INVENTREE_SITE_URL:"http://, https://"} {
+	tls internal
+	import log_common inventree
+
+	encode gzip
+
+	request_body {
+		max_size 100MB
+	}
+
+	# Handle static request files
+	handle_path /static/* {
+		import cors-headers static
+
+		root * /var/www/static
+		file_server
+	}
+
+	# Handle media request files
+	handle_path /media/* {
+		import cors-headers media
+
+		root * /var/www/media
+		file_server
+
+		# Force download of media files (for security)
+		header Content-Disposition attachment
+
+		# Authentication is handled by the forward_auth directive
+		forward_auth {$INVENTREE_SERVER:"http://inventree-server:8000"} {
+			uri /auth/
+		}
+	}
+
+	# All other requests are proxied to the InvenTree server
+	reverse_proxy {$INVENTREE_SERVER:"http://inventree-server:8000"} {
+		header_down -X-Frame-Options
+		header_down -Content-Security-Policy
+	}
+}
+
+# =============================================================================
+# CUSTOM STOCK MANAGEMENT APP (Frontend + Backend)
+# =============================================================================
+
+# Serve the stock application on localhost and exactly on the specified SITE_IP
+stock.localhost:{$STOCK_PORT}, {$SITE_IP}:{$STOCK_PORT} {
+	tls internal
+	import log_common stock
+	import common
+
 	handle_path /api/* {
 		reverse_proxy backend:8001
 	}
 	handle {
 		reverse_proxy frontend:80
 	}
-}
-
-# InvenTree routes (with auth for external access)
-(inventree-routes) {
-	handle_path /static/* {
-		import cors-headers static
-		root * /var/www/static
-		file_server
-	}
-	handle_path /media/* {
-		import cors-headers media
-		root * /var/www/media
-		file_server
-		header Content-Disposition attachment
-		forward_auth http://inventree-server:8000 {
-			uri /auth/
-		}
-	}
-	reverse_proxy http://inventree-server:8000 {
-		header_down -X-Frame-Options
-		header_down -Content-Security-Policy
-	}
-}
-
-# InvenTree routes for IP access (spoofs Host header to match SITE_URL)
-(inventree-routes-ip) {
-	handle_path /static/* {
-		import cors-headers static
-		root * /var/www/static
-		file_server
-	}
-	handle_path /media/* {
-		import cors-headers media
-		root * /var/www/media
-		file_server
-		header Content-Disposition attachment
-		forward_auth http://inventree-server:8000 {
-			uri /auth/
-			header_up Host inventree.localhost
-			header_up X-Forwarded-Host inventree.localhost
-			header_up X-Forwarded-Proto https
-		}
-	}
-	reverse_proxy http://inventree-server:8000 {
-		header_up Host inventree.localhost
-		header_up X-Forwarded-Host inventree.localhost
-		header_up X-Forwarded-Proto https
-		header_up X-Forwarded-Port 443
-		header_down -X-Frame-Options
-		header_down -Content-Security-Policy
-	}
-}
-
-# =============================================================================
-# LOCALHOST ACCESS (HTTPS)
-# =============================================================================
-
-stock.localhost {
-	tls internal
-	import log_common stock
-	import common
-	import stock-routes
-}
-
-inventree.localhost {
-	tls internal
-	import log_common inventree
-	import common
-	import inventree-routes
-}
-
-# =============================================================================
-# NETWORK IP ACCESS (HTTPS)
-# =============================================================================
-
-{$SITE_IP} {
-	tls internal
-	import log_common stock-ip
-	import common
-	import stock-routes
-}
-
-{$SITE_IP}:8443 {
-	tls internal
-	import log_common inventree-ip
-	import common
-	import inventree-routes-ip
 }
 
 # =============================================================================

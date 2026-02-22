@@ -72,15 +72,14 @@ A modern, responsive inventory management system with barcode scanning, shopping
 
 3. **Access the application**
 
-   Based on the IP address configured in your `.env` file (e.g., `SITE_IP=10.72.3.141`), you can access the applications as follows:
+   Based on the IP address configured in your `.env` file (e.g., `SITE_IP=10.72.3.141` and `INVENTREE_SITE_URL="https://10.72.3.141:8443"`), you can access the applications as follows:
 
-   **From the machine itself:**
-   - Stock App: [https://stock.localhost](https://stock.localhost)
-   - InvenTree: [https://inventree.localhost](https://inventree.localhost)
+   **Stock App:**
+   - `https://stock.localhost` (Locally)
+   - `https://<YOUR_SITE_IP>` (e.g., [https://10.72.3.141](https://10.72.3.141)) (Network)
 
-   **From any other device on your network (like a phone or tablet):**
-   - Stock App: `https://<YOUR_SITE_IP>` (e.g., [https://10.72.3.141](https://10.72.3.141))
-   - InvenTree: `https://<YOUR_SITE_IP>:8443` (e.g., [https://10.72.3.141:8443](https://10.72.3.141:8443))
+   **InvenTree:**
+   - Access via the exact URL defined in `INVENTREE_SITE_URL` (e.g., [https://10.72.3.141:8443](https://10.72.3.141:8443))
 
    > **Note:** Because these are local network addresses, your browser will likely show a warning about the connection not being private (`ERR_CERT_AUTHORITY_INVALID`). This is normal because Caddy generates its own local HTTPS certificates. You can safely click "Advanced" and then "Proceed" to bypass the warning.
 

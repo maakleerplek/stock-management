@@ -3,6 +3,9 @@ import { GitHub, Info } from '@mui/icons-material';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
+  const docsUrl = import.meta.env.VITE_DOCS_URL;
+  const feedbackUrl = import.meta.env.VITE_FEEDBACK_URL;
+  const githubUrl = import.meta.env.VITE_GITHUB_URL;
 
   return (
     <Box
@@ -42,7 +45,7 @@ function Footer() {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                <strong>Version:</strong> 1.0.0
+                <strong>Version:</strong> 0.8.0 (Beta)
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 <strong>Status:</strong> Active
@@ -59,59 +62,65 @@ function Footer() {
               Resources
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Info sx={{ fontSize: '1.2rem' }} />
-                <Link
-                  href="https://docs.inventree.org/en/stable/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  color="primary"
-                  sx={{
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                    transition: 'color 0.2s',
-                    '&:hover': { color: 'primary.light' },
-                  }}
-                >
-                  Documentation
-                </Link>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Link
-                  href="https://forms.office.com/Pages/ResponsePage.aspx?id=na_P3-cbHE-C0Dt1rSax0GOEml8Fu2tKkljOunyJSCNUMUk1SkM4UUIxRExGNVRRNlhZVzU1UkVQSS4u"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  color="primary"
-                  sx={{
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                    transition: 'color 0.2s',
-                    '&:hover': { color: 'primary.light' },
-                  }}
-                >
-                  Give feedback
-                </Link>
-              </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <GitHub sx={{ fontSize: '1.2rem' }} />
-                <Link
-                  href="https://github.com/maakleerplek/stock-management"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  color="primary"
-                  sx={{
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                    fontSize: '0.95rem',
-                    transition: 'color 0.2s',
-                    '&:hover': { color: 'primary.light' },
-                  }}
-                >
-                  GitHub
-                </Link>
-              </Box>
+              {docsUrl && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Info sx={{ fontSize: '1.2rem' }} />
+                  <Link
+                    href={docsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    color="primary"
+                    sx={{
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      transition: 'color 0.2s',
+                      '&:hover': { color: 'primary.light' },
+                    }}
+                  >
+                    Documentation
+                  </Link>
+                </Box>
+              )}
+              {feedbackUrl && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Link
+                    href={feedbackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    color="primary"
+                    sx={{
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      transition: 'color 0.2s',
+                      '&:hover': { color: 'primary.light' },
+                    }}
+                  >
+                    Give feedback
+                  </Link>
+                </Box>
+              )}
+              {githubUrl && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <GitHub sx={{ fontSize: '1.2rem' }} />
+                  <Link
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    color="primary"
+                    sx={{
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      transition: 'color 0.2s',
+                      '&:hover': { color: 'primary.light' },
+                    }}
+                  >
+                    GitHub
+                  </Link>
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>

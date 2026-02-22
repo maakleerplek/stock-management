@@ -165,6 +165,9 @@ services:
                 VITE_PRINT_PRICE_PER_GRAM: ${VITE_PRINT_PRICE_PER_GRAM:-0.10}
                 VITE_CURRENCY: ${VITE_CURRENCY:-EUR}
                 VITE_PAYCONIQ_MERCHANT_ID: ${VITE_PAYCONIQ_MERCHANT_ID}
+                VITE_DOCS_URL: ${VITE_DOCS_URL:-https://docs.inventree.org/en/stable/}
+                VITE_FEEDBACK_URL: ${VITE_FEEDBACK_URL}
+                VITE_GITHUB_URL: ${VITE_GITHUB_URL:-https://github.com/maakleerplek/stock-management}
         container_name: stock-frontend
         depends_on:
             - backend

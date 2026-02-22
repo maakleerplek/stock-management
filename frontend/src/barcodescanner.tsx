@@ -35,7 +35,13 @@ function Scanner({ onScan }: ScannerProps) {
 
     const scanner = new Html5QrcodeScanner(
       QR_READER_ID,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
+      {
+        fps: 30, // Increase frame rate for faster detection
+        // Remove qrbox so the scanner looks at the entire frame, not just the center
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true // Use faster native API if available
+        }
+      },
       false
     );
 

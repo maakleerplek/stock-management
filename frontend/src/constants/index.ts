@@ -14,6 +14,8 @@ export const API_CONFIG = {
     UPDATE_PART: '/update-part/{part_pk}',
     CREATE_STOCK_ITEM: '/create-stock-item',
     UPLOAD_PART_IMAGE: '/upload-part-image/{part_id}',
+    CREATE_CATEGORY: '/create-category',
+    CREATE_LOCATION: '/create-location',
   },
 } as const;
 
@@ -25,6 +27,7 @@ export const INVENTREE_CONFIG = {
 // Local Storage Keys
 export const STORAGE_KEYS = {
   THEME_PREFERENCE: 'themePreference',
+  VOLUNTEER_MODE: 'volunteerModeActive',
 } as const;
 
 // Default Values

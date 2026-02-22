@@ -1,13 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AddPartForm, { type PartFormData, type SelectOption } from './AddPartForm';
+import AddCategoryForm, { type CategoryFormData } from './AddCategoryForm';
+import AddLocationForm, { type LocationFormData } from './AddLocationForm';
 import type { ItemData } from './sendCodeHandler';
 import ShoppingWindow from './ShoppingWindow';
 import BarcodeScannerContainer from './BarcodeScannerContainer';
 import Footer from './Footer';
 import Header from './Header';
 import InvenTreePage from './InvenTreePage';
-import { CssBaseline, Box, Dialog, DialogContent } from '@mui/material';
+import { CssBaseline, Box, Dialog, DialogContent, Typography } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
 import { ToastProvider, useToast } from './ToastContext';
@@ -27,6 +29,8 @@ function AppContent() {
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
+  const [addCategoryModalOpen, setAddCategoryModalOpen] = useState(false);
+  const [addLocationModalOpen, setAddLocationModalOpen] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
   const [checkoutTotal, setCheckoutTotal] = useState<number | null>(null);
@@ -40,51 +44,85 @@ function AppContent() {
     [addToast]
   );
 
-  // Fetch categories and locations on component mount
-  useEffect(() => {
-    const fetchCategoriesAndLocations = async () => {
-      try {
-        const [categoriesRes, locationsRes] = await Promise.all([
-          fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES)),
-          fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS)),
-        ]);
+  const fetchCategoriesAndLocations = useCallback(async () => {
+    try {
+      const [categoriesRes, locationsRes] = await Promise.all([
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES)),
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS)),
+      ]);
 
-        // Handle categories response
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          if (categoriesData.status === 'ok') {
-            setCategories(categoriesData.categories);
-          } else {
-            setCategories([]);
-            addToast(`Error fetching categories: ${categoriesData.message}`, 'error');
-          }
+      // Handle categories response
+      if (categoriesRes.ok) {
+        const categoriesData = await categoriesRes.json();
+        if (categoriesData.status === 'ok') {
+          setCategories(categoriesData.categories);
         } else {
           setCategories([]);
-          addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
+          addToast(`Error fetching categories: ${categoriesData.message}`, 'error');
         }
+      } else {
+        setCategories([]);
+        addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
+      }
 
-        // Handle locations response
-        if (locationsRes.ok) {
-          const locationsData = await locationsRes.json();
-          if (locationsData.status === 'ok') {
-            setLocations(locationsData.locations);
-          } else {
-            setLocations([]);
-            addToast(`Error fetching locations: ${locationsData.message}`, 'error');
-          }
+      // Handle locations response
+      if (locationsRes.ok) {
+        const locationsData = await locationsRes.json();
+        if (locationsData.status === 'ok') {
+          setLocations(locationsData.locations);
         } else {
           setLocations([]);
-          addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
+          addToast(`Error fetching locations: ${locationsData.message}`, 'error');
         }
-      } catch (error) {
-        setCategories([]);
+      } else {
         setLocations([]);
-        handleApiError(error, 'fetching categories and locations');
+        addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
       }
-    };
-
-    fetchCategoriesAndLocations();
+    } catch (error) {
+      setCategories([]);
+      setLocations([]);
+      handleApiError(error, 'fetching categories and locations');
+    }
   }, [addToast, handleApiError]);
+
+  // Fetch categories and locations on component mount
+  useEffect(() => {
+    fetchCategoriesAndLocations();
+  }, [fetchCategoriesAndLocations]);
+
+  const handleAddCategorySubmit = async (formData: CategoryFormData): Promise<void> => {
+    const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.CREATE_CATEGORY), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to create category');
+    }
+
+    addToast('Category created successfully!', 'success');
+    setAddCategoryModalOpen(false);
+    fetchCategoriesAndLocations(); // Refresh list
+  };
+
+  const handleAddLocationSubmit = async (formData: LocationFormData): Promise<void> => {
+    const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.CREATE_LOCATION), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to create location');
+    }
+
+    addToast('Location created successfully!', 'success');
+    setAddLocationModalOpen(false);
+    fetchCategoriesAndLocations(); // Refresh list
+  };
 
   // Helper function to upload image
   const uploadPartImage = async (image: File, partId: string): Promise<void> => {
@@ -249,6 +287,8 @@ function AppContent() {
               toggleTheme={toggleTheme}
               setVolunteerModalOpen={setVolunteerModalOpen}
               setAddPartFormModalOpen={setAddPartFormModalOpen}
+              setAddCategoryModalOpen={setAddCategoryModalOpen}
+              setAddLocationModalOpen={setAddLocationModalOpen}
               onOpenInvenTree={() => setCurrentPage('inventree')}
             />
             <Box sx={{ flex: 1, py: 4 }}>
@@ -283,6 +323,29 @@ function AppContent() {
             onSubmit={handleAddPartSubmit}
             categories={categories}
             locations={locations}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addCategoryModalOpen} onClose={() => setAddCategoryModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogContent>
+          <Typography variant="h6" gutterBottom>Add New Category</Typography>
+          <AddCategoryForm
+            onSubmit={handleAddCategorySubmit}
+            categories={categories}
+            locations={locations}
+            onCancel={() => setAddCategoryModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addLocationModalOpen} onClose={() => setAddLocationModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogContent>
+          <Typography variant="h6" gutterBottom>Add New Location</Typography>
+          <AddLocationForm
+            onSubmit={handleAddLocationSubmit}
+            locations={locations}
+            onCancel={() => setAddLocationModalOpen(false)}
           />
         </DialogContent>
       </Dialog>

@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from urllib.parse import urljoin
 from typing import Optional, Dict, Any
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part, create_category, create_location
 
 # Suppress SSL warnings for internal Docker network communication
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -66,6 +66,7 @@ class CreatePartRequest(BaseModel):
     description: str = ""
     initialQuantity: float = 0
     minimumStock: Optional[float] = None
+    icon: str = ""
 
 
 class UpdatePartRequest(BaseModel):
@@ -84,6 +85,28 @@ class CreateStockItemRequest(BaseModel):
     barcode: str = ""
     purchasePrice: Optional[float] = None
     purchasePriceCurrency: Optional[str] = None
+
+
+class CreateCategoryRequest(BaseModel):
+    """Request model for creating a category."""
+    name: str
+    description: str = ""
+    parent: Optional[int] = None
+    default_location: Optional[int] = None
+    default_keywords: str = ""
+    structural: bool = False
+    icon: str = ""
+
+
+class CreateLocationRequest(BaseModel):
+    """Request model for creating a location."""
+    name: str
+    description: str = ""
+    parent: Optional[int] = None
+    structural: bool = False
+    external: bool = False
+    location_type: Optional[int] = None
+    icon: str = ""
 
 
 # ==================== Endpoints ====================
@@ -142,6 +165,7 @@ async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
             ipn=part_ipn,
             description=data.description,
             minimum_stock=data.minimumStock,
+            icon=data.icon,
         )
 
         if part_creation_response.get("status") == "error":
@@ -160,6 +184,56 @@ async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
     except Exception as e:
         logger.error("Error creating part: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to create part: {e}")
+
+
+@app.post("/create-category")
+async def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any]:
+    """
+    Create a new part category.
+    """
+    try:
+        response = create_category(
+            name=data.name,
+            description=data.description,
+            parent=data.parent,
+            default_location=data.default_location,
+            default_keywords=data.default_keywords,
+            structural=data.structural,
+            icon=data.icon,
+        )
+        if response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=response.get("message"))
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error("Error in create_category_endpoint: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to create category: {e}")
+
+
+@app.post("/create-location")
+async def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any]:
+    """
+    Create a new storage location.
+    """
+    try:
+        response = create_location(
+            name=data.name,
+            description=data.description,
+            parent=data.parent,
+            structural=data.structural,
+            external=data.external,
+            location_type=data.location_type,
+            icon=data.icon,
+        )
+        if response.get("status") == "error":
+            raise HTTPException(status_code=500, detail=response.get("message"))
+        return response
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error("Error in create_location_endpoint: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to create location: {e}")
 
 
 @app.patch("/update-part/{part_pk}")

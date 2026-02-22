@@ -98,8 +98,7 @@ The system should now be fully functional.
 - **Backend API Docs:**
   `http://localhost:8001/docs` (Locally)
 - **InvenTree Dashboard:**
-  `https://inventree.localhost` (Locally)
-  `https://<YOUR_SITE_IP>:8443` (Over the network)
+  Access via the exact URL defined in `INVENTREE_SITE_URL` (e.g., `https://<YOUR_SITE_IP>:8443`)
 
 ## 7. Connecting to Nginx Proxy Manager (Optional)
 
