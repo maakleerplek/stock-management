@@ -90,15 +90,22 @@ Your Backend (Python/FastAPI) needs permission to talk to the InvenTree server. 
 
 ## 6. Access the Application
 
-The system should now be fully functional.
+The system should now be fully functional. It is exposed through the Caddy Reverse Proxy, meaning you do not need to append ports for the Stock Web App (it runs on standard HTTP/HTTPS ports) and you append `:8443` for InvenTree.
 
-- **Stock Management App (Frontend):**
-  `https://stock.localhost` (Locally)
-  `https://<YOUR_SITE_IP>` (Over the network)
-- **Backend API Docs:**
-  `http://localhost:8001/docs` (Locally)
-- **InvenTree Dashboard:**
-  Access via the exact URL defined in `INVENTREE_SITE_URL` (e.g., `https://<YOUR_SITE_IP>:8443`)
+### Local Access (From the host machine)
+
+- **Stock Management App (Frontend):** [https://stock.localhost:8080](https://stock.localhost:8080)
+- **Backend API Docs:** [http://localhost:8001/docs](http://localhost:8001/docs)
+- **InvenTree Dashboard:** [https://inventree.localhost:8443](https://inventree.localhost:8443)
+
+### Network Access (From phones, tablets, or other PCs)
+
+Assuming your `.env` has `SITE_IP=192.168.1.100`:
+
+- **Stock Management App (Frontend):** [https://192.168.1.100:8080](https://192.168.1.100:8080)
+- **InvenTree Dashboard:** [https://192.168.1.100:8443](https://192.168.1.100:8443)
+
+> **⚠️ SSL Warnings:** Because we use local IPs and `.localhost` domains without a registered certificate authority, your browser will display a "Your connection is not private" warning. You must click **Advanced** -> **Proceed to [URL]** to access the site.
 
 ## 7. Connecting to Nginx Proxy Manager (Optional)
 

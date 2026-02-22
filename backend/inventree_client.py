@@ -90,6 +90,9 @@ class InvenTreeClient:
             response = self.session.post(url, json=data, params={"format": "json"})
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.HTTPError as e:
+            error_details = e.response.text if e.response else str(e)
+            raise Exception(f"POST {endpoint} failed: {error_details}") from e
         except requests.RequestException as e:
             raise Exception(f"POST {endpoint} failed: {e}") from e
 
