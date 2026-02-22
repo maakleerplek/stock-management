@@ -94,7 +94,7 @@ The system should now be fully functional. It is exposed through the Caddy Rever
 
 ### Local Access (From the host machine)
 
-- **Stock Management App (Frontend):** [https://stock.localhost:8080](https://stock.localhost:8080)
+- **Stock Management App (Frontend):** [https://stock.localhost:8082](https://stock.localhost:8082)
 - **Backend API Docs:** [http://localhost:8001/docs](http://localhost:8001/docs)
 - **InvenTree Dashboard:** [https://inventree.localhost:8443](https://inventree.localhost:8443)
 
@@ -102,7 +102,7 @@ The system should now be fully functional. It is exposed through the Caddy Rever
 
 Assuming your `.env` has `SITE_IP=192.168.1.100`:
 
-- **Stock Management App (Frontend):** [https://192.168.1.100:8080](https://192.168.1.100:8080)
+- **Stock Management App (Frontend):** [https://192.168.1.100:8082](https://192.168.1.100:8082)
 - **InvenTree Dashboard:** [https://192.168.1.100:8443](https://192.168.1.100:8443)
 
 > **⚠️ SSL Warnings:** Because we use local IPs and `.localhost` domains without a registered certificate authority, your browser will display a "Your connection is not private" warning. You must click **Advanced** -> **Proceed to [URL]** to access the site.

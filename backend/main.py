@@ -91,9 +91,9 @@ class CreateCategoryRequest(BaseModel):
     """Request model for creating a category."""
     name: str
     description: str = ""
-    parent: Optional[int] = None
-    default_location: Optional[int] = None
-    default_keywords: str = ""
+    parent: Optional[str] = None
+    defaultLocation: Optional[str] = None
+    defaultKeywords: str = ""
     structural: bool = False
     icon: str = ""
 
@@ -102,10 +102,10 @@ class CreateLocationRequest(BaseModel):
     """Request model for creating a location."""
     name: str
     description: str = ""
-    parent: Optional[int] = None
+    parent: Optional[str] = None
     structural: bool = False
     external: bool = False
-    location_type: Optional[int] = None
+    locationType: Optional[str] = None
     icon: str = ""
 
 
@@ -192,12 +192,16 @@ async def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any
     Create a new part category.
     """
     try:
+        # Safely parse integer fields which may be empty strings from frontend
+        parent_id = int(data.parent) if data.parent and data.parent.isdigit() else None
+        location_id = int(data.defaultLocation) if data.defaultLocation and data.defaultLocation.isdigit() else None
+
         response = create_category(
             name=data.name,
             description=data.description,
-            parent=data.parent,
-            default_location=data.default_location,
-            default_keywords=data.default_keywords,
+            parent=parent_id,
+            default_location=location_id,
+            default_keywords=data.defaultKeywords,
             structural=data.structural,
             icon=data.icon,
         )
@@ -217,13 +221,17 @@ async def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any
     Create a new storage location.
     """
     try:
+        # Safely parse integer fields
+        parent_id = int(data.parent) if data.parent and data.parent.isdigit() else None
+        type_id = int(data.locationType) if data.locationType and data.locationType.isdigit() else None
+
         response = create_location(
             name=data.name,
             description=data.description,
-            parent=data.parent,
+            parent=parent_id,
             structural=data.structural,
             external=data.external,
-            location_type=data.location_type,
+            location_type=type_id,
             icon=data.icon,
         )
         if response.get("status") == "error":

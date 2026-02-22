@@ -11,15 +11,15 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 
 export const COMMON_ICONS = [
-    { name: 'fas fa-box', label: 'Box', icon: <InventoryIcon fontSize="small" /> },
-    { name: 'fas fa-boxes', label: 'Boxes', icon: <CategoryIcon fontSize="small" /> },
-    { name: 'fas fa-wrench', label: 'Wrench (Tool)', icon: <BuildIcon fontSize="small" /> },
-    { name: 'fas fa-plug', label: 'Plug (Cable)', icon: <CableIcon fontSize="small" /> },
-    { name: 'fas fa-bolt', label: 'Bolt (Electrical)', icon: <BoltIcon fontSize="small" /> },
-    { name: 'fas fa-microchip', label: 'Microchip (Electronic)', icon: <DevicesIcon fontSize="small" /> },
-    { name: 'fas fa-hammer', label: 'Hammer (Hardware)', icon: <ConstructionIcon fontSize="small" /> },
-    { name: 'fas fa-screwdriver', label: 'Screwdriver (Tool)', icon: <HandymanIcon fontSize="small" /> },
-    { name: 'fas fa-cogs', label: 'Cogs (Mechanical)', icon: <PrecisionManufacturingIcon fontSize="small" /> },
+    { name: 'ti:box:outline', label: 'Box', icon: <InventoryIcon fontSize="small" /> },
+    { name: 'ti:boxes:outline', label: 'Boxes', icon: <CategoryIcon fontSize="small" /> },
+    { name: 'ti:tool:outline', label: 'Tool', icon: <BuildIcon fontSize="small" /> },
+    { name: 'ti:plug:outline', label: 'Plug (Cable)', icon: <CableIcon fontSize="small" /> },
+    { name: 'ti:bolt:outline', label: 'Bolt (Electrical)', icon: <BoltIcon fontSize="small" /> },
+    { name: 'ti:cpu:outline', label: 'Microchip (Electronic)', icon: <DevicesIcon fontSize="small" /> },
+    { name: 'ti:hammer:outline', label: 'Hammer (Hardware)', icon: <ConstructionIcon fontSize="small" /> },
+    { name: 'ti:screwdriver:outline', label: 'Screwdriver (Tool)', icon: <HandymanIcon fontSize="small" /> },
+    { name: 'ti:settings:outline', label: 'Cogs (Mechanical)', icon: <PrecisionManufacturingIcon fontSize="small" /> },
 ];
 
 interface IconPickerProps {
