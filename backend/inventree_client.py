@@ -373,7 +373,7 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
         ideal for frontend consumption.
     """
     try:
-        stock_item = api.get(f"/stock/{item_id}/")
+        stock_item = api.get(f"/stock/{item_id}/?part_detail=true&location_detail=true")
         if not stock_item:
             return {
                 "status": "error",
@@ -381,20 +381,20 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
                 "message": "Stock item not found",
             }
 
-        part_id = stock_item.get("part")
-        part_details = {}
+        part_detail = stock_item.get("part_detail", {})
+        location_detail = stock_item.get("location_detail", {})
         
+        part_id = stock_item.get("part")
+        category_name = "Uncategorized"
+        
+        # We need to fetch the part directly to easily get its category name if it has one
+        # because part_detail from stock endpoint doesn't always deeply nest category_name
         if part_id:
             try:
                 part = api.get(f"/part/{part_id}/")
-                part_details = {
-                    "name": part.get("name"),
-                    "description": part.get("description"),
-                    "price": part.get("pricing_min"),
-                    "image": part.get("image"),
-                }
+                category_name = part.get("category_name", "Uncategorized")
             except Exception as e:
-                logger.warning("Could not fetch part details for part %s: %s", part_id, e)
+                logger.warning("Could not fetch extended part details for part %s: %s", part_id, e)
 
         return {
             "status": "ok",
@@ -402,12 +402,15 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
                 "id": stock_item.get("pk"),
                 "quantity": stock_item.get("quantity"),
                 "serial": stock_item.get("serial"),
-                "location": stock_item.get("location"),
+                "location": location_detail.get("pathstring", stock_item.get("location")),
                 "status": stock_item.get("status_text"),
-                "name": part_details.get("name"),
-                "description": part_details.get("description"),
-                "price": part_details.get("price"),
-                "image": part_details.get("image"),
+                "name": part_detail.get("name", ""),
+                "description": part_detail.get("description", ""),
+                "price": part_detail.get("pricing_min", 0),
+                "image": part_detail.get("image", None),
+                "part_id": part_id,
+                "ipn": part_detail.get("IPN", ""),
+                "category": category_name,
             },
         }
     except Exception as e:

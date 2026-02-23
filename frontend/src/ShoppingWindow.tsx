@@ -10,13 +10,31 @@ interface ShoppingWindowProps {
     onCheckoutTotalChange?: (total: number | null) => void;
 }
 
+const CART_STORAGE_KEY = 'stockManagerCartItems';
+
 export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: ShoppingWindowProps) {
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+        try {
+            const stored = localStorage.getItem(CART_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.error("Failed to parse cart items from local storage", e);
+            return [];
+        }
+    });
     const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const [isSetMode, setIsSetMode] = useState<boolean>(false);
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
+
+    const handleSetModeChange = useCallback((newMode: boolean) => {
+        setIsSetMode(newMode);
+        if (!newMode) {
+            // Un-setting Set Mode should delete items that sit at 0
+            setCartItems((prevItems) => prevItems.filter(item => item.cartQuantity !== 0));
+        }
+    }, []);
 
     // Notify parent component when checkout total changes
     useEffect(() => {
@@ -24,6 +42,18 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
             onCheckoutTotalChange(checkedOutTotal);
         }
     }, [checkedOutTotal, onCheckoutTotalChange]);
+
+    // Cleanup cart if volunteer mode is exited
+    useEffect(() => {
+        if (!isVolunteerMode) {
+            setCartItems((prevItems) => prevItems.filter(item => item.cartQuantity > 0));
+        }
+    }, [isVolunteerMode]);
+
+    // Persist cart items
+    useEffect(() => {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    }, [cartItems]);
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
         setCheckedOutTotal(null);
@@ -54,7 +84,11 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
                 .map((item) =>
                     item.id === itemId ? { ...item, cartQuantity: newQuantity } : item
                 )
-                .filter((item) => item.cartQuantity > 0)
+                .filter((item) => {
+                    // Only volunteer mode allows holding items with 0 stock
+                    if (isVolunteerMode) return true;
+                    return item.cartQuantity !== 0;
+                })
         );
     };
 
@@ -85,7 +119,14 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
         }
 
         for (const item of cartItems) {
-            const success = await handler(item.id, item.cartQuantity);
+            let success = false;
+            if (isVolunteerMode && !isSetMode && item.cartQuantity < 0) {
+                // Going negative in add mode automatically switches to remove
+                success = await handleTakeItem(item.id, Math.abs(item.cartQuantity));
+            } else {
+                success = await handler(item.id, item.cartQuantity);
+            }
+
             if (!success) {
                 const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
                 addToast(errorMsg, 'error');
@@ -120,7 +161,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
                 extraCosts={extraCosts}
                 isVolunteerMode={isVolunteerMode}
                 isSetMode={isSetMode}
-                onSetModeChange={setIsSetMode}
+                onSetModeChange={handleSetModeChange}
             />
         </motion.div>
     );

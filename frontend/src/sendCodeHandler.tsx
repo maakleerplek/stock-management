@@ -27,6 +27,8 @@ export interface ItemData {
     price: number;                 // Price per unit
     image: string | null;          // URL to item image
     part_id: number | null;        // Part ID from inventory system
+    ipn: string;                   // Internal Part Number
+    category: string;              // Category name
 }
 
 /**

@@ -14,7 +14,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import ClearIcon from '@mui/icons-material/Clear';
 import type { SelectOption } from './AddPartForm';
-import IconPicker from './IconPicker';
 
 export interface CategoryFormData {
     name: string;
@@ -23,7 +22,6 @@ export interface CategoryFormData {
     defaultLocation: string;
     defaultKeywords: string;
     structural: boolean;
-    icon: string;
 }
 
 interface AddCategoryFormProps {
@@ -41,7 +39,6 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
         defaultLocation: '',
         defaultKeywords: '',
         structural: false,
-        icon: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -55,10 +52,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
         if (error) setError(null);
     };
 
-    const handleIconChange = (iconName: string) => {
-        setFormData((prev) => ({ ...prev, icon: iconName }));
-        if (error) setError(null);
-    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,7 +64,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
         setLoading(true);
         try {
             await onSubmit(formData);
-            setFormData({ name: '', description: '', parent: '', defaultLocation: '', defaultKeywords: '', structural: false, icon: '' });
+            setFormData({ name: '', description: '', parent: '', defaultLocation: '', defaultKeywords: '', structural: false });
         } catch (err: any) {
             setError(err.message || 'Failed to create category.');
         } finally {
@@ -155,9 +149,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
                         helperText="Default keywords for parts in this category"
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <IconPicker value={formData.icon} onChange={handleIconChange} />
-                </Grid>
+
                 <Grid item xs={12} sm={6} display="flex" alignItems="center">
                     <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                         <input

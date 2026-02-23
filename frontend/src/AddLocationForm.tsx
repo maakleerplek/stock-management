@@ -14,7 +14,6 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import ClearIcon from '@mui/icons-material/Clear';
 import type { SelectOption } from './AddPartForm';
-import IconPicker from './IconPicker';
 
 export interface LocationFormData {
     name: string;
@@ -23,7 +22,6 @@ export interface LocationFormData {
     structural: boolean;
     external: boolean;
     locationType: string;
-    icon: string;
 }
 
 interface AddLocationFormProps {
@@ -40,7 +38,6 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
         structural: false,
         external: false,
         locationType: '',
-        icon: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -54,10 +51,7 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
         if (error) setError(null);
     };
 
-    const handleIconChange = (iconName: string) => {
-        setFormData((prev) => ({ ...prev, icon: iconName }));
-        if (error) setError(null);
-    };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -69,7 +63,7 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
         setLoading(true);
         try {
             await onSubmit(formData);
-            setFormData({ name: '', description: '', parent: '', structural: false, external: false, locationType: '', icon: '' });
+            setFormData({ name: '', description: '', parent: '', structural: false, external: false, locationType: '' });
         } catch (err: any) {
             setError(err.message || 'Failed to create location.');
         } finally {
@@ -151,9 +145,7 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
                         </div>
                     </label>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <IconPicker value={formData.icon} onChange={handleIconChange} />
-                </Grid>
+
                 <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 1 }}>
                     <Button variant="outlined" startIcon={<ClearIcon />} onClick={onCancel} disabled={loading}>
                         Cancel

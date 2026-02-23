@@ -20,9 +20,11 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
 
   const handleVolunteerToggle = () => {
     if (isVolunteerMode) {
-      // Exit volunteer mode immediately
-      setIsVolunteerMode(false);
-      setAddPartFormModalOpen(false); // Close add part form if open
+      if (window.confirm("Are you sure you want to exit Volunteer Mode?")) {
+        // Exit volunteer mode immediately
+        setIsVolunteerMode(false);
+        setAddPartFormModalOpen(false); // Close add part form if open
+      }
     } else {
       // Show password dialog
       setVolunteerModalOpen(true);

@@ -26,7 +26,6 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Scanner from './barcodescanner'; // Import the Barcode Scanner
-import IconPicker from './IconPicker';
 
 // Define interfaces for common data structures
 export interface SelectOption {
@@ -50,7 +49,6 @@ export interface PartFormData {
   purchasePrice: string; // Add purchasePrice field
   purchasePriceCurrency: string; // Add purchasePriceCurrency field
   image?: File; // Add image file field
-  icon?: string; // Add icon field
 }
 
 export interface PartFormErrors {
@@ -61,7 +59,6 @@ export interface PartFormErrors {
   initialQuantity?: string;
   minimumStock?: string; // Add minimumStock error field
   barcode?: string;
-  icon?: string;
   submit?: string; // For general form submission errors
 }
 
@@ -92,7 +89,6 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     barcode: '', // Initialize barcode
     purchasePrice: '', // Initialize purchasePrice
     purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency
-    icon: '', // Initialize icon
   });
 
   const [errors, setErrors] = useState<PartFormErrors>({});
@@ -156,12 +152,6 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     }
   };
 
-  const handleIconChange = (iconName: string) => {
-    setFormData((prev) => ({ ...prev, icon: iconName }));
-    if (errors.icon) {
-      setErrors((prev) => ({ ...prev, icon: undefined }));
-    }
-  };
 
   const handleImageFile = useCallback((file: File) => {
     // Validate file type
@@ -313,7 +303,6 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
       purchasePrice: '', // Initialize purchasePrice here
       purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency here
       image: undefined,
-      icon: '', // Initialize icon here
     });
     setErrors({});
     setSuccessMessage(''); // Clear success message on reset
@@ -441,17 +430,6 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                     <Typography variant="caption" color="text.secondary">
                       Selected: {formData.image.name} ({(formData.image.size / 1024).toFixed(2)} KB)
                     </Typography>
-                  )}
-                </Box>
-              </Grid>
-
-              {/* Icon Picker (Alternative to Image) */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <Typography variant="subtitle2">Part Icon (Optional if Image Provided)</Typography>
-                  <IconPicker value={formData.icon || ''} onChange={handleIconChange} label="Select Predefined Icon" />
-                  {errors.icon && (
-                    <FormHelperText error>{errors.icon}</FormHelperText>
                   )}
                 </Box>
               </Grid>
