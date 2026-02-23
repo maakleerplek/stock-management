@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   TextField,
   Button,
@@ -99,6 +99,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Restore image preview if file exists but preview is missing
   useEffect(() => {
@@ -162,44 +163,97 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     }
   };
 
+  const handleImageFile = useCallback((file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors((prev) => ({
+        ...prev,
+        image: 'Please select a valid image file',
+      }));
+      return;
+    }
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        image: 'Image size must be less than 10MB',
+      }));
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      image: file,
+    }));
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    // Clear error
+    setErrors((prev) => ({
+      ...prev,
+      image: undefined,
+    }));
+  }, []);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setErrors((prev) => ({
-          ...prev,
-          image: 'Please select a valid image file',
-        }));
-        return;
-      }
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setErrors((prev) => ({
-          ...prev,
-          image: 'Image size must be less than 10MB',
-        }));
-        return;
-      }
-      setFormData((prev) => ({
-        ...prev,
-        image: file,
-      }));
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      // Clear error
-      if (errors.image) {
-        setErrors((prev) => ({
-          ...prev,
-          image: undefined,
-        }));
-      }
+      handleImageFile(file);
     }
   };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleImageFile(file);
+    }
+  };
+
+  // Paste handler
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (step !== 1) return;
+
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            const file = items[i].getAsFile();
+            if (file) {
+              e.preventDefault();
+              handleImageFile(file);
+              return;
+            }
+          }
+        }
+      }
+
+      const file = e.clipboardData?.files?.[0];
+      if (file && file.type.startsWith('image/')) {
+        e.preventDefault();
+        handleImageFile(file);
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [step, handleImageFile]);
 
   const handleNextStep = async () => {
     if (!validateForm(1)) {
@@ -325,8 +379,26 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
 
               {/* Image Upload */}
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    p: 2,
+                    border: '2px dashed',
+                    borderColor: isDragging ? 'primary.main' : 'divider',
+                    borderRadius: 2,
+                    backgroundColor: isDragging ? 'action.hover' : 'transparent',
+                    transition: 'all 0.2s',
+                  }}
+                >
                   <Typography variant="subtitle2">Part Image (Optional)</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Drag and drop an image here, paste from clipboard, or click to upload
+                  </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     {imagePreview && (
                       <Avatar
