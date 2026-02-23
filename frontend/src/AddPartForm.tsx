@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   TextField,
   Button,
-  Card,
-  CardContent,
   Grid,
   FormControl,
   InputLabel,
@@ -321,8 +319,8 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
   };
 
   return (
-    <Card sx={{ maxWidth: 800, margin: '0 auto', p: 3 }}>
-      <Stepper activeStep={step - 1} alternativeLabel sx={{ pt: 2, pb: 3 }}>
+    <Box sx={{ maxWidth: 800, margin: '0 auto', width: '100%' }}>
+      <Stepper activeStep={step - 1} alternativeLabel sx={{ pt: 1, pb: { xs: 2, sm: 3 } }}>
         <Step>
           <StepLabel>Basic Details</StepLabel>
         </Step>
@@ -330,7 +328,7 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
           <StepLabel>Category & Location</StepLabel>
         </Step>
       </Stepper>
-      <CardContent>
+      <Box>
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
         {errors.submit && <Alert severity="error">{errors.submit}</Alert>}
 
@@ -577,15 +575,12 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 <Box sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1.5,
-                  p: 2,
-                  mt: 2
+                  gap: 1.5,
+                  p: { xs: 0.5, sm: 1 },
+                  mt: 1
                 }}>
-                  <Typography variant="h6" gutterBottom>Scan Barcode</Typography>
-                  <Scanner onScan={handleBarcodeScanned} />
+                  <Typography variant="subtitle1" fontWeight="medium">Scan Barcode</Typography>
+                  <Scanner onScan={handleBarcodeScanned} compact={true} />
                   {errors.barcode && (
                     <FormHelperText error sx={{ mt: 1 }}>
                       {errors.barcode}
@@ -629,8 +624,8 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
             </Grid>
           )}
         </Box>
-      </CardContent>
-    </Card>
+      </Box>
+    </Box>
   );
 };
 

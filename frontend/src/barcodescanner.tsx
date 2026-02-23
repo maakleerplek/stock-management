@@ -8,9 +8,10 @@ const QR_READER_ID = 'reader';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
+  compact?: boolean;
 }
 
-function Scanner({ onScan }: ScannerProps) {
+function Scanner({ onScan, compact = false }: ScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [barcode, setBarcode] = useState('No result');
 
@@ -77,11 +78,25 @@ function Scanner({ onScan }: ScannerProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <Card sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, p: 3, width: '100%', maxWidth: 400, borderRadius: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <QrCode2 sx={{ fontSize: '1.8rem', color: 'primary.main' }} />
-          <Typography variant="h5" component="h2">Barcode Scanner</Typography>
-        </Box>
+      <Card sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: compact ? 2 : 3,
+        p: compact ? 0 : 3,
+        width: '100%',
+        maxWidth: 400,
+        borderRadius: 2,
+        boxShadow: compact ? 'none' : undefined,
+        bgcolor: compact ? 'transparent' : undefined,
+        backgroundImage: compact ? 'none' : undefined,
+      }}>
+        {!compact && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <QrCode2 sx={{ fontSize: '1.8rem', color: 'primary.main' }} />
+            <Typography variant="h5" component="h2">Barcode Scanner</Typography>
+          </Box>
+        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', gap: 2 }}>
           {!isScanning ? (
