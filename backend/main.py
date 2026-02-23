@@ -158,7 +158,7 @@ def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
     Will randomly generate an IPN if one is not provided.
     """
     try:
-        part_ipn = data.ipn if data.ipn else f"TEMP-{data.partName}-{os.urandom(4).hex()}"
+        part_ipn = data.ipn if data.ipn else f"{data.partName[:10]}-{os.urandom(3).hex()}".replace(" ", "-")
 
         part_creation_response = create_part(
             name=data.partName,
