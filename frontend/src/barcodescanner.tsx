@@ -1,135 +1,156 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useState } from 'react';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import { motion } from 'framer-motion';
-import { Card, Button, Typography, Box } from '@mui/material';
+import { Card, Button, Typography, Box, CircularProgress } from '@mui/material';
 import { QrCode2, Stop } from '@mui/icons-material';
-
-const QR_READER_ID = 'reader';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
   compact?: boolean;
 }
 
-function Scanner({ onScan, compact = false }: ScannerProps) {
+function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [barcode, setBarcode] = useState('No result');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onScanRef = useRef(onScan);
-
-  const startScan = useCallback(() => {
-    setIsScanning(true);
-  }, []);
-
-  const stopScan = useCallback(() => {
+  const handleScan = (text: string) => {
+    setBarcode(text);
+    onScan(text);
     setIsScanning(false);
-  }, []);
+  };
 
-  // Keep ref updated with current callback
-  useEffect(() => {
-    onScanRef.current = onScan;
-  }, [onScan]);
+  const handleError = (error: unknown) => {
+    console.error('Scanner error:', error);
+  };
 
-  // Scanner effect
-  useEffect(() => {
-    if (!isScanning) return;
+  const startScan = () => {
+    setIsLoading(true);
+    setIsScanning(true);
+    // Simulate a small loading state while the camera initializes
+    setTimeout(() => setIsLoading(false), 500);
+  };
 
-    const scanner = new Html5QrcodeScanner(
-      QR_READER_ID,
-      {
-        fps: 30, // Increase frame rate for faster detection
-        // Remove qrbox so the scanner looks at the entire frame, not just the center
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true // Use faster native API if available
-        }
-      },
-      false
-    );
-
-    let isProcessing = false;
-
-    const onScanSuccess = (decodedText: string) => {
-      if (isProcessing) return;
-      isProcessing = true;
-      setBarcode(decodedText);
-
-      // Pass the raw string to the parent
-      onScanRef.current(decodedText);
-
-      // Stop scanner automatically after a successful scan
-      scanner.clear().then(() => {
-        setIsScanning(false);
-      }).catch(console.error);
-    };
-
-    scanner.render(onScanSuccess, (error) => {
-      // Ignore routine scan errors
-      console.debug(error);
-    });
-
-    return () => {
-      scanner.clear().catch(console.error);
-    };
-  }, [isScanning]);
+  const stopScan = () => {
+    setIsScanning(false);
+    setIsLoading(false);
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
+      style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
     >
       <Card sx={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: compact ? 2 : 3,
-        p: compact ? 0 : 3,
+        p: compact ? 2 : 3,
         width: '100%',
-        maxWidth: compact ? 'none' : 400,
-        borderRadius: 2,
-        boxShadow: compact ? 'none' : undefined,
-        bgcolor: compact ? 'transparent' : undefined,
-        backgroundImage: compact ? 'none' : undefined,
+        maxWidth: 450,
+        borderRadius: 4,
+        boxShadow: compact ? 'none' : '0 8px 32px rgba(0,0,0,0.08)',
+        bgcolor: compact ? 'transparent' : 'background.paper',
+        backgroundImage: 'none',
+        border: compact ? 'none' : '1px solid',
+        borderColor: 'divider',
       }}>
         {!compact && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <QrCode2 sx={{ fontSize: '1.8rem', color: 'primary.main' }} />
-            <Typography variant="h5" component="h2">Barcode Scanner</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+            <QrCode2 sx={{ fontSize: '2rem', color: 'primary.main' }} />
+            <Typography variant="h5" component="h2" fontWeight="bold">Barcode Scanner</Typography>
           </Box>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', gap: 2 }}>
           {!isScanning ? (
-            <Button variant="contained" startIcon={<QrCode2 />} onClick={startScan}>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<QrCode2 />}
+              onClick={startScan}
+              sx={{ borderRadius: 3, px: 4, py: 1.5, textTransform: 'none', fontSize: '1.1rem' }}
+            >
               Scan Item
             </Button>
           ) : (
-            <Button variant="contained" color="error" startIcon={<Stop />} onClick={stopScan}>
+            <Button
+              variant="contained"
+              color="error"
+              size="large"
+              startIcon={<Stop />}
+              onClick={stopScan}
+              sx={{ borderRadius: 3, px: 4, py: 1.5, textTransform: 'none', fontSize: '1.1rem' }}
+            >
               Stop Scan
             </Button>
           )}
         </Box>
 
         {isScanning && (
-          <Box id={QR_READER_ID} sx={{
+          <Box sx={{
             width: '100%',
-            maxWidth: compact ? { xs: '100%', sm: 400 } : 400,
             aspectRatio: '1 / 1',
-            borderRadius: compact ? { xs: 0, sm: 1.5 } : 1.5,
+            borderRadius: 3,
             overflow: 'hidden',
-            border: compact ? { xs: 'none', sm: '2px solid' } : '2px solid',
-            borderColor: 'primary.main',
             position: 'relative',
-            boxShadow: compact ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.15)'
-          }}></Box>
+            mt: 2,
+            bgcolor: 'black',
+            border: '2px solid',
+            borderColor: 'primary.main',
+            boxShadow: '0 4px 20px rgba(37, 99, 235, 0.2)'
+          }}>
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <CircularProgress color="primary" />
+              </Box>
+            ) : (
+              <Scanner
+                onScan={(detectedCodes) => {
+                  if (detectedCodes.length > 0) {
+                    handleScan(detectedCodes[0].rawValue);
+                  }
+                }}
+                onError={handleError}
+                allowMultiple={false}
+                scanDelay={2000}
+                constraints={{
+                  facingMode: 'environment',
+                }}
+                components={{
+                  torch: true,
+                  finder: true,
+                }}
+                styles={{
+                  container: { width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' },
+                  video: { width: '100%', height: '100%', objectFit: 'cover' }
+                }}
+              />
+            )}
+          </Box>
         )}
 
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          Last Scanned: <Typography component="span" variant="body2" sx={{ fontWeight: 'medium', bgcolor: 'background.default', p: 0.5, borderRadius: 1 }}>{barcode}</Typography>
-        </Typography>
+        <Box sx={{
+          mt: 2,
+          p: 1.5,
+          width: '100%',
+          bgcolor: 'action.hover',
+          borderRadius: 2,
+          textAlign: 'center'
+        }}>
+          <Typography variant="body2" color="text.secondary">
+            Last Scanned:
+            <Typography component="span" variant="body1" sx={{ ml: 1, fontWeight: 'bold', color: 'primary.main' }}>
+              {barcode}
+            </Typography>
+          </Typography>
+        </Box>
       </Card>
     </motion.div>
   );
 }
 
-export default Scanner;
+export default BarcodeScanner;

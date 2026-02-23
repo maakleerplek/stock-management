@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.20",
     "@tabler/icons-react": "^3.37.1",
     "@types/qrcode.react": "^1.0.5",
+    "@yudiel/react-qr-scanner": "^2.5.1",
     "html5-qrcode": "^2.3.8",
     "motion": "^12.23.25",
     "qrcode.react": "^4.2.0",

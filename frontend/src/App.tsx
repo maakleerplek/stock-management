@@ -9,7 +9,7 @@ import BarcodeScannerContainer from './BarcodeScannerContainer';
 import Footer from './Footer';
 import Header from './Header';
 import InvenTreePage from './InvenTreePage';
-import { CssBaseline, Box, Dialog, DialogContent, Typography } from '@mui/material';
+import { CssBaseline, Box, Dialog, DialogContent, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
 import { ToastProvider, useToast } from './ToastContext';
@@ -35,6 +35,8 @@ function AppContent() {
   const [locations, setLocations] = useState<SelectOption[]>([]);
   const [checkoutTotal, setCheckoutTotal] = useState<number | null>(null);
   const { addToast } = useToast();
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   const handleApiError = useCallback(
     (error: unknown, context: string, showWarning = false) => {
@@ -321,8 +323,14 @@ function AppContent() {
       </motion.div>
       <VolunteerModal open={volunteerModalOpen} onClose={() => setVolunteerModalOpen(false)} />
 
-      <Dialog open={addPartFormModalOpen} onClose={() => setAddPartFormModalOpen(false)} maxWidth="md" fullWidth>
-        <DialogContent>
+      <Dialog
+        open={addPartFormModalOpen}
+        onClose={() => setAddPartFormModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogContent sx={{ p: isMobile ? 2 : 3 }}>
           <AddPartForm
             onSubmit={handleAddPartSubmit}
             categories={categories}
@@ -331,8 +339,14 @@ function AppContent() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={addCategoryModalOpen} onClose={() => setAddCategoryModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogContent>
+      <Dialog
+        open={addCategoryModalOpen}
+        onClose={() => setAddCategoryModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogContent sx={{ p: isMobile ? 2 : 3 }}>
           <Typography variant="h6" gutterBottom>Add New Category</Typography>
           <AddCategoryForm
             onSubmit={handleAddCategorySubmit}
@@ -343,8 +357,14 @@ function AppContent() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={addLocationModalOpen} onClose={() => setAddLocationModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogContent>
+      <Dialog
+        open={addLocationModalOpen}
+        onClose={() => setAddLocationModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogContent sx={{ p: isMobile ? 2 : 3 }}>
           <Typography variant="h6" gutterBottom>Add New Location</Typography>
           <AddLocationForm
             onSubmit={handleAddLocationSubmit}

@@ -23,6 +23,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Scanner from './barcodescanner'; // Import the Barcode Scanner
 
 // Define interfaces for common data structures
@@ -576,11 +577,36 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  mt: 2,
+                  gap: 2,
+                  mt: 1,
+                  p: 2,
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  bgcolor: 'action.hover'
                 }}>
-                  <Scanner onScan={handleBarcodeScanned} />
+                  <Scanner onScan={handleBarcodeScanned} compact />
+
+                  <TextField
+                    fullWidth
+                    label="Barcode (Manual Entry)"
+                    name="barcode"
+                    value={formData.barcode || ''}
+                    onChange={handleChange}
+                    placeholder="Scan or type barcode"
+                    helperText="Last scanned or manually entered barcode"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <QrCode2Icon color="primary" />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ maxWidth: 450 }}
+                  />
+
                   {errors.barcode && (
-                    <FormHelperText error sx={{ mt: 1 }}>
+                    <FormHelperText error sx={{ mt: -1 }}>
                       {errors.barcode}
                     </FormHelperText>
                   )}
