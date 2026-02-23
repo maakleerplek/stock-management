@@ -574,36 +574,16 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               {/* Barcode Scanner and Display */}
               <Grid item xs={12}>
                 <Box sx={{
-                  mx: { xs: -3, sm: 0 }, // Negative margin on mobile to break out of Dialog padding
-                  px: { xs: 3, sm: 0 },  // Restore padding for inner contents
-                  py: { xs: 3, sm: 1 },
-                  mt: 2,
-                  bgcolor: { xs: 'action.hover', sm: 'transparent' }, // Give it a slight background tint to pop out
-                  borderTop: { xs: '1px solid', sm: 'none' },
-                  borderBottom: { xs: '1px solid', sm: 'none' },
-                  borderColor: 'divider',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
+                  mt: 2,
                 }}>
-                  <Scanner onScan={handleBarcodeScanned} compact={true} />
+                  <Scanner onScan={handleBarcodeScanned} />
                   {errors.barcode && (
                     <FormHelperText error sx={{ mt: 1 }}>
                       {errors.barcode}
                     </FormHelperText>
-                  )}
-                  {formData.barcode && (
-                    <TextField
-                      fullWidth
-                      label="Scanned Barcode"
-                      name="barcode"
-                      value={formData.barcode}
-                      onChange={handleChange}
-                      variant="outlined"
-                      InputProps={{ readOnly: true }}
-                      margin="dense"
-                      sx={{ mt: 2, maxWidth: 400 }}
-                    />
                   )}
                 </Box>
               </Grid>
