@@ -571,7 +571,6 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               </Grid>
 
               {/* Barcode Scanner and Display */}
-              {/* Barcode Scanner and Display */}
               <Grid item xs={12}>
                 <Box sx={{
                   display: 'flex',
