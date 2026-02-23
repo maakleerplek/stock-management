@@ -12,6 +12,7 @@ backend/.venv/
 .env
 .env.*
 temp.env
+server.env
 
 # IDE and editor files
 .idea/

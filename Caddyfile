@@ -6,6 +6,12 @@
 	default_sni {$SITE_IP}
 }
 
+# Enforce HTTPS redirection explicitly for HTTP port
+:80 {
+	redir https://{host}{uri}
+}
+
+
 # Logging configuration for Caddy
 (log_common) {
 	log {
