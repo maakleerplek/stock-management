@@ -85,7 +85,7 @@ function Scanner({ onScan, compact = false }: ScannerProps) {
         gap: compact ? 2 : 3,
         p: compact ? 0 : 3,
         width: '100%',
-        maxWidth: 400,
+        maxWidth: compact ? 'none' : 400,
         borderRadius: 2,
         boxShadow: compact ? 'none' : undefined,
         bgcolor: compact ? 'transparent' : undefined,
@@ -111,7 +111,17 @@ function Scanner({ onScan, compact = false }: ScannerProps) {
         </Box>
 
         {isScanning && (
-          <Box id={QR_READER_ID} sx={{ width: '100%', maxWidth: 400, aspectRatio: '1 / 1', borderRadius: 1.5, overflow: 'hidden', border: '2px solid', borderColor: 'primary.main', position: 'relative', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)' }}></Box>
+          <Box id={QR_READER_ID} sx={{
+            width: '100%',
+            maxWidth: compact ? { xs: '100%', sm: 400 } : 400,
+            aspectRatio: '1 / 1',
+            borderRadius: compact ? { xs: 0, sm: 1.5 } : 1.5,
+            overflow: 'hidden',
+            border: compact ? { xs: 'none', sm: '2px solid' } : '2px solid',
+            borderColor: 'primary.main',
+            position: 'relative',
+            boxShadow: compact ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.15)'
+          }}></Box>
         )}
 
         <Typography variant="body2" sx={{ mt: 2 }}>
