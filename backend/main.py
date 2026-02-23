@@ -151,7 +151,7 @@ def set_item(data: TakeItemRequest) -> Dict[str, Any]:
 
 
 @app.post("/create-part")
-async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
+def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
     """
     Create a new part in inventory.
     
@@ -187,7 +187,7 @@ async def create_part_endpoint(data: CreatePartRequest) -> Dict[str, Any]:
 
 
 @app.post("/create-category")
-async def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any]:
+def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any]:
     """
     Create a new part category.
     """
@@ -216,7 +216,7 @@ async def create_category_endpoint(data: CreateCategoryRequest) -> Dict[str, Any
 
 
 @app.post("/create-location")
-async def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any]:
+def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any]:
     """
     Create a new storage location.
     """
@@ -245,7 +245,7 @@ async def create_location_endpoint(data: CreateLocationRequest) -> Dict[str, Any
 
 
 @app.patch("/update-part/{part_pk}")
-async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> Dict[str, Any]:
+def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> Dict[str, Any]:
     """
     Update an existing part in inventory.
     
@@ -276,7 +276,7 @@ async def update_part_endpoint(part_pk: int, data: UpdatePartRequest) -> Dict[st
 
 
 @app.post("/create-stock-item")
-async def create_stock_item_endpoint(data: CreateStockItemRequest) -> Dict[str, Any]:
+def create_stock_item_endpoint(data: CreateStockItemRequest) -> Dict[str, Any]:
     """
     Create a new stock item in inventory.
     
@@ -390,7 +390,7 @@ def get_locations() -> Dict[str, Any]:
 
 
 @app.post("/upload-part-image/{part_id}")
-async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[str, Any]:
+def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[str, Any]:
     """
     Upload an image to a part in InvenTree.
     
@@ -401,7 +401,7 @@ async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[
         if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")
         
-        image_data = await file.read()
+        image_data = file.file.read()
         
         if len(image_data) > 10 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="Image size must be less than 10MB")
@@ -425,7 +425,7 @@ async def upload_part_image(part_id: int, file: UploadFile = File(...)) -> Dict[
 
 
 @app.get("/image-proxy/{image_path:path}")
-async def image_proxy(image_path: str):
+def image_proxy(image_path: str):
     """
     Proxy image requests to the InvenTree server with authentication.
     
