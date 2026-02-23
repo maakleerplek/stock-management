@@ -78,6 +78,10 @@ function AppContent() {
         setLocations([]);
         addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
       }
+
+      if (categoriesRes.ok && locationsRes.ok) {
+        addToast('Categories and locations fetched successfully!', 'success');
+      }
     } catch (error) {
       setCategories([]);
       setLocations([]);
