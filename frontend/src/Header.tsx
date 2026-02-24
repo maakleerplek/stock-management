@@ -1,4 +1,4 @@
-import { Box, Grid, Button, IconButton, Tooltip } from '@mui/material';
+import { Box, Grid, Button } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Logo from './logo';
 import LightOrDarkButton from './LightOrDarkButton';
@@ -54,17 +54,17 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
           )}
         </Box>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Tooltip title="Open InvenTree">
-            <IconButton
-              color="primary"
-              onClick={onOpenInvenTree || (() => window.open(INVENTREE_CONFIG.URL, '_blank'))}
-              size="small"
-            >
-              <OpenInNewIcon />
-            </IconButton>
-          </Tooltip>
           {isVolunteerMode && (
             <>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={onOpenInvenTree || (() => window.open(INVENTREE_CONFIG.URL, '_blank'))}
+                size="small"
+                endIcon={<OpenInNewIcon />}
+              >
+                Open InvenTree
+              </Button>
               <Button
                 variant="contained"
                 color="info"
