@@ -7,12 +7,12 @@ import { useVolunteer } from './VolunteerContext';
 
 interface ShoppingWindowProps {
     scannedItem: ItemData | null;
-    onCheckoutTotalChange?: (total: number | null) => void;
+    onCheckoutResultChange?: (result: { total: number; description: string } | null) => void;
 }
 
 const CART_STORAGE_KEY = 'stockManagerCartItems';
 
-export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: ShoppingWindowProps) {
+export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: ShoppingWindowProps) {
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
         try {
             const stored = localStorage.getItem(CART_STORAGE_KEY);
@@ -22,7 +22,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
             return [];
         }
     });
-    const [checkedOutTotal, setCheckedOutTotal] = useState<number | null>(null);
+    const [checkedOutResult, setCheckedOutResult] = useState<{ total: number; description: string } | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const [isSetMode, setIsSetMode] = useState<boolean>(false);
     const { addToast } = useToast();
@@ -36,12 +36,12 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
         }
     }, []);
 
-    // Notify parent component when checkout total changes
+    // Notify parent component when checkout result changes
     useEffect(() => {
-        if (onCheckoutTotalChange) {
-            onCheckoutTotalChange(checkedOutTotal);
+        if (onCheckoutResultChange) {
+            onCheckoutResultChange(checkedOutResult);
         }
-    }, [checkedOutTotal, onCheckoutTotalChange]);
+    }, [checkedOutResult, onCheckoutResultChange]);
 
     // Cleanup cart if volunteer mode is exited
     useEffect(() => {
@@ -56,7 +56,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
     }, [cartItems]);
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
-        setCheckedOutTotal(null);
+        setCheckedOutResult(null);
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((i) => i.id === item.id);
             if (existingItem) {
@@ -99,12 +99,13 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
     const handleCheckout = async () => {
         const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
 
-        const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
+        const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join(', ');
+        const confirmMessageSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
         let actionText = 'checkout';
         if (isVolunteerMode) {
             actionText = isSetMode ? 'set stock to' : 'add to stock';
         }
-        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${itemsSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
+        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${confirmMessageSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
 
         if (!window.confirm(confirmMessage)) {
             addToast(`${actionText} cancelled`, 'info');
@@ -137,11 +138,19 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
 
         addToast(`✓ ${isVolunteerMode ? (isSetMode ? 'Stock quantities set!' : 'Items added to stock!') : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
         setCartItems([]);
-        // Only set checkout total for non-volunteer mode (when payment is needed)
+        // Only set checkout result for non-volunteer mode (when payment is needed)
         if (!isVolunteerMode) {
-            setCheckedOutTotal(checkoutTotal);
+            let desc = itemsSummary;
+            if (extraCosts > 0) {
+                desc += `, Extra services (€${extraCosts.toFixed(2)})`;
+            }
+            // Truncate to 140 chars per EPC spec max length (leave some room just in case)
+            if (desc.length > 135) {
+                desc = desc.substring(0, 132) + "...";
+            }
+            setCheckedOutResult({ total: checkoutTotal, description: desc });
         } else {
-            setCheckedOutTotal(null);
+            setCheckedOutResult(null);
         }
     };
 
@@ -156,7 +165,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutTotalChange }: S
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveItem}
                 onCheckout={handleCheckout}
-                checkedOutTotal={checkedOutTotal}
+                checkedOutTotal={checkedOutResult?.total ?? null}
                 onExtraCostChange={setExtraCosts}
                 extraCosts={extraCosts}
                 isVolunteerMode={isVolunteerMode}

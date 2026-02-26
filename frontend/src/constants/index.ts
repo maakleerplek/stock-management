@@ -49,7 +49,8 @@ export const PRICING = {
 
 // Payment Configuration (configurable via .env)
 export const PAYMENT = {
-  PAYCONIQ_MERCHANT_ID: import.meta.env.VITE_PAYCONIQ_MERCHANT_ID || '616941d236664900073738ce',
+  BENEFICIARY_NAME: import.meta.env.VITE_PAYMENT_NAME || 'Stock Manager',
+  IBAN: import.meta.env.VITE_PAYMENT_IBAN || 'BE00000000000000',
 } as const;
 
 // Authentication

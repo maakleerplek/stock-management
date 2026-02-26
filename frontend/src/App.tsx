@@ -33,7 +33,7 @@ function AppContent() {
   const [addLocationModalOpen, setAddLocationModalOpen] = useState(false);
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
-  const [checkoutTotal, setCheckoutTotal] = useState<number | null>(null);
+  const [checkoutResult, setCheckoutResult] = useState<{ total: number; description: string } | null>(null);
   const { addToast } = useToast();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
@@ -305,12 +305,12 @@ function AppContent() {
                       setScannedItem(null); // Reset first to ensure re-trigger
                       setScannedItem(item);
                     }}
-                    checkoutTotal={checkoutTotal}
+                    checkoutResult={checkoutResult}
                   />
                   <Box>
                     <ShoppingWindow
                       scannedItem={scannedItem}
-                      onCheckoutTotalChange={setCheckoutTotal}
+                      onCheckoutResultChange={setCheckoutResult}
                     />
                   </Box>
                 </Box>

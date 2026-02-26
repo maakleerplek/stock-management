@@ -7,10 +7,10 @@ import { useToast } from './ToastContext';
 
 interface BarcodeScannerContainerProps {
   onItemScanned: (item: ItemData | null) => void;
-  checkoutTotal?: number | null;
+  checkoutResult?: { total: number, description: string } | null;
 }
 
-function BarcodeScannerContainer({ onItemScanned, checkoutTotal = null }: BarcodeScannerContainerProps) {
+function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: BarcodeScannerContainerProps) {
   const { addToast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -42,7 +42,7 @@ function BarcodeScannerContainer({ onItemScanned, checkoutTotal = null }: Barcod
         </Box>
       )}
 
-      {checkoutTotal !== null && <Qrcode total={checkoutTotal} />}
+      {checkoutResult !== null && <Qrcode total={checkoutResult.total} description={checkoutResult.description} />}
     </Box>
   );
 }
