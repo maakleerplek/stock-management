@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { type ItemData } from './sendCodeHandler';
 import Extras from './Extras';
 import ImageDisplay from './ImageDisplay';
@@ -23,6 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+import CheckCircle from '@mui/icons-material/CheckCircle';
 
 
 export interface CartItem extends ItemData {
@@ -196,20 +198,25 @@ function ShoppingCart({
                                                 </Box>
 
                                                 {/* Middle Section: Info */}
-                                                <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                                                <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                                     <Typography variant="body1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                                                         {item.name}
                                                     </Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        {item.category} • {item.location}
-                                                    </Typography>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Stock: {item.quantity} {isVolunteerMode && (
-                                                            <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
-                                                                ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
-                                                            </Typography>
-                                                        )}
-                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            <strong>Category:</strong> {item.category}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            <strong>Location:</strong> {item.location}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            <strong>Stock:</strong> {item.quantity} {isVolunteerMode && (
+                                                                <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
+                                                                    ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
+                                                                </Typography>
+                                                            )}
+                                                        </Typography>
+                                                    </Box>
                                                 </Box>
 
                                                 {/* Right Section: Controls and Price */}
@@ -236,32 +243,25 @@ function ShoppingCart({
                                                             <RemoveIcon fontSize="small" />
                                                         </IconButton>
                                                         <InputBase
-                                                            type="number"
                                                             value={item.cartQuantity}
-                                                            onChange={(e) =>
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value, 10);
                                                                 handleUpdateQuantityWithFeedback(
                                                                     item.id,
-                                                                    Math.min(
-                                                                        parseInt(e.target.value, 10) || 0,
+                                                                    isNaN(val) ? 0 : Math.min(
+                                                                        val,
                                                                         isSetMode ? 999999 : (isVolunteerMode ? 999999 : item.quantity)
                                                                     )
-                                                                )
-                                                            }
+                                                                );
+                                                            }}
                                                             inputProps={{
                                                                 style: { 
                                                                     textAlign: 'center', 
                                                                     padding: 0, 
                                                                     fontSize: '0.9rem', 
                                                                     fontWeight: 'bold', 
-                                                                    width: 35,
-                                                                    MozAppearance: 'textfield', // Hide arrows in Firefox
+                                                                    width: 35
                                                                 }
-                                                            }}
-                                                            sx={{
-                                                                '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
-                                                                    WebkitAppearance: 'none',
-                                                                    margin: 0,
-                                                                },
                                                             }}
                                                         />
                                                         <IconButton
