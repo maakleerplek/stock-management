@@ -79,9 +79,9 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
       <Card sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 2,
+        gap: { xs: 1, sm: 2 },
         width: '100%',
-        maxWidth: 360,
+        maxWidth: { xs: 320, sm: 360 },
         bgcolor: compact ? 'transparent' : 'background.paper',
         boxShadow: compact ? 'none' : undefined,
         border: compact ? 'none' : undefined,
@@ -90,19 +90,27 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
           <CardHeader
             title="Barcode Scanner"
             avatar={<QrCode2 />}
-            titleTypographyProps={{ variant: 'subtitle1' }}
+            titleTypographyProps={{ variant: 'subtitle2', fontWeight: 'bold' }}
+            sx={{ p: { xs: 1.5, sm: 2 } }}
           />
         )}
 
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: compact ? 1.5 : 2, p: compact ? 1.5 : 2, pt: 0 }}>
+        <CardContent sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: { xs: 1, sm: 2 }, 
+          p: { xs: 1.5, sm: 2 }, 
+          pt: 0 
+        }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', gap: 2 }}>
             {!isScanning ? (
               <Button
                 variant="contained"
-                size="medium"
+                size="small"
                 startIcon={<QrCode2 />}
                 onClick={startScan}
-                sx={{ borderRadius: 3, px: 3, py: 1, textTransform: 'none', fontSize: '1rem' }}
+                sx={{ borderRadius: 3, px: 2, py: 0.8, textTransform: 'none', fontSize: '0.9rem' }}
               >
                 Use Camera
               </Button>
@@ -110,10 +118,10 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
               <Button
                 variant="contained"
                 color="error"
-                size="medium"
+                size="small"
                 startIcon={<Stop />}
                 onClick={stopScan}
-                sx={{ borderRadius: 3, px: 3, py: 1, textTransform: 'none', fontSize: '1rem' }}
+                sx={{ borderRadius: 3, px: 2, py: 0.8, textTransform: 'none', fontSize: '0.9rem' }}
               >
                 Stop Camera
               </Button>

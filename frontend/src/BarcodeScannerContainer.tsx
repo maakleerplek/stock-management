@@ -19,12 +19,14 @@ function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: Barco
     try {
       const fetchedItem = await handleSend(barcode);
       if (fetchedItem) {
-        addToast(`✓ Found: ${fetchedItem.name}`, 'success');
+        console.log(`[ScannerContainer] Item found: ${fetchedItem.name}`);
         onItemScanned(fetchedItem);
       } else {
+        console.warn(`[ScannerContainer] No item found for barcode: ${barcode}`);
         addToast('No item found for this barcode', 'warning');
       }
     } catch (error) {
+      console.error('[ScannerContainer] Error processing scan:', error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       addToast(`Failed to process scan: ${errorMessage}`, 'error');
     } finally {

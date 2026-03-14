@@ -90,22 +90,23 @@ function ShoppingCart({
     // Don't render if cart is empty and no recent checkout
     return (
         <Card sx={{
-            maxWidth: 640,
+            maxWidth: { xs: '100%', sm: 640 },
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
+            gap: { xs: 1, sm: 2 },
             borderTop: isVolunteerMode ? 4 : 0,
             borderTopColor: isVolunteerMode ? 'info.main' : 'transparent',
             boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            borderRadius: 3
+            borderRadius: { xs: 2, sm: 3 }
         }}>
             <CardHeader
                 title={isVolunteerMode ? (isSetMode ? "Set Stock" : "Add to Stock") : "Shopping Cart"}
-                avatar={isVolunteerMode ? <VolunteerActivismIcon /> : <ShoppingCartIcon />}
-                titleTypographyProps={{ variant: 'subtitle1', fontWeight: 'bold' }}
+                avatar={isVolunteerMode ? <VolunteerActivismIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} /> : <ShoppingCartIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />}
+                titleTypographyProps={{ variant: 'subtitle2', fontWeight: 'bold' }}
+                sx={{ p: { xs: 1.5, sm: 2 } }}
             />            {isVolunteerMode && onSetModeChange && (
-                <Box sx={{ px: 2, pb: 2 }}>
+                <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1, sm: 2 } }}>
                     <ToggleButtonGroup
                         color="info"
                         value={isSetMode ? 'set' : 'add'}
@@ -120,23 +121,20 @@ function ShoppingCart({
                         size="small"
                         sx={{ width: '100%' }}
                     >
-                        <ToggleButton value="add" sx={{ flex: 1, textTransform: 'none', fontWeight: 'bold' }}>Add / Remove</ToggleButton>
-                        <ToggleButton value="set" sx={{ flex: 1, textTransform: 'none', fontWeight: 'bold' }}>Set Absolute</ToggleButton>
+                        <ToggleButton value="add" sx={{ flex: 1, textTransform: 'none', fontWeight: 'bold', fontSize: '0.75rem', py: 0.5 }}>Add / Remove</ToggleButton>
+                        <ToggleButton value="set" sx={{ flex: 1, textTransform: 'none', fontWeight: 'bold', fontSize: '0.75rem', py: 0.5 }}>Set Absolute</ToggleButton>
                     </ToggleButtonGroup>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                        {isSetMode ? "Directly set the exact stock count." : "Go negative to remove stock."}
-                    </Typography>
                 </Box>
             )}            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 0, p: 0, '&:last-child': { pb: 0 } }}>
                 {checkedOutTotal !== null ? (
                     // Display checkout successful summary
-                    <Box sx={{ textAlign: 'center', py: 6, px: 3, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 6 }, px: { xs: 2, sm: 3 }, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <Box sx={{ color: 'success.main', mb: 1 }}>
-                            <CheckCircle sx={{ fontSize: '4rem' }} />
+                            <CheckCircle sx={{ fontSize: { xs: '3rem', sm: '4rem' } }} />
                         </Box>
-                        <Typography variant="h5" fontWeight="bold">Done!</Typography>
-                        <Typography variant="subtitle1">Total: €{checkedOutTotal?.toFixed(2)}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="h6" fontWeight="bold">Done!</Typography>
+                        <Typography variant="subtitle2">Total: €{checkedOutTotal?.toFixed(2)}</Typography>
+                        <Typography variant="caption" color="text.secondary">
                             You can pay via the QR code below.<br/>
                             Refresh the page to start over.
                         </Typography>
@@ -176,9 +174,9 @@ function ShoppingCart({
                                                     display: 'flex',
                                                     flexDirection: 'row',
                                                     alignItems: 'center',
-                                                    py: 1.5,
-                                                    px: 2,
-                                                    gap: 2,
+                                                    py: { xs: 1, sm: 1.5 },
+                                                    px: { xs: 1.5, sm: 2 },
+                                                    gap: { xs: 1.5, sm: 2 },
                                                     transition: 'background-color 0.3s ease'
                                                 }}
                                             >
@@ -187,27 +185,27 @@ function ShoppingCart({
                                                     <ImageDisplay
                                                         imagePath={item.image}
                                                         alt={item.name}
-                                                        width={50}
-                                                        height={50}
+                                                        width={isVolunteerMode ? 40 : 50}
+                                                        height={isVolunteerMode ? 40 : 50}
                                                         sx={{ border: 'none', bgcolor: 'transparent' }}
                                                     />
                                                 </Box>
 
                                                 {/* Middle Section: Info */}
-                                                <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                                    <Typography variant="body1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
+                                                <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                                                         {item.name}
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Category: </Box>{item.category}
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Cat: </Box>{item.category}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Loc: </Box>{item.location}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
                                                             <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Stock: </Box>{item.quantity} {isVolunteerMode && (
-                                                                <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
+                                                                <Typography component="span" variant="caption" sx={{ fontSize: '0.7rem' }} color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
                                                                     ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
                                                                 </Typography>
                                                             )}
@@ -219,7 +217,7 @@ function ShoppingCart({
                                                 <Box sx={{ 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
-                                                    gap: 1.5
+                                                    gap: { xs: 1, sm: 1.5 }
                                                 }}>
                                                     <Box sx={{ 
                                                         display: 'flex', 
@@ -227,16 +225,16 @@ function ShoppingCart({
                                                         bgcolor: 'action.hover', 
                                                         borderRadius: 10, // Pill shape
                                                         overflow: 'hidden', 
-                                                        height: 32,
+                                                        height: { xs: 28, sm: 32 },
                                                         px: 0.5
                                                     }}>
                                                         <IconButton
                                                             onClick={() => handleUpdateQuantityWithFeedback(item.id, item.cartQuantity - 1)}
                                                             disabled={isSetMode && item.cartQuantity <= 0}
                                                             size="small"
-                                                            sx={{ color: 'text.secondary' }}
+                                                            sx={{ color: 'text.secondary', p: 0.5 }}
                                                         >
-                                                            <RemoveIcon fontSize="small" />
+                                                            <RemoveIcon sx={{ fontSize: '1rem' }} />
                                                         </IconButton>
                                                         <InputBase
                                                             value={item.cartQuantity}
@@ -256,9 +254,9 @@ function ShoppingCart({
                                                                 style: { 
                                                                     textAlign: 'center', 
                                                                     padding: 0, 
-                                                                    fontSize: '0.9rem', 
+                                                                    fontSize: '0.85rem', 
                                                                     fontWeight: 'bold', 
-                                                                    width: 35
+                                                                    width: 25
                                                                 }
                                                             }}
                                                             sx={{
@@ -276,13 +274,13 @@ function ShoppingCart({
                                                             onClick={() => handleUpdateQuantityWithFeedback(item.id, item.cartQuantity + 1)}
                                                             disabled={!isVolunteerMode && !isSetMode && item.cartQuantity >= item.quantity}
                                                             size="small"
-                                                            sx={{ color: 'text.secondary' }}
+                                                            sx={{ color: 'text.secondary', p: 0.5 }}
                                                         >
-                                                            <AddIcon fontSize="small" />
+                                                            <AddIcon sx={{ fontSize: '1rem' }} />
                                                         </IconButton>
                                                     </Box>
 
-                                                    <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 60, textAlign: 'right' }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 50, textAlign: 'right', fontSize: '0.85rem' }}>
                                                         €{(item.price * item.cartQuantity).toFixed(2)}
                                                     </Typography>
 
@@ -290,9 +288,9 @@ function ShoppingCart({
                                                         onClick={() => handleRemoveItem(item.id)}
                                                         size="small"
                                                         color="error"
-                                                        sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
+                                                        sx={{ opacity: 0.7, '&:hover': { opacity: 1 }, p: 0.5 }}
                                                     >
-                                                        <DeleteIcon fontSize="small" />
+                                                        <DeleteIcon sx={{ fontSize: '1.1rem' }} />
                                                     </IconButton>
                                                 </Box>
                                             </ListItem>
@@ -301,18 +299,18 @@ function ShoppingCart({
                                 </AnimatePresence>
                             </List>
                         ) : (
-                            <Typography variant="body2" sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+                            <Typography variant="body2" sx={{ textAlign: 'center', py: 4, color: 'text.secondary', fontSize: '0.85rem' }}>
                                 Your cart is empty. Scan an item to add it.
                             </Typography>
                         )}
 
-                        <Box sx={{ px: 2, pb: 2 }}>
+                        <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 } }}>
                             {!isVolunteerMode && <Extras onExtraCostChange={onExtraCostChange} />}
 
                             {(cartItems.length > 0 || extraCosts > 0) && (
-                                <Box sx={{ mt: 2 }}>
+                                <Box sx={{ mt: 1 }}>
                                     {!isVolunteerMode && (
-                                        <Typography variant="subtitle1" sx={{ textAlign: 'right', borderTop: '1px solid', borderColor: 'divider', pt: 1.5, fontWeight: 'bold' }}>
+                                        <Typography variant="subtitle2" sx={{ textAlign: 'right', borderTop: '1px solid', borderColor: 'divider', pt: 1, fontWeight: 'bold' }}>
                                             Total: €{(totalPrice + extraCosts).toFixed(2)}
                                         </Typography>
                                     )}
@@ -320,21 +318,21 @@ function ShoppingCart({
                                         variant="contained"
                                         color={isVolunteerMode ? "info" : "primary"}
                                         fullWidth
-                                        size="large"
+                                        size="medium"
                                         onClick={() => {
                                             if ('vibrate' in navigator) navigator.vibrate(50);
                                             onCheckout();
                                         }}
                                         disabled={isCheckingOut}
-                                        startIcon={isCheckingOut ? <CircularProgress size={20} color="inherit" /> : null}
+                                        startIcon={isCheckingOut ? <CircularProgress size={18} color="inherit" /> : null}
                                         sx={{ 
-                                            mt: 2, 
-                                            borderRadius: 3, 
+                                            mt: 1.5, 
+                                            borderRadius: 2, 
                                             textTransform: 'none', 
                                             fontWeight: 'bold', 
-                                            py: 1.5,
-                                            fontSize: '1.1rem',
-                                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)'
+                                            py: 1,
+                                            fontSize: '1rem',
+                                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)'
                                         }}
                                     >
                                         {isCheckingOut ? 'Processing...' : (isVolunteerMode ? (isSetMode ? 'Set Stock' : 'Add to Stock') : 'Checkout')}
