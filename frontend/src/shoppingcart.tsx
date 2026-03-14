@@ -84,12 +84,8 @@ function ShoppingCart({
 
     // Handle item removal with animation
     const handleRemoveItem = (itemId: number) => {
-        const item = cartItems.find(i => i.id === itemId);
         if ('vibrate' in navigator) navigator.vibrate([30, 30]);
         onRemoveItem(itemId); // Actual removal triggers animation exit
-        if (item) {
-            addToast(`Removed ${item.name} from cart`, 'info');
-        }
     };
     // Don't render if cart is empty and no recent checkout
     return (
@@ -203,14 +199,14 @@ function ShoppingCart({
                                                         {item.name}
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            <strong>Category:</strong> {item.category}
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Category: </Box>{item.category}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            <strong>Location:</strong> {item.location}
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            <strong>Stock:</strong> {item.quantity} {isVolunteerMode && (
+                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Stock: </Box>{item.quantity} {isVolunteerMode && (
                                                                 <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
                                                                     ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
                                                                 </Typography>
@@ -244,8 +240,10 @@ function ShoppingCart({
                                                         </IconButton>
                                                         <InputBase
                                                             value={item.cartQuantity}
+                                                            type="text"
+                                                            inputMode="numeric"
                                                             onChange={(e) => {
-                                                                const val = parseInt(e.target.value, 10);
+                                                                const val = parseInt(e.target.value.replace(/\D/g, ''), 10);
                                                                 handleUpdateQuantityWithFeedback(
                                                                     item.id,
                                                                     isNaN(val) ? 0 : Math.min(
@@ -261,6 +259,16 @@ function ShoppingCart({
                                                                     fontSize: '0.9rem', 
                                                                     fontWeight: 'bold', 
                                                                     width: 35
+                                                                }
+                                                            }}
+                                                            sx={{
+                                                                '& input': {
+                                                                    appearance: 'none',
+                                                                    MozAppearance: 'textfield',
+                                                                    '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                                                                        appearance: 'none',
+                                                                        margin: 0,
+                                                                    },
                                                                 }
                                                             }}
                                                         />

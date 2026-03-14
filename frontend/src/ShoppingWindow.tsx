@@ -57,48 +57,60 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
     }, [cartItems]);
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
+        console.log('[Cart] Adding item to cart:', { id: item.id, name: item.name, price: item.price });
         setCheckedOutResult(null);
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((i) => i.id === item.id);
             if (existingItem) {
                 const newQuantity = Math.min(existingItem.cartQuantity + 1, item.quantity);
-                addToast(`Added ${item.name} (qty: ${newQuantity})`, 'success');
+                console.log(`[Cart] Incrementing quantity for ${item.name}: ${existingItem.cartQuantity} -> ${newQuantity}`);
                 return prevItems.map((i) =>
                     i.id === item.id ? { ...i, cartQuantity: newQuantity } : i
                 );
             }
-            addToast(`Added ${item.name} to cart`, 'success');
+            console.log('[Cart] New item added to cart list');
             return [...prevItems, { ...item, cartQuantity: 1 }];
         });
-    }, [addToast]);
+    }, []);
 
     useEffect(() => {
         if (scannedItem) {
+            console.log('[Scanner] Received scanned item:', scannedItem.name);
             handleAddItemToCart(scannedItem);
         }
     }, [scannedItem, handleAddItemToCart]);
 
 
     const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
+        console.log(`[Cart] Updating quantity for item ${itemId} to ${newQuantity}`);
         setCartItems((prevItems) =>
             prevItems
                 .map((item) =>
                     item.id === itemId ? { ...item, cartQuantity: newQuantity } : item
                 )
                 .filter((item) => {
-                    // Only volunteer mode allows holding items with 0 stock
                     if (isVolunteerMode) return true;
-                    return item.cartQuantity !== 0;
+                    const keep = item.cartQuantity !== 0;
+                    if (!keep) console.log(`[Cart] Removing item ${item.name} because quantity reached 0`);
+                    return keep;
                 })
         );
     };
 
     const handleRemoveItem = (itemId: number) => {
+        console.log(`[Cart] Manually removing item ${itemId}`);
         setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
     };
 
     const handleCheckout = async () => {
         const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
+        console.log('[Checkout] Starting checkout process', { 
+            itemCount: cartItems.length, 
+            total: checkoutTotal, 
+            extraCosts,
+            isVolunteerMode,
+            isSetMode 
+        });
 
         const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join(', ');
         const confirmMessageSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
@@ -109,38 +121,42 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
         const confirmMessage = `Are you sure you want to ${actionText}?\n\n${confirmMessageSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
 
         if (!window.confirm(confirmMessage)) {
-            addToast(`${actionText} cancelled`, 'info');
+            console.log('[Checkout] User cancelled confirmation dialog');
             return;
         }
 
         setIsCheckingOut(true);
         try {
-            addToast(`Processing ${isVolunteerMode ? (isSetMode ? 'set' : 'add') : 'checkout'}...`, 'info');
-
             let handler = handleTakeItem;
             if (isVolunteerMode) {
                 handler = isSetMode ? handleSetItem : handleAddItem;
             }
 
+            console.log(`[Checkout] Using handler: ${handler.name}`);
+
             for (const item of cartItems) {
                 let success = false;
+                console.log(`[Checkout] Processing item: ${item.name} (qty: ${item.cartQuantity})`);
+                
                 if (isVolunteerMode && !isSetMode && item.cartQuantity < 0) {
-                    // Going negative in add mode automatically switches to remove
+                    console.log(`[Checkout] Item quantity is negative, using handleTakeItem for ${item.name}`);
                     success = await handleTakeItem(item.id, Math.abs(item.cartQuantity));
                 } else {
                     success = await handler(item.id, item.cartQuantity);
                 }
 
                 if (!success) {
+                    console.error(`[Checkout] FAILED to process item: ${item.name}`);
                     const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
                     addToast(errorMsg, 'error');
                     alert(errorMsg);
                     setIsCheckingOut(false);
                     return;
                 }
+                console.log(`[Checkout] Successfully processed: ${item.name}`);
             }
 
-            addToast(`✓ ${isVolunteerMode ? (isSetMode ? 'Stock quantities set!' : 'Items added to stock!') : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
+            console.log('[Checkout] All items processed successfully. Clearing cart.');
             setCartItems([]);
             // Only set checkout result for non-volunteer mode (when payment is needed)
             if (!isVolunteerMode) {
@@ -148,7 +164,6 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 if (extraCosts > 0) {
                     desc += `, Extra services (€${extraCosts.toFixed(2)})`;
                 }
-                // Truncate to 140 chars per EPC spec max length (leave some room just in case)
                 if (desc.length > 135) {
                     desc = desc.substring(0, 132) + "...";
                 }
@@ -156,6 +171,9 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
             } else {
                 setCheckedOutResult(null);
             }
+        } catch (error) {
+            console.error('[Checkout] Unexpected error during checkout:', error);
+            addToast('An unexpected error occurred during checkout', 'error');
         } finally {
             setIsCheckingOut(false);
         }

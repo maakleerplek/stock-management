@@ -29,9 +29,11 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     const now = Date.now();
     // Prevent double-scanning the same item too quickly (2 second cooldown)
     if (text === barcode && now - lastScanTime < 2000) {
+        console.log(`[Scanner] Ignored duplicate scan: ${text}`);
         return;
     }
 
+    console.log(`[Scanner] Successfully scanned: ${text}`);
     setBarcode(text);
     setLastScanTime(now);
     onScan(text);
@@ -43,23 +45,23 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     
     setShowSuccessOverlay(true);
     setTimeout(() => setShowSuccessOverlay(false), 1500);
-    
-    // We don't setIsScanning(false) here anymore for continuous scanning
   };
 
   const handleManualSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (manualInput.trim()) {
+      console.log(`[Scanner] Manual entry submitted: ${manualInput.trim()}`);
       handleScan(manualInput.trim());
       setManualInput('');
     }
   };
 
   const handleError = (error: unknown) => {
-    console.error('Scanner error:', error);
+    console.error('[Scanner] Hardware/Software error:', error);
   };
 
   const startScan = () => {
+    console.log('[Scanner] Initializing camera...');
     setIsLoading(true);
     setIsScanning(true);
     // Simulate a small loading state while the camera initializes
@@ -67,6 +69,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   };
 
   const stopScan = () => {
+    console.log('[Scanner] Stopping camera.');
     setIsScanning(false);
     setIsLoading(false);
   };
