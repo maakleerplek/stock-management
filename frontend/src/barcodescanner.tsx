@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton } from '@mui/material';
-import { QrCode2, Stop, KeyboardReturn, CheckCircle } from '@mui/icons-material';
+import { QrCode2, Stop, AddCircle, CheckCircle } from '@mui/icons-material';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
@@ -165,33 +165,48 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
 
           <AnimatePresence>
             {showSuccessOverlay && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.5 }}
-                style={{
-                  position: 'fixed', // Use fixed to show over everything if needed, or keep absolute if scoped
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
+              <Box
+                component={motion.div}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                sx={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(16, 185, 129, 0.9)', // Stronger green
-                  color: 'white',
-                  borderRadius: '20px',
-                  padding: '20px',
-                  zIndex: 1000,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                  pointerEvents: 'none'
+                  zIndex: 9999,
+                  pointerEvents: 'none',
+                  bgcolor: 'rgba(0,0,0,0.1)' // Very subtle dimming to focus on the popup
                 }}
               >
-                <CheckCircle sx={{ fontSize: '4rem', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1 }}>
-                  Added!
-                </Typography>
-              </motion.div>
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.2, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(16, 185, 129, 0.95)', // Solid success green
+                    color: 'white',
+                    borderRadius: '28px',
+                    padding: '40px',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <CheckCircle sx={{ fontSize: '6rem', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                    Added!
+                  </Typography>
+                </motion.div>
+              </Box>
             )}
           </AnimatePresence>
 
@@ -209,7 +224,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
                    endAdornment: (
                      <InputAdornment position="end">
                        <IconButton type="submit" edge="end" color="primary" disabled={!manualInput.trim()}>
-                         <KeyboardReturn fontSize="small" />
+                         <AddCircle fontSize="small" />
                        </IconButton>
                      </InputAdornment>
                    ),

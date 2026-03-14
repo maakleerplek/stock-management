@@ -67,8 +67,15 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
         const cleanIban = PAYMENT.IBAN.replace(/\s+/g, '');
         const formattedAmount = total.toFixed(2);
         const cleanDescription = description.substring(0, 140);
-        return `payto://iban/${cleanIban}?amount=EUR:${formattedAmount}&name=${encodeURIComponent(beneficiaryName)}&message=${encodeURIComponent(cleanDescription)}`;
+        // payto:iban/<IBAN>?amount=EUR:<AMOUNT>&receiver-name=<NAME>&message=<MESSAGE>
+        return `payto:iban/${cleanIban}?amount=EUR:${formattedAmount}&receiver-name=${encodeURIComponent(beneficiaryName)}&message=${encodeURIComponent(cleanDescription)}`;
     }, [total, description]);
+
+    const handleQrClick = (e: React.MouseEvent) => {
+        console.log('[QR] Manual redirect to:', paytoUri);
+        // On some mobile devices/PWAs, manual location setting works better for custom schemes
+        window.location.href = paytoUri;
+    };
 
     const displayTotal = total > 0 ? `€${total.toFixed(2)}` : '';
 
@@ -95,6 +102,7 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                     <Box
                         component="a"
                         href={paytoUri}
+                        onClick={handleQrClick}
                         sx={{
                             p: 2,
                             bgcolor: 'background.paper',
@@ -105,6 +113,7 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                             textDecoration: 'none',
                             color: 'inherit',
                             display: 'block',
+                            cursor: 'pointer',
                             '&:hover': {
                                 transform: 'scale(1.05)',
                                 boxShadow: '0 0 0 4px var(--mui-palette-primary-main)'
