@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { type ItemData } from './sendCodeHandler';
 import Extras from './Extras';
 import ImageDisplay from './ImageDisplay';
-import { useToast } from './ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Card,
@@ -59,7 +58,6 @@ function ShoppingCart({
     onSetModeChange,
     isCheckingOut = false,
 }: ShoppingCartProps) {
-    const { addToast } = useToast();
     const [lastActionId, setLastActionId] = useState<number | null>(null);
 
     const totalPrice = cartItems.reduce(
@@ -203,13 +201,22 @@ function ShoppingCart({
                                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
                                                             <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Loc: </Box>{item.location}
                                                         </Typography>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Stock: </Box>{item.quantity} {isVolunteerMode && (
-                                                                <Typography component="span" variant="caption" sx={{ fontSize: '0.7rem' }} color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
-                                                                    ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
-                                                                </Typography>
-                                                            )}
-                                                        </Typography>
+                                                        
+                                                        <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column' }}>
+                                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                                                <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Stock: </Box>{item.quantity}
+                                                            </Typography>
+                                                            <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }} color={
+                                                                isVolunteerMode 
+                                                                    ? (isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main'))
+                                                                    : 'error.main'
+                                                            }>
+                                                                {isVolunteerMode 
+                                                                    ? (isSetMode ? `→ Setting to ${item.cartQuantity}` : (item.cartQuantity >= 0 ? `↑ Adding ${item.cartQuantity}` : `↓ Removing ${Math.abs(item.cartQuantity)}`))
+                                                                    : `↓ Removing ${item.cartQuantity}`
+                                                                }
+                                                            </Typography>
+                                                        </Box>
                                                     </Box>
                                                 </Box>
 
