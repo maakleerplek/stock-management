@@ -25,6 +25,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
     const [checkedOutResult, setCheckedOutResult] = useState<{ total: number; description: string } | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const [isSetMode, setIsSetMode] = useState<boolean>(false);
+    const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
 
@@ -112,45 +113,51 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
             return;
         }
 
-        addToast(`Processing ${isVolunteerMode ? (isSetMode ? 'set' : 'add') : 'checkout'}...`, 'info');
+        setIsCheckingOut(true);
+        try {
+            addToast(`Processing ${isVolunteerMode ? (isSetMode ? 'set' : 'add') : 'checkout'}...`, 'info');
 
-        let handler = handleTakeItem;
-        if (isVolunteerMode) {
-            handler = isSetMode ? handleSetItem : handleAddItem;
-        }
+            let handler = handleTakeItem;
+            if (isVolunteerMode) {
+                handler = isSetMode ? handleSetItem : handleAddItem;
+            }
 
-        for (const item of cartItems) {
-            let success = false;
-            if (isVolunteerMode && !isSetMode && item.cartQuantity < 0) {
-                // Going negative in add mode automatically switches to remove
-                success = await handleTakeItem(item.id, Math.abs(item.cartQuantity));
+            for (const item of cartItems) {
+                let success = false;
+                if (isVolunteerMode && !isSetMode && item.cartQuantity < 0) {
+                    // Going negative in add mode automatically switches to remove
+                    success = await handleTakeItem(item.id, Math.abs(item.cartQuantity));
+                } else {
+                    success = await handler(item.id, item.cartQuantity);
+                }
+
+                if (!success) {
+                    const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
+                    addToast(errorMsg, 'error');
+                    alert(errorMsg);
+                    setIsCheckingOut(false);
+                    return;
+                }
+            }
+
+            addToast(`✓ ${isVolunteerMode ? (isSetMode ? 'Stock quantities set!' : 'Items added to stock!') : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
+            setCartItems([]);
+            // Only set checkout result for non-volunteer mode (when payment is needed)
+            if (!isVolunteerMode) {
+                let desc = itemsSummary;
+                if (extraCosts > 0) {
+                    desc += `, Extra services (€${extraCosts.toFixed(2)})`;
+                }
+                // Truncate to 140 chars per EPC spec max length (leave some room just in case)
+                if (desc.length > 135) {
+                    desc = desc.substring(0, 132) + "...";
+                }
+                setCheckedOutResult({ total: checkoutTotal, description: desc });
             } else {
-                success = await handler(item.id, item.cartQuantity);
+                setCheckedOutResult(null);
             }
-
-            if (!success) {
-                const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
-                addToast(errorMsg, 'error');
-                alert(errorMsg);
-                return;
-            }
-        }
-
-        addToast(`✓ ${isVolunteerMode ? (isSetMode ? 'Stock quantities set!' : 'Items added to stock!') : `Checkout complete! Total: €${checkoutTotal.toFixed(2)}`}`, 'success');
-        setCartItems([]);
-        // Only set checkout result for non-volunteer mode (when payment is needed)
-        if (!isVolunteerMode) {
-            let desc = itemsSummary;
-            if (extraCosts > 0) {
-                desc += `, Extra services (€${extraCosts.toFixed(2)})`;
-            }
-            // Truncate to 140 chars per EPC spec max length (leave some room just in case)
-            if (desc.length > 135) {
-                desc = desc.substring(0, 132) + "...";
-            }
-            setCheckedOutResult({ total: checkoutTotal, description: desc });
-        } else {
-            setCheckedOutResult(null);
+        } finally {
+            setIsCheckingOut(false);
         }
     };
 
@@ -171,6 +178,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 isVolunteerMode={isVolunteerMode}
                 isSetMode={isSetMode}
                 onSetModeChange={handleSetModeChange}
+                isCheckingOut={isCheckingOut}
             />
         </motion.div>
     );

@@ -61,6 +61,15 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
         return parts.join('\n');
     }, [total, description]);
 
+    const paytoUri = useMemo(() => {
+        if (total <= 0) return '';
+        const beneficiaryName = PAYMENT.BENEFICIARY_NAME;
+        const cleanIban = PAYMENT.IBAN.replace(/\s+/g, '');
+        const formattedAmount = total.toFixed(2);
+        const cleanDescription = description.substring(0, 140);
+        return `payto://iban/${cleanIban}?amount=EUR:${formattedAmount}&name=${encodeURIComponent(beneficiaryName)}&message=${encodeURIComponent(cleanDescription)}`;
+    }, [total, description]);
+
     const displayTotal = total > 0 ? `€${total.toFixed(2)}` : '';
 
     return (
@@ -84,6 +93,8 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                 </Typography>
                 {total > 0 && (
                     <Box
+                        component="a"
+                        href={paytoUri}
                         sx={{
                             p: 2,
                             bgcolor: 'background.paper',
@@ -91,6 +102,9 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                             border: '4px solid',
                             borderColor: 'background.paper',
                             transition: 'transform 0.3s, box-shadow 0.3s',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            display: 'block',
                             '&:hover': {
                                 transform: 'scale(1.05)',
                                 boxShadow: '0 0 0 4px var(--mui-palette-primary-main)'
@@ -107,7 +121,7 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                 )}
                 {total > 0 && (
                     <Typography variant="caption" color="text.secondary">
-                        Scan the code directly
+                        Scan the code or click to open bank app
                     </Typography>
                 )}
             </Card>
