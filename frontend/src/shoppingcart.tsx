@@ -133,62 +133,64 @@ function ShoppingCart({
                                                 divider={index !== cartItems.length - 1}
                                                 sx={{
                                                     display: 'flex',
-                                                    flexDirection: { xs: 'column', sm: 'row' },
-                                                    alignItems: { xs: 'flex-start', sm: 'center' },
-                                                    py: 2,
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    py: 1.5,
                                                     px: 2,
                                                     gap: 2,
                                                 }}
                                             >
-                                                {/* Left Section: Image and Basic Info */}
-                                                <Box sx={{ display: 'flex', gap: 2, flex: 1, minWidth: 0, width: '100%' }}>
-                                                    <Box sx={{ flexShrink: 0 }}>
-                                                        <ImageDisplay
-                                                            imagePath={item.image}
-                                                            alt={item.name}
-                                                            width={50}
-                                                            height={50}
-                                                        />
-                                                    </Box>
-                                                    
-                                                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', lineHeight: 1.2, mb: 0.5 }}>
-                                                            {item.name}
-                                                        </Typography>
-                                                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
-                                                            {item.ipn && (
-                                                                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                                                                    {item.ipn}
-                                                                </Typography>
-                                                            )}
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                {item.category} • {item.location}
-                                                            </Typography>
-                                                        </Box>
-                                                        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                                                            Stock: {item.quantity} {isVolunteerMode && (
-                                                                <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
-                                                                    ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
-                                                                </Typography>
-                                                            )}
-                                                        </Typography>
-                                                    </Box>
+                                                {/* Left Section: Image */}
+                                                <Box sx={{ flexShrink: 0 }}>
+                                                    <ImageDisplay
+                                                        imagePath={item.image}
+                                                        alt={item.name}
+                                                        width={50}
+                                                        height={50}
+                                                        sx={{ border: 'none', bgcolor: 'transparent' }}
+                                                    />
                                                 </Box>
 
-                                                {/* Right Section: Quantity Controls and Price */}
+                                                {/* Middle Section: Info */}
+                                                <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                                                    <Typography variant="body1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
+                                                        {item.name}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                                                        {item.ipn}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {item.category} • {item.location}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Stock: {item.quantity} {isVolunteerMode && (
+                                                            <Typography component="span" variant="caption" color={isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main')}>
+                                                                ({isSetMode ? '=>' : (item.cartQuantity >= 0 ? '+' : '-')}{Math.abs(item.cartQuantity)})
+                                                            </Typography>
+                                                        )}
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* Right Section: Controls and Price */}
                                                 <Box sx={{ 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
-                                                    justifyContent: 'space-between',
-                                                    width: { xs: '100%', sm: 'auto' },
-                                                    gap: 2 
+                                                    gap: 1.5
                                                 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'action.hover', borderRadius: 1.5, overflow: 'hidden', height: 32 }}>
+                                                    <Box sx={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        bgcolor: 'action.hover', 
+                                                        borderRadius: 10, // Pill shape
+                                                        overflow: 'hidden', 
+                                                        height: 32,
+                                                        px: 0.5
+                                                    }}>
                                                         <IconButton
                                                             onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}
                                                             disabled={isSetMode && item.cartQuantity <= 0}
                                                             size="small"
-                                                            sx={{ borderRadius: 0 }}
+                                                            sx={{ color: 'text.secondary' }}
                                                         >
                                                             <RemoveIcon fontSize="small" />
                                                         </IconButton>
@@ -205,20 +207,33 @@ function ShoppingCart({
                                                                 )
                                                             }
                                                             inputProps={{
-                                                                style: { textAlign: 'center', padding: 0, fontSize: '0.875rem', fontWeight: 'bold', width: 30 }
+                                                                style: { 
+                                                                    textAlign: 'center', 
+                                                                    padding: 0, 
+                                                                    fontSize: '0.9rem', 
+                                                                    fontWeight: 'bold', 
+                                                                    width: 35,
+                                                                    MozAppearance: 'textfield', // Hide arrows in Firefox
+                                                                }
+                                                            }}
+                                                            sx={{
+                                                                '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                                                                    WebkitAppearance: 'none',
+                                                                    margin: 0,
+                                                                },
                                                             }}
                                                         />
                                                         <IconButton
                                                             onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)}
                                                             disabled={!isVolunteerMode && !isSetMode && item.cartQuantity >= item.quantity}
                                                             size="small"
-                                                            sx={{ borderRadius: 0 }}
+                                                            sx={{ color: 'text.secondary' }}
                                                         >
                                                             <AddIcon fontSize="small" />
                                                         </IconButton>
                                                     </Box>
 
-                                                    <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 50, textAlign: 'right' }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 60, textAlign: 'right' }}>
                                                         €{(item.price * item.cartQuantity).toFixed(2)}
                                                     </Typography>
 
@@ -226,7 +241,7 @@ function ShoppingCart({
                                                         onClick={() => handleRemoveItem(item.id)}
                                                         size="small"
                                                         color="error"
-                                                        sx={{ ml: -1 }}
+                                                        sx={{ opacity: 0.7, '&:hover': { opacity: 1 } }}
                                                     >
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
