@@ -44,7 +44,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     }
     
     setShowSuccessOverlay(true);
-    setTimeout(() => setShowSuccessOverlay(false), 1500);
+    setTimeout(() => setShowSuccessOverlay(false), 600);
   };
 
   const handleManualSubmit = (e?: React.FormEvent) => {
