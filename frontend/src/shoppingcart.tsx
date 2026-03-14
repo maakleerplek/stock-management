@@ -58,13 +58,32 @@ function ShoppingCart({
     isCheckingOut = false,
 }: ShoppingCartProps) {
     const { addToast } = useToast();
+    const [lastActionId, setLastActionId] = useState<number | null>(null);
+
     const totalPrice = cartItems.reduce(
         (total, item) => total + item.price * item.cartQuantity,
         0
     );
+
+    // Track last item that was updated to trigger a visual flash
+    useEffect(() => {
+        if (cartItems.length > 0) {
+            // Find most recently updated (this is a bit heuristic, but works if we assume the last scanned is added last)
+            // Better: rely on external trigger or track quantity changes.
+        }
+    }, [cartItems]);
+
+    const handleUpdateQuantityWithFeedback = (id: number, qty: number) => {
+        if ('vibrate' in navigator) navigator.vibrate(10);
+        setLastActionId(id);
+        onUpdateQuantity(id, qty);
+        setTimeout(() => setLastActionId(null), 500);
+    };
+
     // Handle item removal with animation
     const handleRemoveItem = (itemId: number) => {
         const item = cartItems.find(i => i.id === itemId);
+        if ('vibrate' in navigator) navigator.vibrate([30, 30]);
         onRemoveItem(itemId); // Actual removal triggers animation exit
         if (item) {
             addToast(`Removed ${item.name} from cart`, 'info');
@@ -79,12 +98,14 @@ function ShoppingCart({
             flexDirection: 'column',
             gap: 2,
             borderTop: isVolunteerMode ? 4 : 0,
-            borderTopColor: isVolunteerMode ? 'info.main' : 'transparent'
+            borderTopColor: isVolunteerMode ? 'info.main' : 'transparent',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            borderRadius: 3
         }}>
             <CardHeader
                 title={isVolunteerMode ? (isSetMode ? "Set Stock" : "Add to Stock") : "Shopping Cart"}
                 avatar={isVolunteerMode ? <VolunteerActivismIcon /> : <ShoppingCartIcon />}
-                titleTypographyProps={{ variant: 'subtitle1' }}
+                titleTypographyProps={{ variant: 'subtitle1', fontWeight: 'bold' }}
             />            {isVolunteerMode && onSetModeChange && (
                 <Box sx={{ px: 2, pb: 2 }}>
                     <ToggleButtonGroup
@@ -93,6 +114,7 @@ function ShoppingCart({
                         exclusive
                         onChange={(_e, newValue) => {
                             if (newValue !== null) {
+                                if ('vibrate' in navigator) navigator.vibrate(20);
                                 onSetModeChange(newValue === 'set');
                             }
                         }}
@@ -110,10 +132,16 @@ function ShoppingCart({
             )}            <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 0, p: 0, '&:last-child': { pb: 0 } }}>
                 {checkedOutTotal !== null ? (
                     // Display checkout successful summary
-                    <Box sx={{ textAlign: 'center', py: 4, px: 2, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Typography variant="h6" color="success.main">✓ Checkout successful!</Typography>
-                        <Typography variant="subtitle1" fontWeight="bold">Final Total: €{checkedOutTotal?.toFixed(2)}</Typography>
-                        <Typography variant="body2">You can pay via the Qrcode and refresh the page to start a new transaction.</Typography>
+                    <Box sx={{ textAlign: 'center', py: 6, px: 3, animation: 'fadeIn 0.5s ease-in', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ color: 'success.main', mb: 1 }}>
+                            <CheckCircle sx={{ fontSize: '4rem' }} />
+                        </Box>
+                        <Typography variant="h5" fontWeight="bold">Done!</Typography>
+                        <Typography variant="subtitle1">Total: €{checkedOutTotal?.toFixed(2)}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            You can pay via the QR code below.<br/>
+                            Refresh the page to start over.
+                        </Typography>
                     </Box>
                 ) : (
                     // Display current cart state or empty message + extras
@@ -125,7 +153,11 @@ function ShoppingCart({
                                         <motion.div
                                             key={item.id}
                                             initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
+                                            animate={{ 
+                                                opacity: 1, 
+                                                x: 0,
+                                                backgroundColor: lastActionId === item.id ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                                            }}
                                             exit={{ opacity: 0, x: 20 }}
                                             transition={{ duration: 0.2 }}
                                         >
@@ -138,6 +170,7 @@ function ShoppingCart({
                                                     py: 1.5,
                                                     px: 2,
                                                     gap: 2,
+                                                    transition: 'background-color 0.3s ease'
                                                 }}
                                             >
                                                 {/* Left Section: Image */}
@@ -155,9 +188,6 @@ function ShoppingCart({
                                                 <Box sx={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                                                     <Typography variant="body1" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                                                         {item.name}
-                                                    </Typography>
-                                                    <Typography variant="caption" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                                                        {item.ipn}
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
                                                         {item.category} • {item.location}
@@ -187,7 +217,7 @@ function ShoppingCart({
                                                         px: 0.5
                                                     }}>
                                                         <IconButton
-                                                            onClick={() => onUpdateQuantity(item.id, item.cartQuantity - 1)}
+                                                            onClick={() => handleUpdateQuantityWithFeedback(item.id, item.cartQuantity - 1)}
                                                             disabled={isSetMode && item.cartQuantity <= 0}
                                                             size="small"
                                                             sx={{ color: 'text.secondary' }}
@@ -198,7 +228,7 @@ function ShoppingCart({
                                                             type="number"
                                                             value={item.cartQuantity}
                                                             onChange={(e) =>
-                                                                onUpdateQuantity(
+                                                                handleUpdateQuantityWithFeedback(
                                                                     item.id,
                                                                     Math.min(
                                                                         parseInt(e.target.value, 10) || 0,
@@ -224,7 +254,7 @@ function ShoppingCart({
                                                             }}
                                                         />
                                                         <IconButton
-                                                            onClick={() => onUpdateQuantity(item.id, item.cartQuantity + 1)}
+                                                            onClick={() => handleUpdateQuantityWithFeedback(item.id, item.cartQuantity + 1)}
                                                             disabled={!isVolunteerMode && !isSetMode && item.cartQuantity >= item.quantity}
                                                             size="small"
                                                             sx={{ color: 'text.secondary' }}
@@ -272,10 +302,21 @@ function ShoppingCart({
                                         color={isVolunteerMode ? "info" : "primary"}
                                         fullWidth
                                         size="large"
-                                        onClick={onCheckout}
+                                        onClick={() => {
+                                            if ('vibrate' in navigator) navigator.vibrate(50);
+                                            onCheckout();
+                                        }}
                                         disabled={isCheckingOut}
                                         startIcon={isCheckingOut ? <CircularProgress size={20} color="inherit" /> : null}
-                                        sx={{ mt: 2, borderRadius: 2, textTransform: 'none', fontWeight: 'bold' }}
+                                        sx={{ 
+                                            mt: 2, 
+                                            borderRadius: 3, 
+                                            textTransform: 'none', 
+                                            fontWeight: 'bold', 
+                                            py: 1.5,
+                                            fontSize: '1.1rem',
+                                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)'
+                                        }}
                                     >
                                         {isCheckingOut ? 'Processing...' : (isVolunteerMode ? (isSetMode ? 'Set Stock' : 'Add to Stock') : 'Checkout')}
                                     </Button>

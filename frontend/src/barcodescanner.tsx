@@ -135,60 +135,62 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
                   <CircularProgress color="primary" />
                 </Box>
               ) : (
-                <>
-                  <Scanner
-                    onScan={(detectedCodes) => {
-                      if (detectedCodes.length > 0) {
-                        handleScan(detectedCodes[0].rawValue);
-                      }
-                    }}
-                    onError={handleError}
-                    allowMultiple={false}
-                    scanDelay={500} // Faster re-scan delay for different codes
-                    constraints={{
-                      facingMode: 'environment',
-                    }}
-                    components={{
-                      torch: true,
-                      finder: true,
-                    }}
-                    styles={{
-                      container: { width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' },
-                      video: { width: '100%', height: '100%', objectFit: 'cover' }
-                    }}
-                  />
-                  <AnimatePresence>
-                    {showSuccessOverlay && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.5 }}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'rgba(16, 185, 129, 0.4)', // Success green with transparency
-                          zIndex: 2,
-                          backdropFilter: 'blur(2px)'
-                        }}
-                      >
-                        <CheckCircle sx={{ fontSize: '4rem', color: 'white', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
-                        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', mt: 1, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-                          Scanned!
-                        </Typography>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
+                <Scanner
+                  onScan={(detectedCodes) => {
+                    if (detectedCodes.length > 0) {
+                      handleScan(detectedCodes[0].rawValue);
+                    }
+                  }}
+                  onError={handleError}
+                  allowMultiple={false}
+                  scanDelay={500} // Faster re-scan delay for different codes
+                  constraints={{
+                    facingMode: 'environment',
+                  }}
+                  components={{
+                    torch: true,
+                    finder: true,
+                  }}
+                  styles={{
+                    container: { width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' },
+                    video: { width: '100%', height: '100%', objectFit: 'cover' }
+                  }}
+                />
               )}
             </Box>
           )}
+
+          <AnimatePresence>
+            {showSuccessOverlay && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.5 }}
+                style={{
+                  position: 'fixed', // Use fixed to show over everything if needed, or keep absolute if scoped
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(16, 185, 129, 0.9)', // Stronger green
+                  color: 'white',
+                  borderRadius: '20px',
+                  padding: '20px',
+                  zIndex: 1000,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  pointerEvents: 'none'
+                }}
+              >
+                <CheckCircle sx={{ fontSize: '4rem', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1 }}>
+                  Added!
+                </Typography>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {!isScanning && (
              <Box component="form" onSubmit={handleManualSubmit} sx={{ width: '100%', mt: 1 }}>
