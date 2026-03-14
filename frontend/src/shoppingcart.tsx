@@ -152,14 +152,25 @@ function ShoppingCart({
                                     {cartItems.map((item, index) => (
                                         <motion.div
                                             key={item.id}
-                                            initial={{ opacity: 0, x: -10 }}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ 
                                                 opacity: 1, 
-                                                x: 0,
+                                                scale: 1,
                                                 backgroundColor: lastActionId === item.id ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
                                             }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ duration: 0.2 }}
+                                            exit={{ 
+                                                opacity: 0, 
+                                                x: 100, 
+                                                scale: 0.9,
+                                                transition: { duration: 0.2 } 
+                                            }}
+                                            transition={{ 
+                                                type: 'spring',
+                                                stiffness: 500,
+                                                damping: 30,
+                                                mass: 1
+                                            }}
                                         >
                                             <ListItem
                                                 divider={index !== cartItems.length - 1}
