@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { Box } from '@mui/material';
 import ShoppingCart, { type CartItem } from './shoppingcart';
 import { type ItemData, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
@@ -162,11 +162,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-        >
+        <Box>
             <ShoppingCart
                 cartItems={cartItems}
                 onUpdateQuantity={handleUpdateQuantity}
@@ -180,6 +176,6 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 onSetModeChange={handleSetModeChange}
                 isCheckingOut={isCheckingOut}
             />
-        </motion.div>
+        </Box>
     );
 }

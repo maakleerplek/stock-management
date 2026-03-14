@@ -72,12 +72,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-      style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
-    >
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
       <Card sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -235,7 +230,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
           </Box>
         </CardContent>
       </Card>
-    </motion.div>
+    </Box>
   );
 }
 
