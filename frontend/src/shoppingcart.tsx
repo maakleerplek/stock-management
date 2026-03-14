@@ -202,22 +202,23 @@ function ShoppingCart({
                                                             <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
                                                         </Typography>
                                                         
-                                                        <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column' }}>
+                                                        <Box sx={{ mt: 0.5 }}>
                                                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
                                                                 <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Stock: </Box>{item.quantity}
+                                                                <Box component="span" sx={{ 
+                                                                    ml: 0.5, 
+                                                                    fontWeight: 'bold', 
+                                                                    color: isVolunteerMode 
+                                                                        ? (isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main'))
+                                                                        : 'error.main'
+                                                                }}>
+                                                                    {isVolunteerMode 
+                                                                        ? (isSetMode ? `=> ${item.cartQuantity}` : (item.cartQuantity >= 0 ? `(+${item.cartQuantity})` : `(-${Math.abs(item.cartQuantity)})`)) 
+                                                                        : `(-${item.cartQuantity})`
+                                                                    }
+                                                                </Box>
                                                             </Typography>
-                                                            <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 0.5 }} color={
-                                                                isVolunteerMode 
-                                                                    ? (isSetMode ? 'warning.main' : (item.cartQuantity >= 0 ? 'success.main' : 'error.main'))
-                                                                    : 'error.main'
-                                                            }>
-                                                                {isVolunteerMode 
-                                                                    ? (isSetMode ? `→ Setting to ${item.cartQuantity}` : (item.cartQuantity >= 0 ? `↑ Adding ${item.cartQuantity}` : `↓ Removing ${Math.abs(item.cartQuantity)}`))
-                                                                    : `↓ Removing ${item.cartQuantity}`
-                                                                }
-                                                            </Typography>
-                                                        </Box>
-                                                    </Box>
+                                                        </Box>                                                    </Box>
                                                 </Box>
 
                                                 {/* Right Section: Controls and Price */}
