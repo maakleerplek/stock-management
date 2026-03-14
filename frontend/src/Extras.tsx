@@ -27,7 +27,7 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <TextField
-                        label="Lasertime (minutes)"
+                        label={`Lasertime (min) - €${PRICING.LASER_PER_MINUTE.toFixed(2)}/min`}
                         type="number"
                         value={lasertimeMinutes}
                         onChange={(e) => setLasertimeMinutes(Math.max(0, parseInt(e.target.value) || 0))}
@@ -39,7 +39,7 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <TextField
-                        label="3D Printing (grams)"
+                        label={`3D Printing (g) - €${PRICING.PRINTING_PER_GRAM.toFixed(2)}/g`}
                         type="number"
                         value={printingGrams}
                         onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
