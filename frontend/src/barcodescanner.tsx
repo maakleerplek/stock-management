@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton } from '@mui/material';
-import { QrCode2, Stop, KeyboardReturn } from '@mui/icons-material';
+import { QrCode2, Stop, KeyboardReturn, CheckCircle } from '@mui/icons-material';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
@@ -14,6 +14,8 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [barcode, setBarcode] = useState('No result');
   const [isLoading, setIsLoading] = useState(false);
   const [manualInput, setManualInput] = useState('');
+  const [lastScanTime, setLastScanTime] = useState(0);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus manual input on mount if not scanning
@@ -24,9 +26,25 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   }, [isScanning]);
 
   const handleScan = (text: string) => {
+    const now = Date.now();
+    // Prevent double-scanning the same item too quickly (2 second cooldown)
+    if (text === barcode && now - lastScanTime < 2000) {
+        return;
+    }
+
     setBarcode(text);
+    setLastScanTime(now);
     onScan(text);
-    setIsScanning(false);
+    
+    // Visual & Haptic feedback
+    if ('vibrate' in navigator) {
+        navigator.vibrate(50); // Short buzz
+    }
+    
+    setShowSuccessOverlay(true);
+    setTimeout(() => setShowSuccessOverlay(false), 1500);
+    
+    // We don't setIsScanning(false) here anymore for continuous scanning
   };
 
   const handleManualSubmit = (e?: React.FormEvent) => {
@@ -122,27 +140,57 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
                   <CircularProgress color="primary" />
                 </Box>
               ) : (
-                <Scanner
-                  onScan={(detectedCodes) => {
-                    if (detectedCodes.length > 0) {
-                      handleScan(detectedCodes[0].rawValue);
-                    }
-                  }}
-                  onError={handleError}
-                  allowMultiple={false}
-                  scanDelay={2000}
-                  constraints={{
-                    facingMode: 'environment',
-                  }}
-                  components={{
-                    torch: true,
-                    finder: true,
-                  }}
-                  styles={{
-                    container: { width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' },
-                    video: { width: '100%', height: '100%', objectFit: 'cover' }
-                  }}
-                />
+                <>
+                  <Scanner
+                    onScan={(detectedCodes) => {
+                      if (detectedCodes.length > 0) {
+                        handleScan(detectedCodes[0].rawValue);
+                      }
+                    }}
+                    onError={handleError}
+                    allowMultiple={false}
+                    scanDelay={500} // Faster re-scan delay for different codes
+                    constraints={{
+                      facingMode: 'environment',
+                    }}
+                    components={{
+                      torch: true,
+                      finder: true,
+                    }}
+                    styles={{
+                      container: { width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' },
+                      video: { width: '100%', height: '100%', objectFit: 'cover' }
+                    }}
+                  />
+                  <AnimatePresence>
+                    {showSuccessOverlay && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.5 }}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: 'rgba(16, 185, 129, 0.4)', // Success green with transparency
+                          zIndex: 2,
+                          backdropFilter: 'blur(2px)'
+                        }}
+                      >
+                        <CheckCircle sx={{ fontSize: '4rem', color: 'white', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.2))' }} />
+                        <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold', mt: 1, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                          Scanned!
+                        </Typography>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
               )}
             </Box>
           )}
