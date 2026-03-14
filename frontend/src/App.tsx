@@ -34,6 +34,10 @@ function AppContent() {
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
   const [checkoutResult, setCheckoutResult] = useState<{ total: number; description: string } | null>(null);
+  const { addToast } = useToast();
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+
   // Warn before refresh if a checkout result is active
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
