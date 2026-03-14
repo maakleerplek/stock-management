@@ -38,6 +38,20 @@ function AppContent() {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
+  // Warn before refresh if a checkout result is active
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (checkoutResult !== null) {
+        console.log('[App] Preventing accidental refresh during active payment display');
+        e.preventDefault();
+        e.returnValue = ''; // Required for modern browsers to show the dialog
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [checkoutResult]);
+
   const handleApiError = useCallback(
     (error: unknown, context: string, showWarning = false) => {
       const message = getErrorMessage(error, context);
@@ -60,11 +74,11 @@ function AppContent() {
           setCategories(categoriesData.categories);
         } else {
           setCategories([]);
-          addToast(`Error fetching categories: ${categoriesData.message}`, 'error');
+          console.error(`Error fetching categories: ${categoriesData.message}`);
         }
       } else {
         setCategories([]);
-        addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
+        console.error(`Network error fetching categories: ${categoriesRes.statusText}`);
       }
 
       // Handle locations response
@@ -74,22 +88,18 @@ function AppContent() {
           setLocations(locationsData.locations);
         } else {
           setLocations([]);
-          addToast(`Error fetching locations: ${locationsData.message}`, 'error');
+          console.error(`Error fetching locations: ${locationsData.message}`);
         }
       } else {
         setLocations([]);
-        addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
-      }
-
-      if (categoriesRes.ok && locationsRes.ok) {
-        addToast('Categories and locations fetched successfully!', 'success');
+        console.error(`Network error fetching locations: ${locationsRes.statusText}`);
       }
     } catch (error) {
       setCategories([]);
       setLocations([]);
-      handleApiError(error, 'fetching categories and locations');
+      console.error('Error fetching categories and locations:', error);
     }
-  }, [addToast, handleApiError]);
+  }, []);
 
   // Fetch categories and locations on component mount
   useEffect(() => {
@@ -279,9 +289,6 @@ function AppContent() {
       <CssBaseline />
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: DEFAULTS.MOTION_DURATION, ease: 'easeOut' }}
         style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
       >
         {currentPage === 'inventree' ? (
