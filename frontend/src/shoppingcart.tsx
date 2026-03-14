@@ -196,10 +196,10 @@ function ShoppingCart({
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Cat: </Box>{item.category}
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Category: </Box>{item.category}
                                                         </Typography>
                                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Loc: </Box>{item.location}
+                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
                                                         </Typography>
                                                         
                                                         <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column' }}>
