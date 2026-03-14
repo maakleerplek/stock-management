@@ -34,9 +34,19 @@ function AppContent() {
   const [categories, setCategories] = useState<SelectOption[]>([]);
   const [locations, setLocations] = useState<SelectOption[]>([]);
   const [checkoutResult, setCheckoutResult] = useState<{ total: number; description: string } | null>(null);
-  const { addToast } = useToast();
-  const muiTheme = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  // Warn before refresh if a checkout result is active
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (checkoutResult !== null) {
+        console.log('[App] Preventing accidental refresh during active payment display');
+        e.preventDefault();
+        e.returnValue = ''; // Required for modern browsers to show the dialog
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [checkoutResult]);
 
   const handleApiError = useCallback(
     (error: unknown, context: string, showWarning = false) => {
