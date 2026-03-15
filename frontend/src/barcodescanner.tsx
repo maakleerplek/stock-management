@@ -16,6 +16,16 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [manualInput, setManualInput] = useState('');
   const [lastScanTime, setLastScanTime] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const loadingTimeoutRef = useRef<number | null>(null);
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeoutRef.current) {
+        window.clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Auto-focus manual input on mount if not scanning
   useEffect(() => {
@@ -58,14 +68,22 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
 
   const startScan = () => {
     console.log('[Scanner] Initializing camera...');
+    if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
     setIsLoading(true);
     setIsScanning(true);
     // Simulate a small loading state while the camera initializes
-    setTimeout(() => setIsLoading(false), 500);
+    loadingTimeoutRef.current = window.setTimeout(() => {
+        setIsLoading(false);
+        loadingTimeoutRef.current = null;
+    }, 500);
   };
 
   const stopScan = () => {
     console.log('[Scanner] Stopping camera.');
+    if (loadingTimeoutRef.current) {
+        window.clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+    }
     setIsScanning(false);
     setIsLoading(false);
   };

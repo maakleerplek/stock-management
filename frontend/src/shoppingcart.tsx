@@ -195,12 +195,16 @@ function ShoppingCart({
                                                         {item.name}
                                                     </Typography>
                                                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Category: </Box>{item.category}
-                                                        </Typography>
-                                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
-                                                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
-                                                        </Typography>
+                                                        {item.category && (
+                                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                                                                <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Category: </Box>{item.category}
+                                                            </Typography>
+                                                        )}
+                                                        {item.location && (
+                                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                                                                <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Location: </Box>{item.location}
+                                                            </Typography>
+                                                        )}
                                                         
                                                         <Box sx={{ mt: 0.5 }}>
                                                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>

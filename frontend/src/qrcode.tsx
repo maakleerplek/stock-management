@@ -50,40 +50,46 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                     <Typography variant="h5" component="h2" fontWeight="bold">Pay Now</Typography>
                 </Box>
                 
-                {total > 0 && (
-                    <Typography variant="h4" color="primary.main" fontWeight="bold">
-                        {displayTotal}
+                {total > 0 ? (
+                    <>
+                        <Typography variant="h4" color="primary.main" fontWeight="bold">
+                            {displayTotal}
+                        </Typography>
+
+                        <Box
+                            component="a"
+                            href={payconiqLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                p: 2,
+                                bgcolor: 'white',
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                my: 1,
+                                display: 'block',
+                                transition: 'transform 0.2s',
+                                '&:hover': { transform: 'scale(1.02)' }
+                            }}
+                        >
+                            <QRCodeSVG
+                                value={epcQrString}
+                                size={180}
+                                level="M"
+                                includeMargin={false}
+                            />
+                        </Box>
+
+                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '28ch', mb: 1 }}>
+                            Scan with your bank app or <strong>tap the QR code</strong> to open Payconiq.
+                        </Typography>
+                    </>
+                ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                        Nothing to pay at the moment.
                     </Typography>
                 )}
-
-                <Box
-                    component="a"
-                    href={payconiqLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                        p: 2,
-                        bgcolor: 'white',
-                        borderRadius: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        my: 1,
-                        display: 'block',
-                        transition: 'transform 0.2s',
-                        '&:hover': { transform: 'scale(1.02)' }
-                    }}
-                >
-                    <QRCodeSVG
-                        value={epcQrString}
-                        size={180}
-                        level="M"
-                        includeMargin={false}
-                    />
-                </Box>
-
-                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '28ch', mb: 1 }}>
-                    Scan with your bank app or <strong>tap the QR code</strong> to open Payconiq.
-                </Typography>
             </Card>
         </motion.div>
     );
