@@ -11,6 +11,9 @@ interface WeroQrCodeProps {
 }
 
 function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodeProps) {
+    // The specific Payconiq Merchant ID for Maakleerplek found in git history
+    const MERCHANT_ID = "616941d236664900073738ce";
+
     const epcQrString = useMemo(() => {
         if (total <= 0) return '';
         const beneficiaryName = PAYMENT.BENEFICIARY_NAME;
@@ -27,14 +30,11 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
         return parts.join('\n');
     }, [total, description]);
 
-    const paytoUri = useMemo(() => {
-        if (total <= 0) return '';
-        const beneficiaryName = PAYMENT.BENEFICIARY_NAME;
-        const cleanIban = PAYMENT.IBAN.replace(/\s+/g, '');
-        const formattedAmount = total.toFixed(2);
-        const cleanDescription = description.substring(0, 140);
-        return `payto://iban/${cleanIban}?amount=${formattedAmount}&name=${encodeURIComponent(beneficiaryName)}&details=${encodeURIComponent(cleanDescription)}`;
-    }, [total, description]);
+    const payconiqLink = useMemo(() => {
+        // We revert to the Payconiq merchant link for clicking, but don't pass extra info if it was failing
+        // Just bringing them to the merchant context as requested
+        return `https://payconiq.com/merchant/1/${MERCHANT_ID}`;
+    }, []);
 
     const displayTotal = total > 0 ? `€${total.toFixed(2)}` : '';
 
@@ -58,7 +58,9 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
 
                         <Box
                             component="a"
-                            href={paytoUri}
+                            href={payconiqLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             sx={{
                                 p: 2,
                                 bgcolor: 'white',
@@ -80,7 +82,7 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
                         </Box>
 
                         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '28ch', mb: 1 }}>
-                            Scan with your bank app or <strong>tap the QR code</strong> to pay.
+                            Scan with your bank app or <strong>tap the QR code</strong> to open Payconiq.
                         </Typography>
                     </>
                 ) : (
