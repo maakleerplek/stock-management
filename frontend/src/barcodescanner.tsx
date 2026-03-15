@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton } from '@mui/material';'@mui/icons-material';
+import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton } from '@mui/material';
+import { QrCode2, Stop, AddCircle,} from '@mui/icons-material';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
