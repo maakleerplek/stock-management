@@ -144,15 +144,15 @@ export default function ItemList() {
                 </Paper>
             )}
 
-            <TableContainer component={Paper} sx={{ 
+            <TableContainer component={Paper} variant="outlined" sx={{ 
                 borderRadius: { xs: 0, sm: 1.5 }, 
                 boxShadow: { xs: 'none', sm: '0 4px 20px rgba(0,0,0,0.08)' }, 
-                borderLeft: { xs: 'none', sm: '1px solid' },
-                borderRight: { xs: 'none', sm: '1px solid' },
+                border: { xs: 'none', sm: '1px solid' },
                 borderColor: 'divider',
                 overflowX: 'auto', 
                 width: '100%',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                bgcolor: 'background.paper'
             }}>
                 <Table sx={{ minWidth: 650, tableLayout: 'fixed' }} size="small">
                     <TableHead sx={{ bgcolor: 'action.hover' }}>
