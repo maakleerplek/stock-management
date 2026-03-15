@@ -101,14 +101,15 @@ export default function ItemList() {
     }
 
     return (
-        <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+        <Box sx={{ p: { xs: 0, sm: 2, md: 3 }, width: '100%', overflowX: 'hidden' }}>
             <Box sx={{ 
                 display: 'flex', 
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: 'space-between', 
                 alignItems: { xs: 'stretch', md: 'center' }, 
                 mb: { xs: 2, sm: 3 }, 
-                gap: 2 
+                gap: 2,
+                px: { xs: 2, sm: 0 }
             }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <InventoryIcon color="primary" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }} />
@@ -138,21 +139,30 @@ export default function ItemList() {
             </Box>
 
             {error && (
-                <Paper sx={{ p: 2, mb: 3, bgcolor: 'error.light', color: 'error.contrastText' }}>
+                <Paper sx={{ p: 2, mb: 3, mx: { xs: 2, sm: 0 }, bgcolor: 'error.light', color: 'error.contrastText' }}>
                     <Typography variant="body2">{error}</Typography>
                 </Paper>
             )}
 
-            <TableContainer component={Paper} sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
-                <Table sx={{ minWidth: 650 }} size="small">
+            <TableContainer component={Paper} sx={{ 
+                borderRadius: { xs: 0, sm: 1.5 }, 
+                boxShadow: { xs: 'none', sm: '0 4px 20px rgba(0,0,0,0.08)' }, 
+                borderLeft: { xs: 'none', sm: '1px solid' },
+                borderRight: { xs: 'none', sm: '1px solid' },
+                borderColor: 'divider',
+                overflowX: 'auto', 
+                width: '100%',
+                maxWidth: '100%'
+            }}>
+                <Table sx={{ minWidth: 650, tableLayout: 'fixed' }} size="small">
                     <TableHead sx={{ bgcolor: 'action.hover' }}>
                         <TableRow>
                             <TableCell width={60}>Image</TableCell>
-                            <TableCell>Name / IPN</TableCell>
-                            <TableCell>Category</TableCell>
-                            <TableCell>Location</TableCell>
-                            <TableCell align="right">Stock</TableCell>
-                            <TableCell align="right">Price</TableCell>
+                            <TableCell width={200}>Name / IPN</TableCell>
+                            <TableCell width={120}>Category</TableCell>
+                            <TableCell width={120}>Location</TableCell>
+                            <TableCell width={80} align="right">Stock</TableCell>
+                            <TableCell width={80} align="right">Price</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -170,7 +180,12 @@ export default function ItemList() {
                                         />
                                     </TableCell>
                                     <TableCell sx={{ py: 1.5 }}>
-                                        <Typography variant="body2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>{item.name}</Typography>
+                                        <Typography variant="body2" fontWeight="bold" sx={{ 
+                                            lineHeight: 1.2,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>{item.name}</Typography>
                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{item.ipn}</Typography>
                                     </TableCell>
                                     <TableCell>
@@ -179,13 +194,13 @@ export default function ItemList() {
                                             label={item.category} 
                                             size="small" 
                                             variant="outlined" 
-                                            sx={{ fontSize: '0.65rem', height: 20 }}
+                                            sx={{ fontSize: '0.65rem', height: 20, maxWidth: '100%' }}
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                             <LocationIcon sx={{ fontSize: '0.8rem', color: 'text.secondary' }} />
-                                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>{item.location}</Typography>
+                                            <Typography variant="caption" sx={{ fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.location}</Typography>
                                         </Box>
                                     </TableCell>
                                     <TableCell align="right">
@@ -227,7 +242,8 @@ export default function ItemList() {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                     sx={{
                         '& .MuiTablePagination-toolbar': {
-                            px: 1
+                            px: 1,
+                            minHeight: 48
                         },
                         '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                             fontSize: '0.75rem'
