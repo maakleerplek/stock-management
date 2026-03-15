@@ -15,7 +15,6 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [lastScanTime, setLastScanTime] = useState(0);
-  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus manual input on mount if not scanning
@@ -42,9 +41,6 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     if ('vibrate' in navigator) {
         navigator.vibrate(50); // Short buzz
     }
-    
-    setShowSuccessOverlay(true);
-    setTimeout(() => setShowSuccessOverlay(false), 600);
   };
 
   const handleManualSubmit = (e?: React.FormEvent) => {
@@ -170,53 +166,6 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
               )}
             </Box>
           )}
-
-          <AnimatePresence>
-            {showSuccessOverlay && (
-              <Box
-                component={motion.div}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                sx={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  width: '100vw',
-                  height: '100vh',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 9999,
-                  pointerEvents: 'none',
-                  bgcolor: 'rgba(0,0,0,0.1)' // Very subtle dimming to focus on the popup
-                }}
-              >
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 1.2, opacity: 0 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'rgba(16, 185, 129, 0.95)', // Solid success green
-                    color: 'white',
-                    borderRadius: '28px',
-                    padding: '40px',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  <CheckCircle sx={{ fontSize: '6rem', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }} />
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', mt: 2, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                    Added!
-                  </Typography>
-                </motion.div>
-              </Box>
-            )}
-          </AnimatePresence>
 
           {!isScanning && (
              <Box component="form" onSubmit={handleManualSubmit} sx={{ width: '100%', mt: 1 }}>
