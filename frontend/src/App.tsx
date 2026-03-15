@@ -307,12 +307,12 @@ function AppContent() {
               onOpenInventory={() => setCurrentPage(currentPage === 'inventory' ? 'main' : 'inventory')}
               isInventoryOpen={currentPage === 'inventory'}
             />
-            <Box sx={{ flex: 1, py: 4 }}>
+            <Box sx={{ flex: 1, py: { xs: 2, sm: 4 } }}>
               <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
                 {currentPage === 'inventory' ? (
                   <ItemList />
                 ) : (
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 2 }}>
                     <BarcodeScannerContainer
                       onItemScanned={(item) => {
                         setScannedItem(null); // Reset first to ensure re-trigger

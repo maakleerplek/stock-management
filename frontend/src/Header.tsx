@@ -37,83 +37,121 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
   };
 
   return (
-    <Box sx={{ width: '100%', backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', borderBottom: '1px solid', borderColor: 'divider', py: 2 }}>
-      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: 2, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-        <Box>
+    <Box sx={{ 
+      width: '100%', 
+      backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', 
+      borderBottom: '1px solid', 
+      borderColor: 'divider', 
+      py: { xs: 1, sm: 2 } 
+    }}>
+      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: { xs: 1.5, sm: 2 }, justifyContent: 'space-between', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Logo />
           {isVolunteerMode && (
             <Box sx={{
-              display: 'inline-block',
-              ml: { xs: 0, sm: 2 },
-              mt: { xs: 1, sm: 0 },
-              px: 2,
+              display: { xs: 'none', sm: 'inline-block' },
+              px: 1.5,
               py: 0.5,
               backgroundColor: 'info.dark',
               color: 'info.contrastText',
-              borderRadius: 1.5,
-              fontSize: '0.875rem',
+              borderRadius: 1,
+              fontSize: '0.75rem',
               fontWeight: 'bold'
             }}>
-              📝 VOLUNTEER MODE
+              VOLUNTEER MODE
             </Box>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end', flex: 1 }}>
+          {/* Main Action Row */}
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {isVolunteerMode && (
+              <>
+                <Button
+                  variant="contained"
+                  color="info"
+                  onClick={onOpenInventory}
+                  size="small"
+                  sx={{ 
+                    bgcolor: isInventoryOpen ? 'info.dark' : 'info.main',
+                    fontSize: { xs: '0.7rem', sm: '0.8125rem' },
+                    px: { xs: 1, sm: 2 }
+                  }}
+                >
+                  {isInventoryOpen ? 'Back to Scan' : 'Inventory List'}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="info"
+                  onClick={onOpenInvenTree || (() => window.open(INVENTREE_CONFIG.URL, '_blank'))}
+                  size="small"
+                  endIcon={<OpenInNewIcon sx={{ fontSize: '0.9rem!important' }} />}
+                  sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' }, px: { xs: 1, sm: 2 } }}
+                >
+                  InvenTree
+                </Button>
+              </>
+            )}
+            <Button
+              variant={isVolunteerMode ? 'contained' : 'outlined'}
+              color={isVolunteerMode ? 'info' : 'inherit'}
+              onClick={handleVolunteerToggle}
+              size="small"
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' }, px: { xs: 1, sm: 2 } }}
+            >
+              {isVolunteerMode ? 'Exit' : 'Volunteer'}
+            </Button>
+            <LightOrDarkButton toggleTheme={toggleTheme} theme={theme} />
+          </Box>
+
+          {/* Form Actions Row (Volunteer Only) */}
           {isVolunteerMode && (
-            <>
-              <Button
-                variant="contained"
-                color="info"
-                onClick={onOpenInventory}
-                size="small"
-                sx={{ bgcolor: isInventoryOpen ? 'info.dark' : 'info.main' }}
-              >
-                {isInventoryOpen ? 'Back to Scan' : 'Inventory List'}
-              </Button>
-              <Button
-                variant="contained"
-                color="info"
-                onClick={onOpenInvenTree || (() => window.open(INVENTREE_CONFIG.URL, '_blank'))}
-                size="small"
-                endIcon={<OpenInNewIcon />}
-              >
-                Open InvenTree
-              </Button>
+            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
                 color="info"
                 onClick={() => setAddCategoryModalOpen(true)}
                 size="small"
+                sx={{ 
+                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
+                  py: 0.25, 
+                  bgcolor: 'rgba(255,255,255,0.15)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                }}
               >
-                Add Category
+                + Category
               </Button>
               <Button
                 variant="contained"
                 color="info"
                 onClick={() => setAddLocationModalOpen(true)}
                 size="small"
+                sx={{ 
+                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
+                  py: 0.25,
+                  bgcolor: 'rgba(255,255,255,0.15)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                }}
               >
-                Add Location
+                + Location
               </Button>
               <Button
                 variant="contained"
                 color="info"
                 onClick={() => setAddPartFormModalOpen(true)}
                 size="small"
+                sx={{ 
+                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
+                  py: 0.25,
+                  bgcolor: 'rgba(255,255,255,0.15)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                }}
               >
-                Add New Part
+                + Part
               </Button>
-            </>
+            </Box>
           )}
-          <Button
-            variant={isVolunteerMode ? 'contained' : 'outlined'}
-            color={isVolunteerMode ? 'info' : 'inherit'}
-            onClick={handleVolunteerToggle}
-            size="small"
-          >
-            {isVolunteerMode ? 'Exit Volunteer Mode' : 'Volunteer Mode'}
-          </Button>
-          <LightOrDarkButton toggleTheme={toggleTheme} theme={theme} />
         </Box>
       </Grid>
     </Box>

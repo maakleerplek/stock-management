@@ -96,7 +96,7 @@ function ShoppingCart({
             borderTop: isVolunteerMode ? 4 : 0,
             borderTopColor: isVolunteerMode ? 'info.main' : 'transparent',
             boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-            borderRadius: { xs: 2, sm: 3 }
+            overflow: 'hidden'
         }}>
             <CardHeader
                 title={isVolunteerMode ? (isSetMode ? "Set Stock" : "Add to Stock") : "Shopping Cart"}

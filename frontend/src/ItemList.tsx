@@ -136,7 +136,7 @@ export default function ItemList() {
                 </Paper>
             )}
 
-            <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
                 <Table sx={{ minWidth: 650 }}>
                     <TableHead sx={{ bgcolor: 'action.hover' }}>
                         <TableRow>

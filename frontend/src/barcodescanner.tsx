@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton } from '@mui/material';
-import { QrCode2, Stop, AddCircle,} from '@mui/icons-material';
+import { QrCode2, Stop, AddCircle } from '@mui/icons-material';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
@@ -96,8 +96,9 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
         width: '100%',
         maxWidth: { xs: 320, sm: 360 },
         bgcolor: compact ? 'transparent' : 'background.paper',
-        boxShadow: compact ? 'none' : undefined,
+        boxShadow: compact ? 'none' : '0 4px 20px rgba(0,0,0,0.08)',
         border: compact ? 'none' : undefined,
+        overflow: 'hidden'
       }}>
         {!compact && (
           <CardHeader
