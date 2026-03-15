@@ -10,6 +10,7 @@ export const API_CONFIG = {
     SET_ITEM: '/set-item',
     GET_CATEGORIES: '/get-categories',
     GET_LOCATIONS: '/get-locations',
+    GET_ALL_ITEMS: '/get-all-items',
     CREATE_PART: '/create-part',
     UPDATE_PART: '/update-part/{part_pk}',
     CREATE_STOCK_ITEM: '/create-stock-item',

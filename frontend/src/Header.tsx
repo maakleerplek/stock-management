@@ -13,9 +13,11 @@ interface HeaderProps {
   setAddCategoryModalOpen: (open: boolean) => void;
   setAddLocationModalOpen: (open: boolean) => void;
   onOpenInvenTree?: () => void;
+  onOpenInventory?: () => void;
+  isInventoryOpen?: boolean;
 }
 
-function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, setAddCategoryModalOpen, setAddLocationModalOpen, onOpenInvenTree }: HeaderProps) {
+function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, setAddCategoryModalOpen, setAddLocationModalOpen, onOpenInvenTree, onOpenInventory, isInventoryOpen }: HeaderProps) {
   const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
 
   const handleVolunteerToggle = () => {
@@ -24,6 +26,9 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
         // Exit volunteer mode immediately
         setIsVolunteerMode(false);
         setAddPartFormModalOpen(false); // Close add part form if open
+        if (onOpenInventory && isInventoryOpen) {
+          onOpenInventory(); // Close inventory list if open
+        }
       }
     } else {
       // Show password dialog
@@ -56,6 +61,15 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
           {isVolunteerMode && (
             <>
+              <Button
+                variant="contained"
+                color="info"
+                onClick={onOpenInventory}
+                size="small"
+                sx={{ bgcolor: isInventoryOpen ? 'info.dark' : 'info.main' }}
+              >
+                {isInventoryOpen ? 'Back to Scan' : 'Inventory List'}
+              </Button>
               <Button
                 variant="contained"
                 color="info"

@@ -485,6 +485,48 @@ def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
             "message": f"Barcode lookup failed: {str(e)}",
         }
 
+def get_all_items() -> Dict[str, Any]:
+    """
+    Fetch all stock items from InvenTree with part and location details.
+    
+    Returns:
+        Dict containing a list of consolidated item details.
+    """
+    try:
+        # Fetch all stock items with part and location details
+        stock_items = api.get("/stock/?part_detail=true&location_detail=true&in_stock=true")
+        
+        if not stock_items:
+            return {"status": "ok", "items": []}
+
+        items_list = []
+        for stock_item in stock_items:
+            part_detail = stock_item.get("part_detail", {})
+            location_detail = stock_item.get("location_detail", {})
+            
+            items_list.append({
+                "id": stock_item.get("pk"),
+                "quantity": stock_item.get("quantity"),
+                "serial": stock_item.get("serial"),
+                "location": location_detail.get("pathstring", stock_item.get("location")),
+                "status": stock_item.get("status_text"),
+                "name": part_detail.get("name", ""),
+                "description": part_detail.get("description", ""),
+                "price": part_detail.get("pricing_min", 0),
+                "image": part_detail.get("image", None),
+                "part_id": stock_item.get("part"),
+                "ipn": part_detail.get("IPN", ""),
+                "category": part_detail.get("category_name", "Uncategorized"),
+            })
+
+        return {"status": "ok", "items": items_list}
+    except Exception as e:
+        logger.error("Error fetching all items: %s", e)
+        return {
+            "status": "error",
+            "message": f"Failed to fetch all items: {str(e)}",
+        }
+
 def create_category(name: str, description: str = "", parent: int = None, default_location: int = None, default_keywords: str = "", structural: bool = False, icon: str = "") -> Dict[str, Any]:
     """
     Create a new part category in InvenTree.

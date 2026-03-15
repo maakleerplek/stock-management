@@ -6,6 +6,7 @@ import AddLocationForm, { type LocationFormData } from './AddLocationForm';
 import type { ItemData } from './sendCodeHandler';
 import ShoppingWindow from './ShoppingWindow';
 import BarcodeScannerContainer from './BarcodeScannerContainer';
+import ItemList from './ItemList';
 import Footer from './Footer';
 import Header from './Header';
 import InvenTreePage from './InvenTreePage';
@@ -25,7 +26,7 @@ import {
 
 function AppContent() {
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme);
-  const [currentPage, setCurrentPage] = useState<'main' | 'inventree'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'inventree' | 'inventory'>('main');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
@@ -303,24 +304,30 @@ function AppContent() {
               setAddCategoryModalOpen={setAddCategoryModalOpen}
               setAddLocationModalOpen={setAddLocationModalOpen}
               onOpenInvenTree={() => setCurrentPage('inventree')}
+              onOpenInventory={() => setCurrentPage(currentPage === 'inventory' ? 'main' : 'inventory')}
+              isInventoryOpen={currentPage === 'inventory'}
             />
             <Box sx={{ flex: 1, py: 4 }}>
               <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
-                  <BarcodeScannerContainer
-                    onItemScanned={(item) => {
-                      setScannedItem(null); // Reset first to ensure re-trigger
-                      setScannedItem(item);
-                    }}
-                    checkoutResult={checkoutResult}
-                  />
-                  <Box>
-                    <ShoppingWindow
-                      scannedItem={scannedItem}
-                      onCheckoutResultChange={setCheckoutResult}
+                {currentPage === 'inventory' ? (
+                  <ItemList />
+                ) : (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
+                    <BarcodeScannerContainer
+                      onItemScanned={(item) => {
+                        setScannedItem(null); // Reset first to ensure re-trigger
+                        setScannedItem(item);
+                      }}
+                      checkoutResult={checkoutResult}
                     />
+                    <Box>
+                      <ShoppingWindow
+                        scannedItem={scannedItem}
+                        onCheckoutResultChange={setCheckoutResult}
+                      />
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </Box>
             </Box>
 
