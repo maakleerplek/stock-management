@@ -40,8 +40,8 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
       backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', 
       borderBottom: '1px solid', 
       borderColor: 'divider', 
-      pt: { xs: 1.5, sm: 2 },
-      pb: { xs: isVolunteerMode ? 1.5 : 1, sm: 2 }
+      pt: { xs: 0.5, sm: 2 },
+      pb: { xs: isVolunteerMode ? 1 : 0.5, sm: 2 }
     }}>
       <Box sx={{ maxWidth: 'lg', mx: 'auto', px: { xs: 2, sm: 3 } }}>
         {/* Top Row: Logo and Primary Actions */}
