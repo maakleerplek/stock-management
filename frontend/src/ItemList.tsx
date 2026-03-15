@@ -101,17 +101,24 @@ export default function ItemList() {
     }
 
     return (
-        <Box sx={{ p: { xs: 1, sm: 3 } }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: 'space-between', 
+                alignItems: { xs: 'stretch', md: 'center' }, 
+                mb: { xs: 2, sm: 3 }, 
+                gap: 2 
+            }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <InventoryIcon color="primary" sx={{ fontSize: '2rem' }} />
-                    <Typography variant="h5" fontWeight="bold">Inventory List</Typography>
+                    <InventoryIcon color="primary" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }} />
+                    <Typography variant="h6" fontWeight="bold">Inventory List</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexGrow: 1, maxWidth: { xs: '100%', md: '600px' } }}>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexGrow: 1, maxWidth: { xs: '100%', md: '600px' } }}>
                     <TextField
                         fullWidth
                         size="small"
-                        placeholder="Search by name, category, location or IPN..."
+                        placeholder="Search items..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         InputProps={{
@@ -123,7 +130,7 @@ export default function ItemList() {
                         }}
                     />
                     <Tooltip title="Refresh List">
-                        <IconButton onClick={fetchItems} disabled={loading} color="primary">
+                        <IconButton onClick={fetchItems} disabled={loading} color="primary" size="small">
                             <RefreshIcon />
                         </IconButton>
                     </Tooltip>
@@ -132,15 +139,15 @@ export default function ItemList() {
 
             {error && (
                 <Paper sx={{ p: 2, mb: 3, bgcolor: 'error.light', color: 'error.contrastText' }}>
-                    <Typography>{error}</Typography>
+                    <Typography variant="body2">{error}</Typography>
                 </Paper>
             )}
 
-            <TableContainer component={Paper} sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                <Table sx={{ minWidth: 650 }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 650 }} size="small">
                     <TableHead sx={{ bgcolor: 'action.hover' }}>
                         <TableRow>
-                            <TableCell width={80}>Image</TableCell>
+                            <TableCell width={60}>Image</TableCell>
                             <TableCell>Name / IPN</TableCell>
                             <TableCell>Category</TableCell>
                             <TableCell>Location</TableCell>
@@ -157,28 +164,28 @@ export default function ItemList() {
                                         <ImageDisplay 
                                             imagePath={item.image} 
                                             alt={item.name} 
-                                            width={50} 
-                                            height={50} 
+                                            width={40} 
+                                            height={40} 
                                             sx={{ borderRadius: 1 }}
                                         />
                                     </TableCell>
-                                    <TableCell>
-                                        <Typography variant="body2" fontWeight="bold">{item.name}</Typography>
-                                        <Typography variant="caption" color="text.secondary">{item.ipn}</Typography>
+                                    <TableCell sx={{ py: 1.5 }}>
+                                        <Typography variant="body2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>{item.name}</Typography>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{item.ipn}</Typography>
                                     </TableCell>
                                     <TableCell>
                                         <Chip 
-                                            icon={<CategoryIcon sx={{ fontSize: '0.9rem !important' }} />} 
+                                            icon={<CategoryIcon sx={{ fontSize: '0.8rem !important' }} />} 
                                             label={item.category} 
                                             size="small" 
                                             variant="outlined" 
-                                            sx={{ fontSize: '0.7rem' }}
+                                            sx={{ fontSize: '0.65rem', height: 20 }}
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                            <LocationIcon sx={{ fontSize: '0.9rem', color: 'text.secondary' }} />
-                                            <Typography variant="caption">{item.location}</Typography>
+                                            <LocationIcon sx={{ fontSize: '0.8rem', color: 'text.secondary' }} />
+                                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>{item.location}</Typography>
                                         </Box>
                                     </TableCell>
                                     <TableCell align="right">
@@ -186,14 +193,15 @@ export default function ItemList() {
                                             variant="body2" 
                                             fontWeight="bold" 
                                             color={item.quantity > 0 ? 'success.main' : 'error.main'}
+                                            sx={{ fontSize: '0.85rem' }}
                                         >
                                             {item.quantity}
                                         </Typography>
                                     </TableCell>
                                     <TableCell align="right">
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.25 }}>
-                                            <EuroIcon sx={{ fontSize: '0.8rem' }} />
-                                            <Typography variant="body2" fontWeight="bold">
+                                            <EuroIcon sx={{ fontSize: '0.7rem' }} />
+                                            <Typography variant="body2" fontWeight="bold" sx={{ fontSize: '0.85rem' }}>
                                                 {item.price.toFixed(2)}
                                             </Typography>
                                         </Box>
@@ -203,7 +211,7 @@ export default function ItemList() {
                         {filteredItems.length === 0 && !loading && (
                             <TableRow>
                                 <TableCell colSpan={6} align="center" sx={{ py: 10 }}>
-                                    <Typography color="text.secondary">No items found matching your search.</Typography>
+                                    <Typography variant="body2" color="text.secondary">No items found matching your search.</Typography>
                                 </TableCell>
                             </TableRow>
                         )}
@@ -217,6 +225,14 @@ export default function ItemList() {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
+                    sx={{
+                        '& .MuiTablePagination-toolbar': {
+                            px: 1
+                        },
+                        '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                            fontSize: '0.75rem'
+                        }
+                    }}
                 />
             </TableContainer>
         </Box>

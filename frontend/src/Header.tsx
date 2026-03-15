@@ -44,12 +44,13 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
       borderColor: 'divider', 
       py: { xs: 1, sm: 2 } 
     }}>
-      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: { xs: 1.5, sm: 2 }, justifyContent: 'space-between', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Grid container maxWidth="lg" sx={{ mx: 'auto', px: { xs: 1.5, sm: 2 }, justifyContent: 'space-between', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'nowrap' }}>
+        {/* Logo Section */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           <Logo />
           {isVolunteerMode && (
             <Box sx={{
-              display: { xs: 'none', sm: 'inline-block' },
+              display: { xs: 'none', md: 'inline-block' },
               px: 1.5,
               py: 0.5,
               backgroundColor: 'info.dark',
@@ -63,9 +64,10 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
           )}
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end', flex: 1 }}>
+        {/* Buttons Section */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end', flex: 1, minWidth: 0 }}>
           {/* Main Action Row */}
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {isVolunteerMode && (
               <>
                 <Button
@@ -75,19 +77,25 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
                   size="small"
                   sx={{ 
                     bgcolor: isInventoryOpen ? 'info.dark' : 'info.main',
-                    fontSize: { xs: '0.7rem', sm: '0.8125rem' },
-                    px: { xs: 1, sm: 2 }
+                    fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                    px: { xs: 1, sm: 2 },
+                    whiteSpace: 'nowrap',
+                    minWidth: 'fit-content'
                   }}
                 >
-                  {isInventoryOpen ? 'Back to Scan' : 'Inventory List'}
+                  {isInventoryOpen ? 'Back' : 'List'}
                 </Button>
                 <Button
                   variant="contained"
                   color="info"
                   onClick={onOpenInvenTree || (() => window.open(INVENTREE_CONFIG.URL, '_blank'))}
                   size="small"
-                  endIcon={<OpenInNewIcon sx={{ fontSize: '0.9rem!important' }} />}
-                  sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' }, px: { xs: 1, sm: 2 } }}
+                  endIcon={<OpenInNewIcon sx={{ fontSize: '0.9rem!important', display: { xs: 'none', sm: 'inline-flex' } }} />}
+                  sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.8125rem' }, 
+                    px: { xs: 1, sm: 2 },
+                    whiteSpace: 'nowrap'
+                  }}
                 >
                   InvenTree
                 </Button>
@@ -98,7 +106,11 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
               color={isVolunteerMode ? 'info' : 'inherit'}
               onClick={handleVolunteerToggle}
               size="small"
-              sx={{ fontSize: { xs: '0.7rem', sm: '0.8125rem' }, px: { xs: 1, sm: 2 } }}
+              sx={{ 
+                fontSize: { xs: '0.75rem', sm: '0.8125rem' }, 
+                px: { xs: 1, sm: 2 },
+                whiteSpace: 'nowrap'
+              }}
             >
               {isVolunteerMode ? 'Exit' : 'Volunteer'}
             </Button>
@@ -107,16 +119,18 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
 
           {/* Form Actions Row (Volunteer Only) */}
           {isVolunteerMode && (
-            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
                 color="info"
                 onClick={() => setAddCategoryModalOpen(true)}
                 size="small"
                 sx={{ 
-                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
-                  py: 0.25, 
+                  fontSize: { xs: '0.7rem', sm: '0.75rem' }, 
+                  py: { xs: 0.5, sm: 0.25 },
+                  px: { xs: 1.25, sm: 1.5 },
                   bgcolor: 'rgba(255,255,255,0.15)',
+                  whiteSpace: 'nowrap',
                   '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
                 }}
               >
@@ -128,9 +142,11 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
                 onClick={() => setAddLocationModalOpen(true)}
                 size="small"
                 sx={{ 
-                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
-                  py: 0.25,
+                  fontSize: { xs: '0.7rem', sm: '0.75rem' }, 
+                  py: { xs: 0.5, sm: 0.25 },
+                  px: { xs: 1.25, sm: 1.5 },
                   bgcolor: 'rgba(255,255,255,0.15)',
+                  whiteSpace: 'nowrap',
                   '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
                 }}
               >
@@ -142,9 +158,11 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
                 onClick={() => setAddPartFormModalOpen(true)}
                 size="small"
                 sx={{ 
-                  fontSize: { xs: '0.65rem', sm: '0.75rem' }, 
-                  py: 0.25,
+                  fontSize: { xs: '0.7rem', sm: '0.75rem' }, 
+                  py: { xs: 0.5, sm: 0.25 },
+                  px: { xs: 1.25, sm: 1.5 },
                   bgcolor: 'rgba(255,255,255,0.15)',
+                  whiteSpace: 'nowrap',
                   '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
                 }}
               >
