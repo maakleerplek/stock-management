@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, TextField, Typography, Box } from '@mui/material';
+import { TextField, Typography, Box } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { PRICING } from './constants';
 
@@ -20,39 +20,39 @@ export default function Extras({ onExtraCostChange }: ExtrasProps) {
     }, [lasertimeMinutes, printingGrams, onExtraCostChange, totalExtraCost]);
 
     return (
-        <Card sx={{ mt: 2 }}>
-            <CardHeader
-                title="Extra Services"
-                avatar={<SettingsIcon />}
-                titleTypographyProps={{ variant: 'h6' }}
-            />
-            <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+                <SettingsIcon fontSize="small" /> Extra Services
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <TextField
-                        label="Lasertime (minutes)"
+                        label={`Lasertime (min) - €${PRICING.LASER_PER_MINUTE.toFixed(2)}/min`}
                         type="number"
                         value={lasertimeMinutes}
                         onChange={(e) => setLasertimeMinutes(Math.max(0, parseInt(e.target.value) || 0))}
                         fullWidth
+                        size="small"
                         inputProps={{ min: "0" }}
                     />
-                    <Typography variant="body1" sx={{ ml: 2 }}>€{lasertimeCost.toFixed(2)}</Typography>
+                    <Typography variant="body2" sx={{ ml: 2, minWidth: '60px', textAlign: 'right' }}>€{lasertimeCost.toFixed(2)}</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <TextField
-                        label="3D Printing (grams)"
+                        label={`3D Printing (g) - €${PRICING.PRINTING_PER_GRAM.toFixed(2)}/g`}
                         type="number"
                         value={printingGrams}
                         onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
                         fullWidth
+                        size="small"
                         inputProps={{ min: "0", step: "1" }}
                     />
-                    <Typography variant="body1" sx={{ ml: 2 }}>€{printingCost.toFixed(2)}</Typography>
+                    <Typography variant="body2" sx={{ ml: 2, minWidth: '60px', textAlign: 'right' }}>€{printingCost.toFixed(2)}</Typography>
                 </Box>
-                <Typography variant="h6" align="right" sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" align="right" sx={{ mt: 1, fontWeight: 'bold' }}>
                     Total Extra Services: €{totalExtraCost.toFixed(2)}
                 </Typography>
-            </CardContent>
-        </Card>
+            </Box>
+        </Box>
     );
 }

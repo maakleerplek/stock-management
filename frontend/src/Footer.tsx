@@ -15,8 +15,8 @@ function Footer() {
         borderTop: '1px solid',
         borderColor: 'divider',
         mt: 'auto',
-        py: 4,
-        marginTop: 6,
+        py: { xs: 2, sm: 4 },
+        marginTop: { xs: 3, sm: 6 },
       }}
     >
       <Container maxWidth="lg">
@@ -24,116 +24,102 @@ function Footer() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
-            gap: 4,
-            mb: 3,
+            gap: { xs: 2, sm: 4 },
+            mb: { xs: 2, sm: 3 },
           }}
         >
           {/* Product Info */}
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 2 } }}>
               Stock Management
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' }, mb: 1 }}>
               Inventory management system with barcode scanning and checkout functionality.
             </Typography>
           </Box>
 
           {/* Version & Info */}
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 2 } }}>
               System Info
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Version:</strong> 0.8.0 (Beta)
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, gap: { xs: 2, sm: 1 }, flexWrap: 'wrap' }}>
+              <Typography variant="caption" color="text.secondary">
+                <strong>Ver:</strong> 0.8.0
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="caption" color="text.secondary">
                 <strong>Status:</strong> Active
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Built with:</strong> React + MUI
               </Typography>
             </Box>
           </Box>
 
           {/* Resources */}
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 2 } }}>
               Resources
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
               {docsUrl && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Info sx={{ fontSize: '1.2rem' }} />
-                  <Link
-                    href={docsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    color="primary"
-                    sx={{
-                      textDecoration: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      transition: 'color 0.2s',
-                      '&:hover': { color: 'primary.light' },
-                    }}
-                  >
-                    Documentation
-                  </Link>
-                </Box>
+                <Link
+                  href={docsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="primary"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  <Info sx={{ fontSize: '0.9rem' }} /> Docs
+                </Link>
               )}
               {feedbackUrl && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Link
-                    href={feedbackUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    color="primary"
-                    sx={{
-                      textDecoration: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      transition: 'color 0.2s',
-                      '&:hover': { color: 'primary.light' },
-                    }}
-                  >
-                    Give feedback
-                  </Link>
-                </Box>
+                <Link
+                  href={feedbackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="primary"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  Feedback
+                </Link>
               )}
               {githubUrl && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <GitHub sx={{ fontSize: '1.2rem' }} />
-                  <Link
-                    href={githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    color="primary"
-                    sx={{
-                      textDecoration: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.95rem',
-                      transition: 'color 0.2s',
-                      '&:hover': { color: 'primary.light' },
-                    }}
-                  >
-                    GitHub
-                  </Link>
-                </Box>
+                <Link
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="primary"
+                  sx={{
+                    textDecoration: 'none',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5
+                  }}
+                >
+                  <GitHub sx={{ fontSize: '0.9rem' }} /> GitHub
+                </Link>
               )}
             </Box>
           </Box>
         </Box>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: { xs: 1, sm: 2 } }} />
 
         {/* Copyright */}
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            &copy; {currentYear} Stock Management System. All rights reserved.
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            Powered by Maakleerplek VZW
+          <Typography variant="caption" color="text.secondary">
+            &copy; {currentYear} Stock Management. Powered by Maakleerplek VZW
           </Typography>
         </Box>
       </Container>

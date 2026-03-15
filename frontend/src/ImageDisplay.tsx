@@ -163,10 +163,6 @@ export default function ImageDisplay({
                     justifyContent: 'center',
                     width,
                     height,
-                    backgroundColor: 'action.disabledBackground',
-                    borderRadius: 1.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
                     gap: 1,
                     ...sx,
                 }}
@@ -203,9 +199,6 @@ export default function ImageDisplay({
                     height,
                     objectFit: 'contain',
                     borderRadius: 1.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    backgroundColor: 'background.default',
                     ...sx,
                 }}
             />

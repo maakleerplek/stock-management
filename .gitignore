@@ -10,7 +10,6 @@ backend/.venv/
 
 # Environment and configuration files
 .env
-.env.*
 temp.env
 server.env
 

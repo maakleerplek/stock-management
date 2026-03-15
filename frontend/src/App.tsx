@@ -6,6 +6,7 @@ import AddLocationForm, { type LocationFormData } from './AddLocationForm';
 import type { ItemData } from './sendCodeHandler';
 import ShoppingWindow from './ShoppingWindow';
 import BarcodeScannerContainer from './BarcodeScannerContainer';
+import ItemList from './ItemList';
 import Footer from './Footer';
 import Header from './Header';
 import InvenTreePage from './InvenTreePage';
@@ -25,7 +26,7 @@ import {
 
 function AppContent() {
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme);
-  const [currentPage, setCurrentPage] = useState<'main' | 'inventree'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'inventree' | 'inventory'>('main');
   const [scannedItem, setScannedItem] = useState<ItemData | null>(null);
   const [volunteerModalOpen, setVolunteerModalOpen] = useState(false);
   const [addPartFormModalOpen, setAddPartFormModalOpen] = useState(false);
@@ -37,6 +38,20 @@ function AppContent() {
   const { addToast } = useToast();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+
+  // Warn before refresh if a checkout result is active
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (checkoutResult !== null) {
+        console.log('[App] Preventing accidental refresh during active payment display');
+        e.preventDefault();
+        e.returnValue = ''; // Required for modern browsers to show the dialog
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [checkoutResult]);
 
   const handleApiError = useCallback(
     (error: unknown, context: string, showWarning = false) => {
@@ -60,11 +75,11 @@ function AppContent() {
           setCategories(categoriesData.categories);
         } else {
           setCategories([]);
-          addToast(`Error fetching categories: ${categoriesData.message}`, 'error');
+          console.error(`Error fetching categories: ${categoriesData.message}`);
         }
       } else {
         setCategories([]);
-        addToast(`Network error fetching categories: ${categoriesRes.statusText}`, 'error');
+        console.error(`Network error fetching categories: ${categoriesRes.statusText}`);
       }
 
       // Handle locations response
@@ -74,22 +89,18 @@ function AppContent() {
           setLocations(locationsData.locations);
         } else {
           setLocations([]);
-          addToast(`Error fetching locations: ${locationsData.message}`, 'error');
+          console.error(`Error fetching locations: ${locationsData.message}`);
         }
       } else {
         setLocations([]);
-        addToast(`Network error fetching locations: ${locationsRes.statusText}`, 'error');
-      }
-
-      if (categoriesRes.ok && locationsRes.ok) {
-        addToast('Categories and locations fetched successfully!', 'success');
+        console.error(`Network error fetching locations: ${locationsRes.statusText}`);
       }
     } catch (error) {
       setCategories([]);
       setLocations([]);
-      handleApiError(error, 'fetching categories and locations');
+      console.error('Error fetching categories and locations:', error);
     }
-  }, [addToast, handleApiError]);
+  }, []);
 
   // Fetch categories and locations on component mount
   useEffect(() => {
@@ -279,9 +290,6 @@ function AppContent() {
       <CssBaseline />
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: DEFAULTS.MOTION_DURATION, ease: 'easeOut' }}
         style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
       >
         {currentPage === 'inventree' ? (
@@ -296,24 +304,30 @@ function AppContent() {
               setAddCategoryModalOpen={setAddCategoryModalOpen}
               setAddLocationModalOpen={setAddLocationModalOpen}
               onOpenInvenTree={() => setCurrentPage('inventree')}
+              onOpenInventory={() => setCurrentPage(currentPage === 'inventory' ? 'main' : 'inventory')}
+              isInventoryOpen={currentPage === 'inventory'}
             />
-            <Box sx={{ flex: 1, py: 4 }}>
+            <Box sx={{ flex: 1, py: { xs: 2, sm: 4 } }}>
               <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 3 }}>
-                  <BarcodeScannerContainer
-                    onItemScanned={(item) => {
-                      setScannedItem(null); // Reset first to ensure re-trigger
-                      setScannedItem(item);
-                    }}
-                    checkoutResult={checkoutResult}
-                  />
-                  <Box>
-                    <ShoppingWindow
-                      scannedItem={scannedItem}
-                      onCheckoutResultChange={setCheckoutResult}
+                {currentPage === 'inventory' ? (
+                  <ItemList />
+                ) : (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: DEFAULTS.GRID_COLUMNS.XS, md: DEFAULTS.GRID_COLUMNS.MD }, gap: 2 }}>
+                    <BarcodeScannerContainer
+                      onItemScanned={(item) => {
+                        setScannedItem(null); // Reset first to ensure re-trigger
+                        setScannedItem(item);
+                      }}
+                      checkoutResult={checkoutResult}
                     />
+                    <Box>
+                      <ShoppingWindow
+                        scannedItem={scannedItem}
+                        onCheckoutResultChange={setCheckoutResult}
+                      />
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </Box>
             </Box>
 

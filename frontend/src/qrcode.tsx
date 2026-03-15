@@ -11,55 +11,30 @@ interface WeroQrCodeProps {
 }
 
 function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodeProps) {
-    // Generate EPC (European Payments Council) QR code string for SEPA Credit Transfer (used by Wero and standard banking apps)
-    // Format:
-    // BCD
-    // 002
-    // 1
-    // SCT
-    // 
-    // Beneficiary Name
-    // IBAN
-    // EURAmount (e.g., EUR12.50)
-    // 
-    // 
-    // Description (max 140 chars)
+    // The specific Payconiq Merchant ID for Maakleerplek found in git history
+    const MERCHANT_ID = "616941d236664900073738ce";
 
     const epcQrString = useMemo(() => {
         if (total <= 0) return '';
-
         const beneficiaryName = PAYMENT.BENEFICIARY_NAME;
         const iban = PAYMENT.IBAN;
-
-        // Remove spaces from IBAN
         const cleanIban = iban.replace(/\s+/g, '');
-
-        // Amount must be formatted to 2 decimal places, NO trailing zeros if integer, but easiest is just max 2 decimals. 
-        // Example EUR12.50 or EUR10
-        // Standard says: Format: EUR followed by amount with max 2 decimals separated by dot.
         const formattedAmount = `EUR${total.toFixed(2)}`;
-
-        // Truncate description to 140 characters per EPC standard
         const cleanDescription = description.substring(0, 140);
 
-        // Assemble according to EPC standard (lines separated by \n)
         const parts = [
-            'BCD',
-            '002',
-            '1',
-            'SCT',
-            '', // BIC (optional)
-            beneficiaryName,
-            cleanIban,
-            formattedAmount,
-            '', // Purpose code (optional)
-            '', // Remittance Information (Structured) - mutually exclusive with unstructured
-            cleanDescription, // Remittance Information (Unstructured)
-            ''  // Beneficiary to originator information (optional)
+            'BCD', '002', '1', 'SCT', '', 
+            beneficiaryName, cleanIban, formattedAmount, 
+            '', '', cleanDescription, ''
         ];
-
         return parts.join('\n');
     }, [total, description]);
+
+    const payconiqLink = useMemo(() => {
+        // We revert to the Payconiq merchant link for clicking, but don't pass extra info if it was failing
+        // Just bringing them to the merchant context as requested
+        return `https://payconiq.com/merchant/1/${MERCHANT_ID}`;
+    }, []);
 
     const displayTotal = total > 0 ? `€${total.toFixed(2)}` : '';
 
@@ -69,45 +44,50 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
         >
-            <Card sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, p: 3, textAlign: 'center', width: '100%', maxWidth: 400 }}>
+            <Card sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 3, textAlign: 'center', width: '100%', maxWidth: 400 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Payment sx={{ fontSize: '1.8rem', color: 'secondary.main' }} />
-                    <Typography variant="h5" component="h2">Pay via Bank App / Wero</Typography>
+                    <Typography variant="h5" component="h2" fontWeight="bold">Pay Now</Typography>
                 </Box>
-                {total > 0 && (
-                    <Typography variant="h6" color="primary.main" fontWeight="bold">
-                        Amount: {displayTotal}
-                    </Typography>
-                )}
-                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '25ch' }}>
-                    Scan the QR code with your banking app or Wero to pay.
-                </Typography>
-                {total > 0 && (
-                    <Box
-                        sx={{
-                            p: 2,
-                            bgcolor: 'background.paper',
-                            borderRadius: 1.5,
-                            border: '4px solid',
-                            borderColor: 'background.paper',
-                            transition: 'transform 0.3s, box-shadow 0.3s',
-                            '&:hover': {
-                                transform: 'scale(1.05)',
-                                boxShadow: '0 0 0 4px var(--mui-palette-primary-main)'
-                            }
-                        }}
-                    >
-                        <QRCodeSVG
-                            value={epcQrString}
-                            size={150}
-                            level="M"
-                            includeMargin={false}
-                        />
-                    </Box>
-                )}
-                {total > 0 && (
-                    <Typography variant="caption" color="text.secondary">
-                        Scan the code directly
+                
+                {total > 0 ? (
+                    <>
+                        <Typography variant="h4" color="primary.main" fontWeight="bold">
+                            {displayTotal}
+                        </Typography>
+
+                        <Box
+                            component="a"
+                            href={payconiqLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                p: 2,
+                                bgcolor: 'white',
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                my: 1,
+                                display: 'block',
+                                transition: 'transform 0.2s',
+                                '&:hover': { transform: 'scale(1.02)' }
+                            }}
+                        >
+                            <QRCodeSVG
+                                value={epcQrString}
+                                size={180}
+                                level="M"
+                                includeMargin={false}
+                            />
+                        </Box>
+
+                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '28ch', mb: 1 }}>
+                            Scan with your bank app or <strong>tap the QR code</strong> to open Payconiq.
+                        </Typography>
+                    </>
+                ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                        Nothing to pay at the moment.
                     </Typography>
                 )}
             </Card>

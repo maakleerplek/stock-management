@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from urllib.parse import urljoin
 from typing import Optional, Dict, Any
 
-from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part, create_category, create_location
+from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part, create_category, create_location, get_all_items
 
 # Suppress SSL warnings for internal Docker network communication
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -348,6 +348,15 @@ def get_item_name(item_id: int = Query(..., description="The ID of the stock ite
     Returns a unified view of the stock item and its parent part.
     """
     response = get_item_details(item_id)
+    return response
+
+
+@app.get("/get-all-items")
+def get_all_items_endpoint() -> Dict[str, Any]:
+    """
+    Fetch all stock items from InvenTree.
+    """
+    response = get_all_items()
     return response
 
 
