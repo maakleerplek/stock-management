@@ -1,58 +1,63 @@
 import { useState, useEffect } from 'react';
-import { TextField, Typography, Box } from '@mui/material';
+import { TextField, Typography, Box, Grid } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { PRICING } from './constants';
+import { EXTRA_SERVICES } from './constants';
 
 interface ExtrasProps {
-    onExtraCostChange: (cost: number) => void;
+    onExtraCostChange: (cost: number, breakdown: Record<string, number>) => void;
 }
 
 export default function Extras({ onExtraCostChange }: ExtrasProps) {
-    const [lasertimeMinutes, setLasertimeMinutes] = useState(0);
-    const [printingGrams, setPrintingGrams] = useState(0);
+    // Keep track of quantities for each dynamic service
+    const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-    const lasertimeCost = lasertimeMinutes * PRICING.LASER_PER_MINUTE;
-    const printingCost = printingGrams * PRICING.PRINTING_PER_GRAM;
-    const totalExtraCost = lasertimeCost + printingCost;
+    // Calculate individual costs and total
+    const serviceCosts = EXTRA_SERVICES.map(service => ({
+        ...service,
+        cost: (quantities[service.id] || 0) * service.price
+    }));
+    
+    const totalExtraCost = serviceCosts.reduce((sum, s) => sum + s.cost, 0);
 
     useEffect(() => {
-        onExtraCostChange(totalExtraCost);
-    }, [lasertimeMinutes, printingGrams, onExtraCostChange, totalExtraCost]);
+        onExtraCostChange(totalExtraCost, quantities);
+    }, [totalExtraCost, quantities, onExtraCostChange]);
+
+    const handleQuantityChange = (id: string, val: string) => {
+        const num = Math.max(0, parseFloat(val) || 0);
+        setQuantities(prev => ({ ...prev, [id]: num }));
+    };
 
     return (
         <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'text.secondary', fontWeight: 'bold' }}>
-                <SettingsIcon fontSize="small" /> Extra Services
+                <SettingsIcon fontSize="small" /> Extra Services (Wiki-Synced)
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <TextField
-                        label={`Lasertime (min) - €${PRICING.LASER_PER_MINUTE.toFixed(2)}/min`}
-                        type="number"
-                        value={lasertimeMinutes}
-                        onChange={(e) => setLasertimeMinutes(Math.max(0, parseInt(e.target.value) || 0))}
-                        fullWidth
-                        size="small"
-                        inputProps={{ min: "0" }}
-                    />
-                    <Typography variant="body2" sx={{ ml: 2, minWidth: '60px', textAlign: 'right' }}>€{lasertimeCost.toFixed(2)}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <TextField
-                        label={`3D Printing (g) - €${PRICING.PRINTING_PER_GRAM.toFixed(2)}/g`}
-                        type="number"
-                        value={printingGrams}
-                        onChange={(e) => setPrintingGrams(Math.max(0, parseFloat(e.target.value) || 0))}
-                        fullWidth
-                        size="small"
-                        inputProps={{ min: "0", step: "1" }}
-                    />
-                    <Typography variant="body2" sx={{ ml: 2, minWidth: '60px', textAlign: 'right' }}>€{printingCost.toFixed(2)}</Typography>
-                </Box>
-                <Typography variant="subtitle2" align="right" sx={{ mt: 1, fontWeight: 'bold' }}>
+            <Grid container spacing={2}>
+                {serviceCosts.map((service) => (
+                    <Grid item xs={12} key={service.id}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <TextField
+                                label={`${service.name} (${service.unit}) - €${service.price.toFixed(2)}/${service.unit}`}
+                                type="number"
+                                value={quantities[service.id] || ''}
+                                onChange={(e) => handleQuantityChange(service.id, e.target.value)}
+                                fullWidth
+                                size="small"
+                                placeholder="0"
+                            />
+                            <Typography variant="body2" sx={{ ml: 2, minWidth: '60px', textAlign: 'right' }}>
+                                €{service.cost.toFixed(2)}
+                            </Typography>
+                        </Box>
+                    </Grid>
+                ))}
+            </Grid>
+            {totalExtraCost > 0 && (
+                <Typography variant="subtitle2" align="right" sx={{ mt: 2, fontWeight: 'bold', color: 'primary.main' }}>
                     Total Extra Services: €{totalExtraCost.toFixed(2)}
                 </Typography>
-            </Box>
+            )}
         </Box>
     );
 }

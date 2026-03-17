@@ -42,11 +42,25 @@ export const DEFAULTS = {
   MOTION_DURATION: 0.6,
 } as const;
 
-// Extra Services Pricing (configurable via .env)
-export const PRICING = {
-  LASER_PER_MINUTE: parseFloat(import.meta.env.VITE_LASER_PRICE_PER_MIN || '0.50'),
-  PRINTING_PER_GRAM: parseFloat(import.meta.env.VITE_PRINT_PRICE_PER_GRAM || '0.10'),
-} as const;
+export interface ExtraService {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+}
+
+// Extra Services List (dynamic)
+export let EXTRA_SERVICES: ExtraService[] = [
+  { id: 'laser', name: 'Laser Cutter', price: 0.50, unit: 'min' },
+  { id: 'fdm', name: 'FDM 3D Printer', price: 0.10, unit: 'g' },
+];
+
+/**
+ * Updates the global EXTRA_SERVICES list with new data from the backend.
+ */
+export const updateExtraServices = (services: ExtraService[]) => {
+  EXTRA_SERVICES = services;
+};
 
 // Payment Configuration (configurable via .env)
 export const PAYMENT = {

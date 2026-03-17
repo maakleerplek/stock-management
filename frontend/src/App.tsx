@@ -16,7 +16,7 @@ import { lightTheme, darkTheme } from './theme';
 import { ToastProvider, useToast } from './ToastContext';
 import { VolunteerProvider } from './VolunteerContext';
 import VolunteerModal from './VolunteerModal';
-import { API_CONFIG, STORAGE_KEYS, DEFAULTS } from './constants';
+import { API_CONFIG, STORAGE_KEYS, DEFAULTS, updateExtraServices } from './constants';
 import {
   getInitialTheme,
   createApiUrl,
@@ -63,10 +63,18 @@ function AppContent() {
 
   const fetchCategoriesAndLocations = useCallback(async () => {
     try {
-      const [categoriesRes, locationsRes] = await Promise.all([
+      const [categoriesRes, locationsRes, pricesRes] = await Promise.all([
         fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES)),
         fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS)),
+        fetch(createApiUrl('/api/prices')),
       ]);
+
+      // Handle prices response
+      if (pricesRes.ok) {
+        const pricesData = await pricesRes.json();
+        console.log('[App] Updating dynamic pricing from wiki:', pricesData);
+        updateExtraServices(pricesData);
+      }
 
       // Handle categories response
       if (categoriesRes.ok) {

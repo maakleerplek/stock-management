@@ -4,6 +4,7 @@ import ShoppingCart, { type CartItem } from './shoppingcart';
 import { type ItemData, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
 import { useVolunteer } from './VolunteerContext';
+import { EXTRA_SERVICES } from './constants';
 
 interface ShoppingWindowProps {
     scannedItem: ItemData | null;
@@ -24,8 +25,19 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
     });
     const [checkedOutResult, setCheckedOutResult] = useState<{ total: number; description: string } | null>(null);
     const [extraCosts, setExtraCosts] = useState<number>(0);
+    const [extrasBreakdown, setExtrasBreakdown] = useState<Record<string, number>>({});
     const [isSetMode, setIsSetMode] = useState<boolean>(false);
     const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
+
+    // Dynamic price labels for extra services
+    const getExtraServicesSummary = useCallback(() => {
+        return Object.entries(extrasBreakdown)
+            .filter(([_, qty]) => qty > 0)
+            .map(([id, qty]) => {
+                const service = EXTRA_SERVICES.find(s => s.id === id);
+                return service ? `${service.name} (${qty} ${service.unit})` : `${id} (${qty})`;
+            }).join(', ');
+    }, [extrasBreakdown]);
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
 
@@ -118,7 +130,8 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
         if (isVolunteerMode) {
             actionText = isSetMode ? 'set stock to' : 'add to stock';
         }
-        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${confirmMessageSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
+        const extrasSummary = getExtraServicesSummary();
+        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${confirmMessageSummary}${!isVolunteerMode && extraCosts > 0 ? `\n\nExtra Services: ${extrasSummary}\nCost: €${extraCosts.toFixed(2)}` : ''}${!isVolunteerMode ? `\n\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
 
         if (!window.confirm(confirmMessage)) {
             console.log('[Checkout] User cancelled confirmation dialog');
@@ -162,7 +175,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
             if (!isVolunteerMode) {
                 let desc = itemsSummary;
                 if (extraCosts > 0) {
-                    desc += `, Extra services (€${extraCosts.toFixed(2)})`;
+                    desc += `, Extras: ${extrasSummary} (€${extraCosts.toFixed(2)})`;
                 }
                 if (desc.length > 135) {
                     desc = desc.substring(0, 132) + "...";
@@ -187,7 +200,10 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 onRemoveItem={handleRemoveItem}
                 onCheckout={handleCheckout}
                 checkedOutTotal={checkedOutResult?.total ?? null}
-                onExtraCostChange={setExtraCosts}
+                onExtraCostChange={(cost, breakdown) => {
+                    setExtraCosts(cost);
+                    setExtrasBreakdown(breakdown);
+                }}
                 extraCosts={extraCosts}
                 isVolunteerMode={isVolunteerMode}
                 isSetMode={isSetMode}

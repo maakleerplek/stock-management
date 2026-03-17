@@ -18,6 +18,7 @@ from urllib.parse import urljoin
 from typing import Optional, Dict, Any
 
 from inventree_client import remove_stock, get_stock_from_qrid, get_item_details, api, add_stock, set_stock, create_part, create_stock_item, upload_image_to_part, create_category, create_location, get_all_items
+from price_updater import fetch_wiki_prices
 
 # Suppress SSL warnings for internal Docker network communication
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -44,8 +45,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Cache for prices to avoid repeated fetching
+cached_prices = None
+
 # ==================== Request Models ====================
 
+@app.get("/api/prices")
+async def get_prices():
+    """Returns dynamic pricing information from the HTL wiki."""
+    global cached_prices
+    try:
+        prices = fetch_wiki_prices()
+        cached_prices = prices
+        return prices
+    except Exception as e:
+        logger.error(f"Failed to fetch prices: {e}")
+        # Return last known cached prices or fallback
+        if cached_prices:
+            return cached_prices
+        return {
+            "laser_per_minute": 0.50,
+            "printing_per_gram": 0.10,
+            "resin_per_hour": 2.00,
+            "cnc_per_hour": 3.00,
+            "vacuum_per_hour": 1.00
+        }
 
 class TakeItemRequest(BaseModel):
     """Request model for removing/adding items from/to stock."""

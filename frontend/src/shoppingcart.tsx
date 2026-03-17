@@ -35,7 +35,7 @@ interface ShoppingCartProps {
     onRemoveItem: (itemId: number) => void;
     onCheckout: () => void;
     checkedOutTotal: number | null;
-    onExtraCostChange: (cost: number) => void;
+    onExtraCostChange: (cost: number, breakdown: Record<string, number>) => void;
     extraCosts: number;
     isVolunteerMode: boolean;
     isSetMode?: boolean;
