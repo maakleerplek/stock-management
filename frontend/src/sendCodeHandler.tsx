@@ -111,7 +111,8 @@ export async function handleSend(code: string): Promise<ItemData | null> {
 
     if (data.item) {
         const { name, quantity, price } = data.item;
-        console.debug(`Found: ${name} (Qty: ${quantity}, €${price.toFixed(2)})`);
+        const displayPrice = price ?? 0;
+        console.debug(`Found: ${name} (Qty: ${quantity}, €${displayPrice.toFixed(2)})`);
         return data.item;
     }
 

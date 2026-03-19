@@ -217,7 +217,7 @@ export default function ItemList() {
                                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.25 }}>
                                             <EuroIcon sx={{ fontSize: '0.7rem' }} />
                                             <Typography variant="body2" fontWeight="bold" sx={{ fontSize: '0.85rem' }}>
-                                                {item.price.toFixed(2)}
+                                                {(item.price ?? 0).toFixed(2)}
                                             </Typography>
                                         </Box>
                                     </TableCell>

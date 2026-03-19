@@ -396,6 +396,10 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
             except Exception as e:
                 logger.warning("Could not fetch extended part details for part %s: %s", part_id, e)
 
+        price = part_detail.get("pricing_min")
+        if price is None:
+            price = 0
+
         return {
             "status": "ok",
             "item": {
@@ -406,7 +410,7 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
                 "status": stock_item.get("status_text"),
                 "name": part_detail.get("name", ""),
                 "description": part_detail.get("description", ""),
-                "price": part_detail.get("pricing_min", 0),
+                "price": price,
                 "image": part_detail.get("image", None),
                 "part_id": part_id,
                 "ipn": part_detail.get("IPN", ""),
@@ -528,6 +532,10 @@ def get_all_items() -> Dict[str, Any]:
             part_detail = stock_item.get("part_detail", {})
             location_detail = stock_item.get("location_detail", {})
             
+            price = part_detail.get("pricing_min")
+            if price is None:
+                price = 0
+
             items_list.append({
                 "id": stock_item.get("pk"),
                 "quantity": stock_item.get("quantity"),
@@ -536,7 +544,7 @@ def get_all_items() -> Dict[str, Any]:
                 "status": stock_item.get("status_text"),
                 "name": part_detail.get("name", ""),
                 "description": part_detail.get("description", ""),
-                "price": part_detail.get("pricing_min", 0),
+                "price": price,
                 "image": part_detail.get("image", None),
                 "part_id": stock_item.get("part"),
                 "ipn": part_detail.get("IPN", ""),

@@ -19,7 +19,8 @@ function WeroQrCode({ total = 0, description = 'Stock Purchase' }: WeroQrCodePro
         const beneficiaryName = PAYMENT.BENEFICIARY_NAME;
         const iban = PAYMENT.IBAN;
         const cleanIban = iban.replace(/\s+/g, '');
-        const formattedAmount = `EUR${total.toFixed(2)}`;
+        const safeTotal = typeof total === 'number' && !isNaN(total) ? total : 0;
+    const formattedAmount = `EUR${safeTotal.toFixed(2)}`;
         const cleanDescription = description.substring(0, 140);
 
         const parts = [
