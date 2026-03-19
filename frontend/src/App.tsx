@@ -349,6 +349,7 @@ function AppContent() {
             onSubmit={handleAddPartSubmit}
             categories={categories}
             locations={locations}
+            onCancel={() => setAddPartFormModalOpen(false)}
           />
         </DialogContent>
       </Dialog>

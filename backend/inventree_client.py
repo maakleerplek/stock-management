@@ -469,6 +469,30 @@ def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
         barcode_response = api.post("/barcode/", {"barcode": qr_id})
         stock_id = barcode_response.get("stockitem", {}).get("pk")
         
+        # If no stock item is directly linked, check if a part is linked
+        if not stock_id:
+            part_id = barcode_response.get("part", {}).get("pk")
+            if part_id:
+                logger.info("Barcode %s matched part %s, searching for stock items", qr_id, part_id)
+                # Find a stock item for this part
+                stock_items = api.get(f"/stock/?part={part_id}")
+                
+                if isinstance(stock_items, list) and len(stock_items) > 0:
+                    # Prefer items that are actually in stock
+                    in_stock_items = [s for s in stock_items if float(s.get("quantity", 0)) > 0]
+                    if in_stock_items:
+                        stock_id = in_stock_items[0].get("pk")
+                    else:
+                        stock_id = stock_items[0].get("pk")
+                    
+                    logger.info("Found stock item %s for part %s", stock_id, part_id)
+                else:
+                    return {
+                        "status": "error",
+                        "qr_id": qr_id,
+                        "message": f"No stock items found for part: {barcode_response.get('part', {}).get('name')}",
+                    }
+
         if not stock_id:
             return {
                 "status": "error",

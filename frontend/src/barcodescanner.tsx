@@ -35,9 +35,10 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
 
   const handleScan = (text: string) => {
     const now = Date.now();
-    // Prevent double-scanning the same item too quickly (2 second cooldown)
-    if (text === barcode && now - lastScanTime < 2000) {
-        console.log(`[Scanner] Ignored duplicate scan: ${text}`);
+    // Prevent double-scanning the same item too quickly (500ms cooldown)
+    // This matches the scanDelay of the library and allows faster scanning of multiple items
+    if (text === barcode && now - lastScanTime < 500) {
+        console.log(`[Scanner] Ignored duplicate scan (cooldown): ${text}`);
         return;
     }
 
@@ -169,6 +170,18 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
                   onError={handleError}
                   allowMultiple={false}
                   scanDelay={500} // Faster re-scan delay for different codes
+                  formats={[
+                    'qr_code',
+                    'ean_13',
+                    'ean_8',
+                    'code_128',
+                    'code_39',
+                    'upc_a',
+                    'upc_e',
+                    'data_matrix',
+                    'itf',
+                    'codabar'
+                  ]}
                   constraints={{
                     facingMode: 'environment',
                   }}

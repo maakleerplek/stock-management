@@ -65,10 +65,11 @@ interface AddPartFormProps {
   onSubmit: (formData: PartFormData) => Promise<{ partId: string }>; // onSubmit now returns partId
   categories: SelectOption[];
   locations: SelectOption[];
+  onCancel?: () => void;
   // units: SelectOption[]; // Removed
 }
 
-const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locations }) => {
+const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locations, onCancel }) => {
   const requiredFieldsStep1: Array<keyof PartFormData> = ['partName', 'initialQuantity']; // Removed partNumber
   const requiredFieldsStep2: Array<keyof PartFormData> = ['category', 'storageLocation']; // barcode will be validated separately
 
@@ -502,6 +503,17 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               </Grid>
               {/* Action Buttons for Step 1 */}
               <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                {onCancel && (
+                  <Button
+                    variant="text"
+                    color="inherit"
+                    onClick={onCancel}
+                    disabled={loading}
+                    sx={{ mr: 'auto' }}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   variant="outlined"
                   startIcon={<ClearIcon />}
@@ -614,6 +626,17 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               </Grid>
               {/* Action Buttons for Step 2 */}
               <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+                {onCancel && (
+                  <Button
+                    variant="text"
+                    color="inherit"
+                    onClick={onCancel}
+                    disabled={loading}
+                    sx={{ mr: 'auto' }}
+                  >
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   variant="outlined"
                   startIcon={<ArrowBackIcon />}
