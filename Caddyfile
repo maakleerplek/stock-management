@@ -129,7 +129,8 @@ http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
 # =============================================================================
 
 # HTTP version (no TLS) - for easier local development
-http://stock.localhost, http://{$SITE_IP}:{$STOCK_PORT} {
+# Uses port 8080 for HTTP to avoid conflict with HTTPS on 8082
+http://stock.localhost:{$STOCK_HTTP_PORT}, http://{$SITE_IP}:{$STOCK_HTTP_PORT} {
 	import log_common stock-http
 	import common
 
