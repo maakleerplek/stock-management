@@ -134,6 +134,7 @@ services:
             SITE_IP: ${SITE_IP}
             STOCK_PORT: ${STOCK_PORT:-8082}
             STOCK_HTTP_PORT: ${STOCK_HTTP_PORT:-8080}
+            INVENTREE_PORT: ${INVENTREE_PORT:-8443}
             INVENTREE_HTTP_PORT: ${INVENTREE_HTTP_PORT:-8442}
 
     # =========================================================================

@@ -81,9 +81,8 @@ http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
 }
 
 # HTTPS version for InvenTree (with self-signed TLS)
-# The default server address is configured in the .env file
-# If not specified, the proxy listens for all http/https traffic
-{$CADDY_INVENTREE_HTTPS:"https://"} {
+# Listen on both the site IP and localhost on the configured HTTPS port
+https://{$SITE_IP}:{$INVENTREE_PORT}, https://inventree.localhost:{$INVENTREE_PORT} {
 	tls internal
 	import log_common inventree
 
