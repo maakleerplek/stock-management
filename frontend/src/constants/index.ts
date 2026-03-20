@@ -21,10 +21,19 @@ export const API_CONFIG = {
 } as const;
 
 // InvenTree Configuration
-// Use proxied URL (/inventree/) to avoid mixed content and certificate issues
-// The proxy is configured in Caddyfile to route to inventree-server:8000
+// Point directly to the InvenTree HTTP port (8442) to avoid proxy redirect issues
+// Caddy handles stripping X-Frame-Options on this port to allow iframing
+const getInvenTreeUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Default to port 8442 as configured in Caddyfile for HTTP
+    return `http://${hostname}:8442/`;
+  }
+  return '/inventree/';
+};
+
 export const INVENTREE_CONFIG = {
-  URL: '/inventree/',
+  URL: getInvenTreeUrl(),
 } as const;
 
 // Local Storage Keys

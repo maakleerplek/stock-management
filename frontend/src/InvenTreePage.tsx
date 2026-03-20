@@ -8,7 +8,8 @@ interface InvenTreePageProps {
 }
 
 function InvenTreePage({ onBack }: InvenTreePageProps) {
-  // Use the proxied InvenTree URL (same origin, no certificate issues)
+  // Use the directly targeted InvenTree URL (no redirect issues)
+  // Ensure we get a fresh value in case hostname changed
   const inventreeUrl = INVENTREE_CONFIG.URL;
 
   const handleOpenInNewTab = () => {

@@ -36,13 +36,25 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
 app = FastAPI(title="InvenTree Stock Management API")
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Note: If allow_credentials is True, allow_origins cannot be ["*"]
+# FastAPI's CORSMiddleware handles the conversion of "*" to the request's origin 
+# when allow_credentials is True, but it is safer to be explicit or handle it robustly.
+if CORS_ORIGINS == ["*"] and True: # allow_credentials is True
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=".*", # Use regex to allow all origins with credentials
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # ==================== Request Models ====================
 

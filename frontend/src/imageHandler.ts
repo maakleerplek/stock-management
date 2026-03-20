@@ -49,9 +49,21 @@ export async function loadImage(imageRelativePath: string | null): Promise<Image
         return { success: false, error: 'No image path provided' };
     }
 
-    const cleanPath = imageRelativePath.startsWith('/')
-        ? imageRelativePath.substring(1)
-        : imageRelativePath;
+    // Handle absolute URLs from InvenTree (e.g., http://inventree-server:8000/media/...)
+    // We want to extract just the path after the domain
+    let cleanPath = imageRelativePath;
+    try {
+        if (imageRelativePath.startsWith('http')) {
+            const url = new URL(imageRelativePath);
+            cleanPath = url.pathname; // This gives us /media/...
+        }
+    } catch (e) {
+        console.warn('Failed to parse image path as URL:', imageRelativePath);
+    }
+
+    if (cleanPath.startsWith('/')) {
+        cleanPath = cleanPath.substring(1);
+    }
 
     const proxiedUrl = `${API_CONFIG.BASE_URL}/image-proxy/${cleanPath}`;
 
