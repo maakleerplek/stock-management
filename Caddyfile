@@ -40,7 +40,7 @@
 # =============================================================================
 
 # HTTP version for InvenTree (no TLS) - port 8442
-http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
+:{$INVENTREE_HTTP_PORT:8442} {
 	import log_common inventree-http
 
 	encode gzip
@@ -81,8 +81,8 @@ http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
 }
 
 # HTTPS version for InvenTree (with self-signed TLS)
-# Listen on both the site IP and localhost on the configured HTTPS port
-https://{$SITE_IP}:{$INVENTREE_PORT}, https://inventree.localhost:{$INVENTREE_PORT} {
+# Listen on the configured HTTPS port (default 8443)
+:{$INVENTREE_PORT:8443} {
 	tls internal
 	import log_common inventree
 
