@@ -21,14 +21,12 @@ export const API_CONFIG = {
 } as const;
 
 // InvenTree Configuration
-// Point directly to the InvenTree HTTPS port (8443)
-// This allows users to click the button, accept the self-signed cert, 
-// and then the iframe will load correctly.
+// Temporarily pointing to HTTP port 8442 to resolve connection issues
 const getInvenTreeUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // Always use HTTPS port 8443 for InvenTree dashboard
-    return `https://${hostname}:8443/`;
+    // Use HTTP port 8442 for InvenTree dashboard
+    return `http://${hostname}:8442/`;
   }
   return '/inventree/';
 };
