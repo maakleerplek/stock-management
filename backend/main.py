@@ -474,7 +474,6 @@ def image_proxy(image_path: str):
             response.iter_content(chunk_size=8192),
             media_type=content_type,
             headers={
-                "Access-Control-Allow-Origin": "*",
                 "Content-Disposition": f"inline; filename={os.path.basename(image_path)}"
             }
         )
