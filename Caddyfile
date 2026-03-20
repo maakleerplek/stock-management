@@ -82,7 +82,7 @@
 
 # HTTPS version for InvenTree (with self-signed TLS)
 # Listen on the configured HTTPS port (default 8443)
-:{$INVENTREE_PORT:8443} {
+https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTREE_PORT:8443} {
 	tls internal
 	import log_common inventree
 
