@@ -147,6 +147,7 @@ class InvenTreeClient:
 
 
 # Initialize global API client
+# (Moved to end of file to ensure all functions are defined first)
 api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, SITE_DOMAIN)
 
 

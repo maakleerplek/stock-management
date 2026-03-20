@@ -154,7 +154,7 @@ services:
         env_file:
             - .env
         environment:
-            - INVENTREE_URL=http://inventree-server:8000
+            - INVENTREE_URL=http://${SITE_IP}:8442
             - SITE_DOMAIN=${SITE_IP}
             - PYTHONUNBUFFERED=1
         restart: unless-stopped
