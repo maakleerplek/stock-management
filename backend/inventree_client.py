@@ -28,7 +28,7 @@ if not INVENTREE_TOKEN:
 
 logger.info("InvenTree URL: %s", INVENTREE_URL)
 logger.info("Site Domain: %s", SITE_DOMAIN)
-logger.info("InvenTree Token: %s...", '*' * 10)
+logger.info("InvenTree Token: %s...", "*" * 10)
 
 
 # ==================== InvenTree API Client ====================
@@ -37,7 +37,7 @@ logger.info("InvenTree Token: %s...", '*' * 10)
 class InvenTreeClient:
     """
     Custom HTTP client for InvenTree API with host header spoofing.
-    
+
     Adds the SITE_DOMAIN as the Host header in requests to bypass
     InvenTree's SITE_URL validation, allowing internal container access.
     """
@@ -46,23 +46,25 @@ class InvenTreeClient:
         self.base_url = f"{base_url}/api"
         self.token = token
         self.host_header = site_domain
-        
+
         self.session = requests.Session()
-        self.session.headers.update({
-            "Authorization": f"Token {token}",
-            "Host": self.host_header,
-        })
+        self.session.headers.update(
+            {
+                "Authorization": f"Token {token}",
+                "Host": self.host_header,
+            }
+        )
 
     def get(self, endpoint: str) -> Dict[str, Any]:
         """
         Perform a GET request to the InvenTree API.
-        
+
         Args:
             endpoint: API path (e.g., "/part/1/")
-            
+
         Returns:
             Dict containing the JSON response.
-            
+
         Raises:
             Exception: If the HTTP request fails.
         """
@@ -77,11 +79,11 @@ class InvenTreeClient:
     def post(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Perform a POST request to the InvenTree API.
-        
+
         Args:
             endpoint: API path.
             data: Dictionary payload to submit.
-            
+
         Returns:
             Dict containing the JSON response.
         """
@@ -99,11 +101,11 @@ class InvenTreeClient:
     def patch(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Perform a PATCH request to the InvenTree API.
-        
+
         Args:
             endpoint: API path.
             data: Dictionary payload with fields to update.
-            
+
         Returns:
             Dict containing the JSON response.
         """
@@ -115,16 +117,22 @@ class InvenTreeClient:
         except requests.RequestException as e:
             raise Exception(f"PATCH {endpoint} failed: {e}") from e
 
-    def upload_file(self, endpoint: str, file_data: bytes, filename: str, content_type: str = "image/jpeg") -> Dict[str, Any]:
+    def upload_file(
+        self,
+        endpoint: str,
+        file_data: bytes,
+        filename: str,
+        content_type: str = "image/jpeg",
+    ) -> Dict[str, Any]:
         """
         Upload a file to the InvenTree API using multipart/form-data.
-        
+
         Args:
             endpoint: API path (e.g., "/part/1/").
             file_data: Raw byte content of the file.
             filename: Name of the file being uploaded.
             content_type: MIME type of the file.
-            
+
         Returns:
             Dict containing the JSON response.
         """
@@ -145,17 +153,19 @@ api = InvenTreeClient(INVENTREE_URL, INVENTREE_TOKEN, SITE_DOMAIN)
 # ==================== Stock Management Functions ====================
 
 
-def _modify_stock(endpoint: str, item_id: int, quantity: int, notes: str, action_verb: str) -> Dict[str, Any]:
+def _modify_stock(
+    endpoint: str, item_id: int, quantity: int, notes: str, action_verb: str
+) -> Dict[str, Any]:
     """
     Shared helper for add/remove stock operations.
-    
+
     Args:
         endpoint: API endpoint (e.g., "/stock/add/" or "/stock/remove/")
         item_id: The ID of the stock item to modify
         quantity: The quantity to add/remove (absolute value)
         notes: Operation notes for audit trail
         action_verb: String for logging context (e.g., "adding", "removing")
-        
+
     Returns:
         Dict indicating status ("ok" or "error") and operation details.
     """
@@ -179,46 +189,52 @@ def _modify_stock(endpoint: str, item_id: int, quantity: int, notes: str, action
         }
 
 
-def remove_stock(item_id: int, quantity: int, notes: str = "Removed via API") -> Dict[str, Any]:
+def remove_stock(
+    item_id: int, quantity: int, notes: str = "Removed via API"
+) -> Dict[str, Any]:
     """
     Remove items from stock in InvenTree.
-    
+
     Args:
         item_id: The numeric primary key of the stock item.
         quantity: Amount to remove.
         notes: Audit trail text.
-        
+
     Returns:
         Operation status dictionary.
     """
     return _modify_stock("/stock/remove/", item_id, quantity, notes, "removing")
 
 
-def add_stock(item_id: int, quantity: int, notes: str = "Added via API") -> Dict[str, Any]:
+def add_stock(
+    item_id: int, quantity: int, notes: str = "Added via API"
+) -> Dict[str, Any]:
     """
     Add items to stock in InvenTree.
-    
+
     Args:
         item_id: The numeric primary key of the stock item.
         quantity: Amount to add.
         notes: Audit trail text.
-        
+
     Returns:
         Operation status dictionary.
     """
     return _modify_stock("/stock/add/", item_id, quantity, notes, "adding")
 
 
-def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> Dict[str, Any]:
+def set_stock(
+    item_id: int, quantity: int, notes: str = "Stock set via API"
+) -> Dict[str, Any]:
     """
-    Set stock to an absolute quantity in InvenTree. 
+    Set stock to an absolute quantity in InvenTree.
     Calculates the delta and performs an add or remove operation.
-    
+
     Args:
         item_id: The numeric primary key of the stock item.
         quantity: The absolute target quantity.
         notes: Audit trail text.
-        
+
     Returns:
         Operation status dictionary, including previous quantity.
     """
@@ -226,7 +242,7 @@ def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> 
         stock_item = api.get(f"/stock/{item_id}/")
         current_quantity = stock_item.get("quantity", 0)
         difference = quantity - current_quantity
-        
+
         if difference == 0:
             return {
                 "status": "ok",
@@ -237,8 +253,10 @@ def set_stock(item_id: int, quantity: int, notes: str = "Stock set via API") -> 
         elif difference > 0:
             _modify_stock("/stock/add/", item_id, difference, notes, "adding (set)")
         else:
-            _modify_stock("/stock/remove/", item_id, abs(difference), notes, "removing (set)")
-        
+            _modify_stock(
+                "/stock/remove/", item_id, abs(difference), notes, "removing (set)"
+            )
+
         return {
             "status": "ok",
             "item_id": item_id,
@@ -270,7 +288,7 @@ def create_part(
 ) -> Dict[str, Any]:
     """
     Create a new part definition in InvenTree.
-    
+
     Args:
         name: The name of the new part.
         ipn: Internal Part Number. Must be unique.
@@ -284,7 +302,7 @@ def create_part(
         purchaseable: Whether the part can be purchased.
         minimum_stock: The threshold at which stock is considered low.
         icon: The name of the icon to associate with the part.
-        
+
     Returns:
         Dict returning status and the created part data.
     """
@@ -324,11 +342,11 @@ def create_stock_item(
     notes: str = "",
     barcode: str = "",
     purchase_price: Optional[float] = None,
-    purchase_price_currency: Optional[str] = None
+    purchase_price_currency: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Create a new stock item instance for a given part.
-    
+
     Args:
         part_id: ID of the part this stock represents.
         location_id: ID of the storage location.
@@ -337,7 +355,7 @@ def create_stock_item(
         barcode: A barcode string to immediately link to this item.
         purchase_price: Initial purchase price.
         purchase_price_currency: ISO currency code for the price.
-        
+
     Returns:
         Dict with status and the created stock item data.
     """
@@ -364,10 +382,10 @@ def create_stock_item(
 def get_item_details(item_id: int) -> Dict[str, Any]:
     """
     Fetch complete item details by combining stock and part endpoints.
-    
+
     Args:
         item_id: The specific stock item ID to fetch.
-        
+
     Returns:
         Dict containing a consolidated view of stock and part details,
         ideal for frontend consumption.
@@ -383,10 +401,10 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
 
         part_detail = stock_item.get("part_detail", {})
         location_detail = stock_item.get("location_detail", {})
-        
+
         part_id = stock_item.get("part")
         category_name = "Uncategorized"
-        
+
         # We need to fetch the part directly to easily get its category name if it has one
         # because part_detail from stock endpoint doesn't always deeply nest category_name
         if part_id:
@@ -394,7 +412,9 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
                 part = api.get(f"/part/{part_id}/")
                 category_name = part.get("category_name", "Uncategorized")
             except Exception as e:
-                logger.warning("Could not fetch extended part details for part %s: %s", part_id, e)
+                logger.warning(
+                    "Could not fetch extended part details for part %s: %s", part_id, e
+                )
 
         return {
             "status": "ok",
@@ -402,7 +422,9 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
                 "id": stock_item.get("pk"),
                 "quantity": stock_item.get("quantity"),
                 "serial": stock_item.get("serial"),
-                "location": location_detail.get("pathstring", stock_item.get("location")),
+                "location": location_detail.get(
+                    "pathstring", stock_item.get("location")
+                ),
                 "status": stock_item.get("status_text"),
                 "name": part_detail.get("name", ""),
                 "description": part_detail.get("description", ""),
@@ -422,21 +444,25 @@ def get_item_details(item_id: int) -> Dict[str, Any]:
         }
 
 
-def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg") -> Dict[str, Any]:
+def upload_image_to_part(
+    part_id: int, image_data: bytes, filename: str, content_type: str = "image/jpeg"
+) -> Dict[str, Any]:
     """
     Upload an image file directly to a part in InvenTree.
-    
+
     Args:
         part_id: ID of the target part.
         image_data: Raw byte array of the image.
         filename: Original filename to store.
         content_type: MIME type of the upload.
-        
+
     Returns:
         Status dict containing the API response.
     """
     try:
-        response = api.upload_file(f"/part/{part_id}/", image_data, filename, content_type)
+        response = api.upload_file(
+            f"/part/{part_id}/", image_data, filename, content_type
+        )
         return {
             "status": "ok",
             "part_id": part_id,
@@ -455,43 +481,56 @@ def upload_image_to_part(part_id: int, image_data: bytes, filename: str, content
 def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
     """
     Look up stock item by an associated QR/barcode string.
-    
+
     Queries the /barcode/ endpoint to resolve the scanned text into a stock mapping,
     and then fetches the detailed item view if successful.
-    
+
+    Fallback search order:
+    1. Direct barcode match via /barcode/ endpoint
+    2. Part match via /barcode/ endpoint -> find stock for that part
+    3. Search by IPN (Internal Part Number)
+    4. Search by part name (partial match)
+
     Args:
         qr_id: The raw string decoded from the scanner.
-        
+
     Returns:
         Dict consolidating the item details, or an error status if not found.
     """
     try:
-        barcode_response = api.post("/barcode/", {"barcode": qr_id})
-        stock_id = barcode_response.get("stockitem", {}).get("pk")
-        
-        # If no stock item is directly linked, check if a part is linked
+        stock_id = None
+
+        # Step 1: Try direct barcode lookup
+        try:
+            barcode_response = api.post("/barcode/", {"barcode": qr_id})
+            stock_id = barcode_response.get("stockitem", {}).get("pk")
+
+            # If no stock item is directly linked, check if a part is linked
+            if not stock_id:
+                part_id = barcode_response.get("part", {}).get("pk")
+                if part_id:
+                    logger.info(
+                        "Barcode %s matched part %s, searching for stock items",
+                        qr_id,
+                        part_id,
+                    )
+                    stock_id = _find_stock_for_part(part_id)
+                    if stock_id:
+                        logger.info(
+                            "Found stock item %s for part %s", stock_id, part_id
+                        )
+        except Exception as barcode_err:
+            logger.debug("Barcode lookup failed for %s: %s", qr_id, barcode_err)
+
+        # Step 2: Fallback - search by IPN
         if not stock_id:
-            part_id = barcode_response.get("part", {}).get("pk")
-            if part_id:
-                logger.info("Barcode %s matched part %s, searching for stock items", qr_id, part_id)
-                # Find a stock item for this part
-                stock_items = api.get(f"/stock/?part={part_id}")
-                
-                if isinstance(stock_items, list) and len(stock_items) > 0:
-                    # Prefer items that are actually in stock
-                    in_stock_items = [s for s in stock_items if float(s.get("quantity", 0)) > 0]
-                    if in_stock_items:
-                        stock_id = in_stock_items[0].get("pk")
-                    else:
-                        stock_id = stock_items[0].get("pk")
-                    
-                    logger.info("Found stock item %s for part %s", stock_id, part_id)
-                else:
-                    return {
-                        "status": "error",
-                        "qr_id": qr_id,
-                        "message": f"No stock items found for part: {barcode_response.get('part', {}).get('name')}",
-                    }
+            logger.info("No barcode match for %s, trying IPN search", qr_id)
+            stock_id = _search_by_ipn(qr_id)
+
+        # Step 3: Fallback - search by part name
+        if not stock_id:
+            logger.info("No IPN match for %s, trying part name search", qr_id)
+            stock_id = _search_by_part_name(qr_id)
 
         if not stock_id:
             return {
@@ -509,17 +548,76 @@ def get_stock_from_qrid(qr_id: str) -> Dict[str, Any]:
             "message": f"Barcode lookup failed: {str(e)}",
         }
 
+
+def _find_stock_for_part(part_id: int) -> Optional[int]:
+    """Find a stock item for a given part ID, preferring items with quantity > 0."""
+    try:
+        stock_items = api.get(f"/stock/?part={part_id}")
+
+        if isinstance(stock_items, list) and len(stock_items) > 0:
+            # Prefer items that are actually in stock
+            in_stock_items = [s for s in stock_items if float(s.get("quantity", 0)) > 0]
+            if in_stock_items:
+                return in_stock_items[0].get("pk")
+            return stock_items[0].get("pk")
+    except Exception as e:
+        logger.debug("Error finding stock for part %s: %s", part_id, e)
+    return None
+
+
+def _search_by_ipn(search_term: str) -> Optional[int]:
+    """Search for a part by IPN and return a stock item ID if found."""
+    try:
+        # Search parts by IPN (exact match)
+        parts = api.get(f"/part/?IPN={search_term}")
+
+        if isinstance(parts, list) and len(parts) > 0:
+            part_id = parts[0].get("pk")
+            logger.info("Found part %s with IPN %s", part_id, search_term)
+            return _find_stock_for_part(part_id)
+    except Exception as e:
+        logger.debug("IPN search failed for %s: %s", search_term, e)
+    return None
+
+
+def _search_by_part_name(search_term: str) -> Optional[int]:
+    """Search for a part by name and return a stock item ID if found."""
+    try:
+        # Search parts by name (partial match)
+        parts = api.get(f"/part/?search={search_term}")
+
+        if isinstance(parts, list) and len(parts) > 0:
+            # Only use if we get a single clear match to avoid confusion
+            if len(parts) == 1:
+                part_id = parts[0].get("pk")
+                logger.info(
+                    "Found single part match %s for search term %s",
+                    part_id,
+                    search_term,
+                )
+                return _find_stock_for_part(part_id)
+            else:
+                logger.debug(
+                    "Multiple parts found for %s, skipping ambiguous match", search_term
+                )
+    except Exception as e:
+        logger.debug("Part name search failed for %s: %s", search_term, e)
+    return None
+
+
 def get_all_items() -> Dict[str, Any]:
     """
     Fetch all stock items from InvenTree with part and location details.
-    
+
     Returns:
         Dict containing a list of consolidated item details.
     """
     try:
         # Fetch all stock items with part and location details
-        stock_items = api.get("/stock/?part_detail=true&location_detail=true&in_stock=true")
-        
+        stock_items = api.get(
+            "/stock/?part_detail=true&location_detail=true&in_stock=true"
+        )
+
         if not stock_items:
             return {"status": "ok", "items": []}
 
@@ -527,21 +625,25 @@ def get_all_items() -> Dict[str, Any]:
         for stock_item in stock_items:
             part_detail = stock_item.get("part_detail", {})
             location_detail = stock_item.get("location_detail", {})
-            
-            items_list.append({
-                "id": stock_item.get("pk"),
-                "quantity": stock_item.get("quantity"),
-                "serial": stock_item.get("serial"),
-                "location": location_detail.get("pathstring", stock_item.get("location")),
-                "status": stock_item.get("status_text"),
-                "name": part_detail.get("name", ""),
-                "description": part_detail.get("description", ""),
-                "price": part_detail.get("pricing_min", 0),
-                "image": part_detail.get("image", None),
-                "part_id": stock_item.get("part"),
-                "ipn": part_detail.get("IPN", ""),
-                "category": part_detail.get("category_name", "Uncategorized"),
-            })
+
+            items_list.append(
+                {
+                    "id": stock_item.get("pk"),
+                    "quantity": stock_item.get("quantity"),
+                    "serial": stock_item.get("serial"),
+                    "location": location_detail.get(
+                        "pathstring", stock_item.get("location")
+                    ),
+                    "status": stock_item.get("status_text"),
+                    "name": part_detail.get("name", ""),
+                    "description": part_detail.get("description", ""),
+                    "price": part_detail.get("pricing_min", 0),
+                    "image": part_detail.get("image", None),
+                    "part_id": stock_item.get("part"),
+                    "ipn": part_detail.get("IPN", ""),
+                    "category": part_detail.get("category_name", "Uncategorized"),
+                }
+            )
 
         return {"status": "ok", "items": items_list}
     except Exception as e:
@@ -551,13 +653,22 @@ def get_all_items() -> Dict[str, Any]:
             "message": f"Failed to fetch all items: {str(e)}",
         }
 
-def create_category(name: str, description: str = "", parent: int = None, default_location: int = None, default_keywords: str = "", structural: bool = False, icon: str = "") -> Dict[str, Any]:
+
+def create_category(
+    name: str,
+    description: str = "",
+    parent: int = None,
+    default_location: int = None,
+    default_keywords: str = "",
+    structural: bool = False,
+    icon: str = "",
+) -> Dict[str, Any]:
     """
     Create a new part category in InvenTree.
     """
     try:
         payload = {
-            "name": name, 
+            "name": name,
             "description": description,
             "structural": structural,
         }
@@ -576,13 +687,22 @@ def create_category(name: str, description: str = "", parent: int = None, defaul
         logger.error("Error creating category: %s", e)
         return {"status": "error", "message": str(e)}
 
-def create_location(name: str, description: str = "", parent: int = None, structural: bool = False, external: bool = False, location_type: int = None, icon: str = "") -> Dict[str, Any]:
+
+def create_location(
+    name: str,
+    description: str = "",
+    parent: int = None,
+    structural: bool = False,
+    external: bool = False,
+    location_type: int = None,
+    icon: str = "",
+) -> Dict[str, Any]:
     """
     Create a new storage location in InvenTree.
     """
     try:
         payload = {
-            "name": name, 
+            "name": name,
             "description": description,
             "structural": structural,
             "external": external,

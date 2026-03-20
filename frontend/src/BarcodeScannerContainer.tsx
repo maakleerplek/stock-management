@@ -15,6 +15,11 @@ function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: Barco
   const [isProcessing, setIsProcessing] = useState(false);
 
   const onScan = async (barcode: string) => {
+    if (isProcessing) {
+      console.log('[ScannerContainer] Already processing, ignoring scan');
+      return;
+    }
+    
     setIsProcessing(true);
     try {
       const fetchedItem = await handleSend(barcode);
@@ -23,12 +28,18 @@ function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: Barco
         onItemScanned(fetchedItem);
       } else {
         console.warn(`[ScannerContainer] No item found for barcode: ${barcode}`);
-        addToast('No item found for this barcode', 'warning');
+        addToast(`No item found for: ${barcode}`, 'warning');
       }
     } catch (error) {
       console.error('[ScannerContainer] Error processing scan:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      addToast(`Failed to process scan: ${errorMessage}`, 'error');
+      const err = error as Error;
+      
+      // Provide more helpful error messages
+      if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
+        addToast('Cannot connect to server. Please check your connection.', 'error');
+      } else {
+        addToast(`Scan failed: ${err.message}`, 'error');
+      }
     } finally {
       setIsProcessing(false);
     }

@@ -6,12 +6,6 @@
 	default_sni {$SITE_IP}
 }
 
-# Enforce HTTPS redirection explicitly for HTTP port
-:80 {
-	redir https://{host}{uri}
-}
-
-
 # Logging configuration for Caddy
 (log_common) {
 	log {
@@ -45,6 +39,48 @@
 # INVENTREE (Standard Setup)
 # =============================================================================
 
+# HTTP version for InvenTree (no TLS) - port 8442
+http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
+	import log_common inventree-http
+
+	encode gzip
+
+	request_body {
+		max_size 100MB
+	}
+
+	# Handle static request files
+	handle_path /static/* {
+		import cors-headers static-http
+
+		root * /var/www/static
+		file_server
+	}
+
+	# Handle media request files
+	handle_path /media/* {
+		import cors-headers media-http
+
+		root * /var/www/media
+		file_server
+
+		# Force download of media files (for security)
+		header Content-Disposition attachment
+
+		# Authentication is handled by the forward_auth directive
+		forward_auth {$INVENTREE_SERVER:"http://inventree-server:8000"} {
+			uri /auth/
+		}
+	}
+
+	# All other requests are proxied to the InvenTree server
+	reverse_proxy {$INVENTREE_SERVER:"http://inventree-server:8000"} {
+		header_down -X-Frame-Options
+		header_down -Content-Security-Policy
+	}
+}
+
+# HTTPS version for InvenTree (with self-signed TLS)
 # The default server address is configured in the .env file
 # If not specified, the proxy listens for all http/https traffic
 {$INVENTREE_SITE_URL:"http://, https://"} {
@@ -92,10 +128,23 @@
 # CUSTOM STOCK MANAGEMENT APP (Frontend + Backend)
 # =============================================================================
 
-# Serve the stock application on localhost and exactly on the specified SITE_IP
-stock.localhost:{$STOCK_PORT}, {$SITE_IP}:{$STOCK_PORT} {
+# HTTP version (no TLS) - for easier local development
+http://stock.localhost, http://{$SITE_IP}:{$STOCK_PORT} {
+	import log_common stock-http
+	import common
+
+	handle_path /api/* {
+		reverse_proxy backend:8001
+	}
+	handle {
+		reverse_proxy frontend:80
+	}
+}
+
+# HTTPS version (with self-signed TLS)
+https://stock.localhost:{$STOCK_PORT}, https://{$SITE_IP}:{$STOCK_PORT} {
 	tls internal
-	import log_common stock
+	import log_common stock-https
 	import common
 
 	handle_path /api/* {

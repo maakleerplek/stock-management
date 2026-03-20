@@ -5,29 +5,34 @@ A modern inventory management system with React/TypeScript frontend and Python F
 
 ## Network Architecture
 
-All traffic routes through Caddy reverse proxy with automatic HTTPS.
+All traffic routes through Caddy reverse proxy. Both HTTP and HTTPS are supported.
 
 ### Access Methods
 
-**Via Domain Names** (requires hosts file setup):
+**Via IP Address (HTTP - recommended for development):**
 ```
-https://stock.local/           -> Frontend (React)
-https://stock.local/api/       -> Backend API (FastAPI)
-https://inventree.local/       -> InvenTree (full UI)
+http://<YOUR_IP>:8082/      -> Stock App (Frontend + API)
+http://<YOUR_IP>:8442/      -> InvenTree
 ```
 
-**Via IP Address** (for mobile devices / network access):
+**Via IP Address (HTTPS - requires certificate acceptance):**
 ```
-https://192.168.68.65/         -> Frontend (React)
-https://192.168.68.65/api/     -> Backend API (FastAPI)
-https://192.168.68.65:8443/    -> InvenTree (separate port)
+https://<YOUR_IP>:8082/     -> Stock App (Frontend + API)
+https://<YOUR_IP>:8443/     -> InvenTree
+```
+
+**Via Domain Names** (requires hosts file setup):
+```
+http://stock.localhost:8082/      -> Stock App (HTTP)
+https://stock.localhost:8082/     -> Stock App (HTTPS)
+http://inventree.localhost:8442/  -> InvenTree (HTTP)
 ```
 
 ### Architecture Diagram
 ```
                     ┌─────────────────────────────────────┐
                     │      Caddy Reverse Proxy            │
-                    │      (Ports 80, 443, 8443)          │
+                    │   (Ports 8082, 8442, 8443)          │
                     └─────────────────────────────────────┘
                               │
           ┌───────────────────┼───────────────────┐
@@ -53,14 +58,14 @@ Add to your hosts file:
 - **Linux/Mac**: `/etc/hosts`
 
 ```
-127.0.0.1 stock.local
-127.0.0.1 inventree.local
+127.0.0.1 stock.localhost
+127.0.0.1 inventree.localhost
 ```
 
 Or for network access (replace with your server IP):
 ```
-192.168.68.65 stock.local
-192.168.68.65 inventree.local
+192.168.68.65 stock.localhost
+192.168.68.65 inventree.localhost
 ```
 
 ## Commands

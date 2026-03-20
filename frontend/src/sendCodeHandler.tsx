@@ -60,11 +60,17 @@ async function apiCall<T>(
     const url = `${API_BASE_URL}${endpoint}`;
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         const response = await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
             body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             const text = await response.text();
@@ -74,8 +80,16 @@ async function apiCall<T>(
 
         return await response.json() as T;
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.debug(`Network error during ${method} ${endpoint}: ${errorMessage}`);
+        const err = error as Error;
+        
+        if (err.name === 'AbortError') {
+            console.error(`Request timeout: ${method} ${endpoint}`);
+        } else if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
+            console.error(`Network error: Backend may be offline. ${method} ${endpoint}`);
+        } else {
+            console.error(`Error during ${method} ${endpoint}: ${err.message}`);
+        }
+        
         return null;
     }
 }

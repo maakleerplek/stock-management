@@ -1,5 +1,5 @@
 import logo from './assets/HTL.png';
-import { Typography, CardMedia, Box } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 
 function Logo() {
   return (
@@ -12,9 +12,9 @@ function Logo() {
         aria-label="maakleerplek website"
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, textDecoration: 'none' }}
       >
-        <CardMedia
+        <Box
           component="img"
-          image={logo}
+          src={logo}
           alt="maakleerplek logo"
           sx={{ 
             height: { xs: 40, sm: 60 }, 

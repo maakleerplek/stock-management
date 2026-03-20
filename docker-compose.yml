@@ -81,7 +81,7 @@ services:
         env_file:
             - .env
         environment:
-            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost
+            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost,${SITE_IP}:8442,${SITE_IP}:8443
             INVENTREE_STRICT_URL_CHECK: ${INVENTREE_STRICT_URL_CHECK:-False}
         volumes:
             # Data volume must map to /home/inventree/data
@@ -118,6 +118,7 @@ services:
             - ${HTTP_PORT:-9090}:80
             - ${HTTPS_PORT:-9091}:443
             - ${INVENTREE_PORT:-8443}:8443
+            - ${INVENTREE_HTTP_PORT:-8442}:8442
             - ${STOCK_PORT:-8082}:${STOCK_PORT:-8082}
         env_file:
             - .env
@@ -160,7 +161,7 @@ services:
             context: ./frontend
             args:
                 VITE_BACKEND_URL: /api
-                VITE_INVENTREE_URL: https://${SITE_IP}:8443
+                VITE_INVENTREE_URL: http://${SITE_IP}:${INVENTREE_HTTP_PORT:-8442}
                 VITE_VOLUNTEER_PASSWORD: ${VITE_VOLUNTEER_PASSWORD:-volunteer}
                 VITE_LASER_PRICE_PER_MIN: ${VITE_LASER_PRICE_PER_MIN:-0.50}
                 VITE_PRINT_PRICE_PER_GRAM: ${VITE_PRINT_PRICE_PER_GRAM:-0.10}
