@@ -11,7 +11,7 @@ All traffic routes through Caddy reverse proxy. Both HTTP and HTTPS are supporte
 
 **Via IP Address (HTTP - recommended for development):**
 ```
-http://<YOUR_IP>:8082/      -> Stock App (Frontend + API)
+http://<YOUR_IP>:8080/      -> Stock App (Frontend + API)
 http://<YOUR_IP>:8442/      -> InvenTree
 ```
 
@@ -23,16 +23,17 @@ https://<YOUR_IP>:8443/     -> InvenTree
 
 **Via Domain Names** (requires hosts file setup):
 ```
-http://stock.localhost:8082/      -> Stock App (HTTP)
+http://stock.localhost:8080/      -> Stock App (HTTP)
 https://stock.localhost:8082/     -> Stock App (HTTPS)
 http://inventree.localhost:8442/  -> InvenTree (HTTP)
+https://inventree.localhost:8443/ -> InvenTree (HTTPS)
 ```
 
 ### Architecture Diagram
 ```
                     ┌─────────────────────────────────────┐
                     │      Caddy Reverse Proxy            │
-                    │   (Ports 8082, 8442, 8443)          │
+                    │ (Ports 8080, 8082, 8442, 8443)      │
                     └─────────────────────────────────────┘
                               │
           ┌───────────────────┼───────────────────┐

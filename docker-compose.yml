@@ -120,6 +120,7 @@ services:
             - ${INVENTREE_PORT:-8443}:8443
             - ${INVENTREE_HTTP_PORT:-8442}:8442
             - ${STOCK_PORT:-8082}:${STOCK_PORT:-8082}
+            - ${STOCK_HTTP_PORT:-8080}:${STOCK_HTTP_PORT:-8080}
         env_file:
             - .env
         volumes:
@@ -131,6 +132,9 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/config:z
         environment:
             SITE_IP: ${SITE_IP}
+            STOCK_PORT: ${STOCK_PORT:-8082}
+            STOCK_HTTP_PORT: ${STOCK_HTTP_PORT:-8080}
+            INVENTREE_HTTP_PORT: ${INVENTREE_HTTP_PORT:-8442}
 
     # =========================================================================
     # Custom Stock Management Services
@@ -161,7 +165,7 @@ services:
             context: ./frontend
             args:
                 VITE_BACKEND_URL: /api
-                VITE_INVENTREE_URL: http://${SITE_IP}:${INVENTREE_HTTP_PORT:-8442}
+                # Note: VITE_INVENTREE_URL removed - InvenTree is now proxied via /inventree/
                 VITE_VOLUNTEER_PASSWORD: ${VITE_VOLUNTEER_PASSWORD:-volunteer}
                 VITE_LASER_PRICE_PER_MIN: ${VITE_LASER_PRICE_PER_MIN:-0.50}
                 VITE_PRINT_PRICE_PER_GRAM: ${VITE_PRINT_PRICE_PER_GRAM:-0.10}

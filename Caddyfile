@@ -83,7 +83,7 @@ http://{$SITE_IP}:8442, http://inventree.localhost:8442 {
 # HTTPS version for InvenTree (with self-signed TLS)
 # The default server address is configured in the .env file
 # If not specified, the proxy listens for all http/https traffic
-{$INVENTREE_SITE_URL:"http://, https://"} {
+{$CADDY_INVENTREE_HTTPS:"https://"} {
 	tls internal
 	import log_common inventree
 
@@ -134,9 +134,40 @@ http://stock.localhost:{$STOCK_HTTP_PORT}, http://{$SITE_IP}:{$STOCK_HTTP_PORT} 
 	import log_common stock-http
 	import common
 
+	# Backend API
 	handle_path /api/* {
 		reverse_proxy backend:8001
 	}
+
+	# InvenTree proxy - serve InvenTree UI at /inventree/
+	# This avoids certificate issues by serving through same origin
+	handle_path /inventree/static/* {
+		uri strip_prefix /inventree
+		root * /var/www/static
+		file_server
+	}
+
+	handle_path /inventree/media/* {
+		uri strip_prefix /inventree
+		root * /var/www/media
+		file_server
+	}
+
+	handle_path /inventree/* {
+		uri strip_prefix /inventree
+		reverse_proxy inventree-server:8000 {
+			header_up Host {http.request.host}
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# Also handle /inventree without trailing slash
+	handle /inventree {
+		redir /inventree/ permanent
+	}
+
+	# Frontend (default)
 	handle {
 		reverse_proxy frontend:80
 	}
@@ -148,9 +179,40 @@ https://stock.localhost:{$STOCK_PORT}, https://{$SITE_IP}:{$STOCK_PORT} {
 	import log_common stock-https
 	import common
 
+	# Backend API
 	handle_path /api/* {
 		reverse_proxy backend:8001
 	}
+
+	# InvenTree proxy - serve InvenTree UI at /inventree/
+	# This avoids certificate issues by serving through same origin
+	handle_path /inventree/static/* {
+		uri strip_prefix /inventree
+		root * /var/www/static
+		file_server
+	}
+
+	handle_path /inventree/media/* {
+		uri strip_prefix /inventree
+		root * /var/www/media
+		file_server
+	}
+
+	handle_path /inventree/* {
+		uri strip_prefix /inventree
+		reverse_proxy inventree-server:8000 {
+			header_up Host {http.request.host}
+			header_down -X-Frame-Options
+			header_down -Content-Security-Policy
+		}
+	}
+
+	# Also handle /inventree without trailing slash
+	handle /inventree {
+		redir /inventree/ permanent
+	}
+
+	# Frontend (default)
 	handle {
 		reverse_proxy frontend:80
 	}

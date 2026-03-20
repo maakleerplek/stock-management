@@ -1,5 +1,6 @@
 import { Box, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { INVENTREE_CONFIG } from './constants';
 
 interface InvenTreePageProps {
@@ -7,8 +8,12 @@ interface InvenTreePageProps {
 }
 
 function InvenTreePage({ onBack }: InvenTreePageProps) {
-  // Use the configured InvenTree URL (relative path proxied by Caddy)
+  // Use the proxied InvenTree URL (same origin, no certificate issues)
   const inventreeUrl = INVENTREE_CONFIG.URL;
+
+  const handleOpenInNewTab = () => {
+    window.open(inventreeUrl, '_blank');
+  };
 
   return (
     <Box sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -26,9 +31,14 @@ function InvenTreePage({ onBack }: InvenTreePageProps) {
             <ArrowBackIcon />
           </IconButton>
         </Tooltip>
-        <Box component="span" sx={{ fontWeight: 'bold' }}>
+        <Box component="span" sx={{ fontWeight: 'bold', flex: 1 }}>
           InvenTree Inventory System
         </Box>
+        <Tooltip title="Open in new tab">
+          <IconButton onClick={handleOpenInNewTab} color="primary" size="small">
+            <OpenInNewIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
       <Box sx={{ flex: 1 }}>
         <iframe

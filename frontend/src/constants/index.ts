@@ -20,9 +20,11 @@ export const API_CONFIG = {
   },
 } as const;
 
-// InvenTree Configuration (set via VITE_INVENTREE_URL at build time)
+// InvenTree Configuration
+// Use proxied URL (/inventree/) to avoid mixed content and certificate issues
+// The proxy is configured in Caddyfile to route to inventree-server:8000
 export const INVENTREE_CONFIG = {
-  URL: import.meta.env.VITE_INVENTREE_URL || 'https://inventree.localhost',
+  URL: '/inventree/',
 } as const;
 
 // Local Storage Keys
