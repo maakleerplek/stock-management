@@ -1,4 +1,4 @@
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { INVENTREE_CONFIG } from './constants';
@@ -35,11 +35,17 @@ function InvenTreePage({ onBack }: InvenTreePageProps) {
         <Box component="span" sx={{ fontWeight: 'bold', flex: 1 }}>
           InvenTree Inventory System
         </Box>
-        <Tooltip title="Open in new tab">
-          <IconButton onClick={handleOpenInNewTab} color="primary" size="small">
-            <OpenInNewIcon />
-          </IconButton>
+        <Tooltip title=\"Open InvenTree directly in a new tab\">
+          <Button 
+            variant=\"outlined\" 
+            size=\"small\" 
+            startIcon={<OpenInNewIcon />}
+            onClick={handleOpenInNewTab}
+          >
+            Open InvenTree
+          </Button>
         </Tooltip>
+
       </Box>
       <Box sx={{ flex: 1 }}>
         <iframe
