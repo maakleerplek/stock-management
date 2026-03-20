@@ -35,10 +35,10 @@ function InvenTreePage({ onBack }: InvenTreePageProps) {
         <Box component="span" sx={{ fontWeight: 'bold', flex: 1 }}>
           InvenTree Inventory System
         </Box>
-        <Tooltip title=\"Open InvenTree directly in a new tab\">
+        <Tooltip title="Open InvenTree directly in a new tab">
           <Button 
-            variant=\"outlined\" 
-            size=\"small\" 
+            variant="outlined" 
+            size="small" 
             startIcon={<OpenInNewIcon />}
             onClick={handleOpenInNewTab}
           >
