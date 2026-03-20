@@ -21,20 +21,14 @@ export const API_CONFIG = {
 } as const;
 
 // InvenTree Configuration
-// Point directly to the InvenTree port to avoid proxy redirect issues
-// Uses 8442 for HTTP and 8443 for HTTPS to match the Caddy configuration
+// Point directly to the InvenTree HTTPS port (8443)
+// This allows users to click the button, accept the self-signed cert, 
+// and then the iframe will load correctly.
 const getInvenTreeUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol; // 'http:' or 'https:'
-    
-    // If we are on HTTPS, we must use the HTTPS port (8443)
-    if (protocol === 'https:') {
-      return `https://${hostname}:8443/`;
-    }
-    
-    // Default to port 8442 for HTTP
-    return `http://${hostname}:8442/`;
+    // Always use HTTPS port 8443 for InvenTree dashboard
+    return `https://${hostname}:8443/`;
   }
   return '/inventree/';
 };
