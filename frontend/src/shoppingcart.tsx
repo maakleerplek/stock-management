@@ -131,7 +131,7 @@ function ShoppingCart({
                             <CheckCircle sx={{ fontSize: { xs: '3rem', sm: '4rem' } }} />
                         </Box>
                         <Typography variant="h6" fontWeight="bold">Done!</Typography>
-                        <Typography variant="subtitle2">Total: €{(checkedOutTotal ?? 0).toFixed(2)}</Typography>
+                        <Typography variant="subtitle2">Total: €{checkedOutTotal?.toFixed(2)}</Typography>
                         <Typography variant="caption" color="text.secondary">
                             You can pay via the QR code below.<br/>
                             Refresh the page to start over.
@@ -293,7 +293,7 @@ function ShoppingCart({
                                                     </Box>
 
                                                     <Typography variant="body2" sx={{ fontWeight: 'bold', minWidth: 50, textAlign: 'right', fontSize: '0.85rem' }}>
-                                                        €{((item.price ?? 0) * item.cartQuantity).toFixed(2)}
+                                                        €{(item.price * item.cartQuantity).toFixed(2)}
                                                     </Typography>
 
                                                     <IconButton
@@ -323,7 +323,7 @@ function ShoppingCart({
                                 <Box sx={{ mt: 1 }}>
                                     {!isVolunteerMode && (
                                         <Typography variant="subtitle2" sx={{ textAlign: 'right', borderTop: '1px solid', borderColor: 'divider', pt: 1, fontWeight: 'bold' }}>
-                                            Total: €{((totalPrice || 0) + (extraCosts || 0)).toFixed(2)}
+                                            Total: €{(totalPrice + extraCosts).toFixed(2)}
                                         </Typography>
                                     )}
                                     <Button
