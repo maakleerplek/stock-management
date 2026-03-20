@@ -24,7 +24,6 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
-import CloseIcon from '@mui/icons-material/Close';
 import Scanner from './barcodescanner'; // Import the Barcode Scanner
 
 // Define interfaces for common data structures
