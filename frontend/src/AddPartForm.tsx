@@ -507,11 +507,9 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 {onCancel && (
                   <Button
                     variant="outlined"
-                    color="error"
-                    startIcon={<CloseIcon />}
+                    startIcon={<ClearIcon />}
                     onClick={onCancel}
                     disabled={loading}
-                    sx={{ mr: 'auto' }}
                   >
                     Cancel
                   </Button>
@@ -631,11 +629,9 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
                 {onCancel && (
                   <Button
                     variant="outlined"
-                    color="error"
-                    startIcon={<CloseIcon />}
+                    startIcon={<ClearIcon />}
                     onClick={onCancel}
                     disabled={loading}
-                    sx={{ mr: 'auto' }}
                   >
                     Cancel
                   </Button>
