@@ -24,6 +24,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import CloseIcon from '@mui/icons-material/Close';
 import Scanner from './barcodescanner'; // Import the Barcode Scanner
 
 // Define interfaces for common data structures
@@ -505,8 +506,9 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
                 {onCancel && (
                   <Button
-                    variant="text"
-                    color="inherit"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CloseIcon />}
                     onClick={onCancel}
                     disabled={loading}
                     sx={{ mr: 'auto' }}
@@ -628,8 +630,9 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
               <Grid item xs={12} sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
                 {onCancel && (
                   <Button
-                    variant="text"
-                    color="inherit"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CloseIcon />}
                     onClick={onCancel}
                     disabled={loading}
                     sx={{ mr: 'auto' }}
