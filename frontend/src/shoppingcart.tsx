@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { type ItemData } from './sendCodeHandler';
 import Extras from './Extras';
 import ImageDisplay from './ImageDisplay';
@@ -64,14 +64,6 @@ function ShoppingCart({
         (total, item) => total + item.price * item.cartQuantity,
         0
     );
-
-    // Track last item that was updated to trigger a visual flash
-    useEffect(() => {
-        if (cartItems.length > 0) {
-            // Find most recently updated (this is a bit heuristic, but works if we assume the last scanned is added last)
-            // Better: rely on external trigger or track quantity changes.
-        }
-    }, [cartItems]);
 
     const handleUpdateQuantityWithFeedback = (id: number, qty: number) => {
         if ('vibrate' in navigator) navigator.vibrate(10);

@@ -60,7 +60,7 @@ const handleSubmit = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyPress}
                     autoFocus
                     error={!!error}
                     fullWidth

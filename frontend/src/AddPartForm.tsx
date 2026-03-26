@@ -35,15 +35,15 @@ export interface SelectOption {
 export interface PartFormData {
   partId?: string; // Add partId for updating existing part
   partName: string;
-  // partNumber: string; // Removed
+
   description: string;
   category: string;
   initialQuantity: string; // Keep as string for TextField input
-  // unit: string; // Removed
+
   storageLocation: string;
   minimumStock: string; // Add minimumStock field
-  // supplier: string; // Removed
-  // notes: string; // Removed
+
+
   barcode?: string; // Add barcode field
   purchasePrice: string; // Add purchasePrice field
   purchasePriceCurrency: string; // Add purchasePriceCurrency field
@@ -53,7 +53,7 @@ export interface PartFormData {
 export interface PartFormErrors {
   [key: string]: string | undefined; // Allow dynamic keys for errors
   partName?: string;
-  // partNumber?: string; // Removed
+
   category?: string;
   initialQuantity?: string;
   minimumStock?: string; // Add minimumStock error field
@@ -70,22 +70,20 @@ interface AddPartFormProps {
 }
 
 const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locations, onCancel }) => {
-  const requiredFieldsStep1: Array<keyof PartFormData> = ['partName', 'initialQuantity']; // Removed partNumber
+  const requiredFieldsStep1: Array<keyof PartFormData> = ['partName', 'initialQuantity'];
   const requiredFieldsStep2: Array<keyof PartFormData> = ['category', 'storageLocation']; // barcode will be validated separately
 
   const [step, setStep] = useState(1); // Add step state
   const [formData, setFormData] = useState<PartFormData>({
     partId: undefined, // Initialize partId
     partName: '',
-    // partNumber: '', // Removed
+
     description: '',
     category: '',
     initialQuantity: '',
     minimumStock: '', // Initialize minimumStock
-    // unit: '', // Removed
+
     storageLocation: '',
-    // supplier: '', // Removed
-    // notes: '', // Removed
     barcode: '', // Initialize barcode
     purchasePrice: '', // Initialize purchasePrice
     purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency
@@ -290,15 +288,15 @@ const AddPartForm: React.FC<AddPartFormProps> = ({ onSubmit, categories, locatio
     setFormData({
       partId: undefined,
       partName: '',
-      // partNumber: '', // Removed
+
       description: '',
       category: '',
       initialQuantity: '',
       minimumStock: '', // Clear minimumStock on reset
-      // unit: '', // Removed
+
       storageLocation: '',
-      // supplier: '', // Removed
-      // notes: '', // Removed
+
+
       barcode: '',
       purchasePrice: '', // Initialize purchasePrice here
       purchasePriceCurrency: 'EUR', // Initialize purchasePriceCurrency here

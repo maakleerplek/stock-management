@@ -52,8 +52,6 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
         if (error) setError(null);
     };
 
-
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name.trim()) {
@@ -65,8 +63,8 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onSubmit, categories,
         try {
             await onSubmit(formData);
             setFormData({ name: '', description: '', parent: '', defaultLocation: '', defaultKeywords: '', structural: false });
-        } catch (err: any) {
-            setError(err.message || 'Failed to create category.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to create category.');
         } finally {
             setLoading(false);
         }

@@ -51,8 +51,6 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
         if (error) setError(null);
     };
 
-
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name.trim()) {
@@ -64,8 +62,8 @@ const AddLocationForm: React.FC<AddLocationFormProps> = ({ onSubmit, locations, 
         try {
             await onSubmit(formData);
             setFormData({ name: '', description: '', parent: '', structural: false, external: false, locationType: '' });
-        } catch (err: any) {
-            setError(err.message || 'Failed to create location.');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to create location.');
         } finally {
             setLoading(false);
         }

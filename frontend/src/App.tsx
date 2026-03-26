@@ -68,8 +68,8 @@ function AppContent() {
     try {
       console.log('[App] Fetching categories and locations...');
       const [categoriesRes, locationsRes] = await Promise.all([
-        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES), { cache: 'no-store' }),
-        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS), { cache: 'no-store' }),
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES)),
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS)),
       ]);
 
       // Handle categories response

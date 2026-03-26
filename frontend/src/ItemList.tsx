@@ -54,9 +54,7 @@ export default function ItemList() {
         setError(null);
         console.log('[ItemList] Fetching all items...');
         try {
-            const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_ALL_ITEMS), {
-                cache: 'no-store'
-            });
+            const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_ALL_ITEMS));
             
             if (!response.ok) {
                 const errorText = await response.text().catch(() => 'No error text');
