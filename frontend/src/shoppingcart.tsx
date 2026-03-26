@@ -35,6 +35,7 @@ interface ShoppingCartProps {
     onRemoveItem: (itemId: number) => void;
     onCheckout: () => void;
     checkedOutTotal: number | null;
+    onClearCheckout?: () => void;
     onExtraCostChange: (cost: number) => void;
     extraCosts: number;
     isVolunteerMode: boolean;
@@ -51,6 +52,7 @@ function ShoppingCart({
     onRemoveItem,
     onCheckout,
     checkedOutTotal,
+    onClearCheckout,
     onExtraCostChange,
     extraCosts,
     isVolunteerMode,
@@ -125,9 +127,18 @@ function ShoppingCart({
                         <Typography variant="h6" fontWeight="bold">Done!</Typography>
                         <Typography variant="subtitle2">Total: €{checkedOutTotal?.toFixed(2)}</Typography>
                         <Typography variant="caption" color="text.secondary">
-                            You can pay via the QR code below.<br/>
-                            Refresh the page to start over.
+                            You can pay via the QR code below.
                         </Typography>
+                        {onClearCheckout && (
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={onClearCheckout}
+                                sx={{ mt: 1, textTransform: 'none' }}
+                            >
+                                New transaction
+                            </Button>
+                        )}
                     </Box>
                 ) : (
                     // Display current cart state or empty message + extras

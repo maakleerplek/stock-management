@@ -91,7 +91,7 @@ https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTR
 # CUSTOM STOCK MANAGEMENT APP — HTTPS only on port 8082
 # =============================================================================
 
-:{$STOCK_PORT} {
+https://{$SITE_IP}:{$STOCK_PORT}, https://stock.localhost:{$STOCK_PORT} {
 	tls internal
 	import log_common stock
 	import common
@@ -149,7 +149,7 @@ https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTR
 # INTERNAL MEDIA SERVER (backend image proxy — no auth, internal only)
 # =============================================================================
 
-:8081 {
+http://:8081 {
 	import log_common internal-media
 
 	# Serve media files without authentication

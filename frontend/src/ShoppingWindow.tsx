@@ -1,18 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Box } from '@mui/material';
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+} from '@mui/material';
 import ShoppingCart, { type CartItem } from './shoppingcart';
-import { type ItemData, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
+import { type ItemData, type ScanEvent, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
 import { useVolunteer } from './VolunteerContext';
 
 interface ShoppingWindowProps {
-    scannedItem: ItemData | null;
+    scanEvent: ScanEvent | null;
     onCheckoutResultChange?: (result: { total: number; description: string } | null) => void;
 }
 
 const CART_STORAGE_KEY = 'stockManagerCartItems';
 
-export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: ShoppingWindowProps) {
+export default function ShoppingWindow({ scanEvent, onCheckoutResultChange }: ShoppingWindowProps) {
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
         try {
             const stored = localStorage.getItem(CART_STORAGE_KEY);
@@ -26,6 +34,8 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
     const [extraCosts, setExtraCosts] = useState<number>(0);
     const [isSetMode, setIsSetMode] = useState<boolean>(false);
     const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('');
     const { addToast } = useToast();
     const { isVolunteerMode } = useVolunteer();
 
@@ -37,12 +47,10 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
         }
     }, []);
 
-    // Notify parent component when checkout result changes
-    useEffect(() => {
-        if (onCheckoutResultChange) {
-            onCheckoutResultChange(checkedOutResult);
-        }
-    }, [checkedOutResult, onCheckoutResultChange]);
+    const setCheckedOut = useCallback((result: { total: number; description: string } | null) => {
+        setCheckedOutResult(result);
+        onCheckoutResultChange?.(result);
+    }, [onCheckoutResultChange]);
 
     // Cleanup cart if volunteer mode is exited
     useEffect(() => {
@@ -58,7 +66,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
 
     const handleAddItemToCart = useCallback((item: ItemData) => {
         console.log('[Cart] Adding item to cart:', { id: item.id, name: item.name, price: item.price });
-        setCheckedOutResult(null);
+        setCheckedOut(null);
         setCartItems((prevItems) => {
             const existingItem = prevItems.find((i) => i.id === item.id);
             if (existingItem) {
@@ -71,15 +79,15 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
             console.log('[Cart] New item added to cart list');
             return [...prevItems, { ...item, cartQuantity: 1 }];
         });
-    }, []);
+    }, [setCheckedOut]);
 
+    // React to every new scan event (same item twice works correctly via unique id)
     useEffect(() => {
-        if (scannedItem) {
-            console.log('[Scanner] Received scanned item:', scannedItem.name);
-            handleAddItemToCart(scannedItem);
+        if (scanEvent) {
+            console.log('[Scanner] Received scanned item:', scanEvent.item.name);
+            handleAddItemToCart(scanEvent.item);
         }
-    }, [scannedItem, handleAddItemToCart]);
-
+    }, [scanEvent, handleAddItemToCart]);
 
     const handleUpdateQuantity = (itemId: number, newQuantity: number) => {
         console.log(`[Cart] Updating quantity for item ${itemId} to ${newQuantity}`);
@@ -102,42 +110,46 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
         setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
     };
 
-    const handleCheckout = async () => {
+    // Show the MUI confirm dialog before committing the checkout
+    const handleCheckout = () => {
         const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
-        console.log('[Checkout] Starting checkout process', { 
-            itemCount: cartItems.length, 
-            total: checkoutTotal, 
+        console.log('[Checkout] Starting checkout process', {
+            itemCount: cartItems.length,
+            total: checkoutTotal,
             extraCosts,
             isVolunteerMode,
-            isSetMode 
+            isSetMode,
         });
 
-        const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join(', ');
-        const confirmMessageSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
+        const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join('\n');
         let actionText = 'checkout';
         if (isVolunteerMode) {
             actionText = isSetMode ? 'set stock to' : 'add to stock';
         }
-        const confirmMessage = `Are you sure you want to ${actionText}?\n\n${confirmMessageSummary}${!isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''}`;
+        const message = `${actionText.charAt(0).toUpperCase() + actionText.slice(1)}:\n\n${itemsSummary}${
+            !isVolunteerMode ? `\n\nExtra Services: €${extraCosts.toFixed(2)}\nTotal: €${checkoutTotal.toFixed(2)}` : ''
+        }`;
+        setConfirmMessage(message);
+        setConfirmOpen(true);
+    };
 
-        if (!window.confirm(confirmMessage)) {
-            console.log('[Checkout] User cancelled confirmation dialog');
-            return;
+    const handleConfirmedCheckout = async () => {
+        setConfirmOpen(false);
+        const checkoutTotal = cartItems.reduce((total, item) => total + item.price * item.cartQuantity, 0) + extraCosts;
+        const itemsSummary = cartItems.map(item => `${item.name} x${item.cartQuantity}`).join(', ');
+
+        let handler = handleTakeItem;
+        if (isVolunteerMode) {
+            handler = isSetMode ? handleSetItem : handleAddItem;
         }
+        console.log(`[Checkout] Using handler: ${handler.name}`);
 
         setIsCheckingOut(true);
         try {
-            let handler = handleTakeItem;
-            if (isVolunteerMode) {
-                handler = isSetMode ? handleSetItem : handleAddItem;
-            }
-
-            console.log(`[Checkout] Using handler: ${handler.name}`);
-
             for (const item of cartItems) {
                 let success = false;
                 console.log(`[Checkout] Processing item: ${item.name} (qty: ${item.cartQuantity})`);
-                
+
                 if (isVolunteerMode && !isSetMode && item.cartQuantity < 0) {
                     console.log(`[Checkout] Item quantity is negative, using handleTakeItem for ${item.name}`);
                     success = await handleTakeItem(item.id, Math.abs(item.cartQuantity));
@@ -147,9 +159,10 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
 
                 if (!success) {
                     console.error(`[Checkout] FAILED to process item: ${item.name}`);
-                    const errorMsg = `Error processing item ${item.name}. Operation aborted. The cart has not been cleared.`;
-                    addToast(errorMsg, 'error');
-                    alert(errorMsg);
+                    addToast(
+                        `Failed to process "${item.name}". Operation stopped — earlier items in this batch may already have been processed.`,
+                        'error'
+                    );
                     setIsCheckingOut(false);
                     return;
                 }
@@ -158,18 +171,20 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
 
             console.log('[Checkout] All items processed successfully. Clearing cart.');
             setCartItems([]);
-            // Only set checkout result for non-volunteer mode (when payment is needed)
+
+            // Only show payment QR in non-volunteer mode
             if (!isVolunteerMode) {
                 let desc = itemsSummary;
                 if (extraCosts > 0) {
                     desc += `, Extra services (€${extraCosts.toFixed(2)})`;
                 }
                 if (desc.length > 135) {
-                    desc = desc.substring(0, 132) + "...";
+                    desc = desc.substring(0, 132) + '...';
                 }
-                setCheckedOutResult({ total: checkoutTotal, description: desc });
+                setCheckedOut({ total: checkoutTotal, description: desc });
             } else {
-                setCheckedOutResult(null);
+                setCheckedOut(null);
+                addToast('Stock updated successfully!', 'success');
             }
         } catch (error) {
             console.error('[Checkout] Unexpected error during checkout:', error);
@@ -187,6 +202,7 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 onRemoveItem={handleRemoveItem}
                 onCheckout={handleCheckout}
                 checkedOutTotal={checkedOutResult?.total ?? null}
+                onClearCheckout={() => setCheckedOut(null)}
                 onExtraCostChange={setExtraCosts}
                 extraCosts={extraCosts}
                 isVolunteerMode={isVolunteerMode}
@@ -194,6 +210,20 @@ export default function ShoppingWindow({ scannedItem, onCheckoutResultChange }: 
                 onSetModeChange={handleSetModeChange}
                 isCheckingOut={isCheckingOut}
             />
+
+            {/* MUI Confirmation Dialog — replaces window.confirm */}
+            <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Confirm</DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ whiteSpace: 'pre-line' }}>{confirmMessage}</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmedCheckout} variant="contained" autoFocus>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

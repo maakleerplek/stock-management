@@ -32,6 +32,15 @@ export interface ItemData {
 }
 
 /**
+ * Wraps a scanned item with a unique counter so scanning the same barcode
+ * twice in a row still triggers the ShoppingWindow useEffect.
+ */
+export interface ScanEvent {
+    item: ItemData;
+    id: number;
+}
+
+/**
  * Response structure from the backend when fetching an item
  */
 interface ApiResponse {
@@ -69,7 +78,6 @@ async function apiCall<T>(
             headers: { "Content-Type": "application/json" },
             body: body ? JSON.stringify(body) : undefined,
             signal: controller.signal,
-            cache: 'no-store',
         });
 
         clearTimeout(timeoutId);
