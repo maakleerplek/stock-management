@@ -10,7 +10,7 @@ import ItemList from './ItemList';
 import Footer from './Footer';
 import Header from './Header';
 import InvenTreePage from './InvenTreePage';
-import { CssBaseline, Box, Dialog, DialogContent, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { CssBaseline, Box, Dialog, DialogContent, Typography, useMediaQuery, useTheme, Button } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme, darkTheme } from './theme';
 import { ToastProvider, useToast } from './ToastContext';
