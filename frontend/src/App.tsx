@@ -53,10 +53,13 @@ function AppContent() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [checkoutResult]);
 
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
   const handleApiError = useCallback(
     (error: unknown, context: string, showWarning = false) => {
       const message = getErrorMessage(error, context);
       addToast(message, showWarning ? 'warning' : 'error');
+      setGlobalError(`Last Error (${context}): ${message}`);
     },
     [addToast]
   );
@@ -108,7 +111,9 @@ function AppContent() {
       setCategories([]);
       setLocations([]);
       console.error('[App] Critical error fetching categories and locations:', error);
-      addToast(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      const message = error instanceof Error ? error.message : 'Unknown network error';
+      addToast(`Connection error: ${message}`, 'error');
+      setGlobalError(`Startup Load Failed: ${message}`);
     }
   }, [addToast]);
 
@@ -309,6 +314,33 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
       <CssBaseline />
+
+      {/* Debug Banner for mobile troubleshooting */}
+      {globalError && (
+        <Box sx={{ 
+          bgcolor: 'error.main', 
+          color: 'white', 
+          p: 1.5, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 9999,
+          boxShadow: 3
+        }}>
+          <Box sx={{ fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <Typography variant="caption" fontWeight="bold" display="block">DEBUG MODE: ERROR DETECTED</Typography>
+            {globalError}
+            <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+              URL: {createApiUrl('')} | Secure: {String(window.isSecureContext)}
+            </Typography>
+          </Box>
+          <Button size="small" variant="contained" color="inherit" sx={{ color: 'error.main', ml: 1 }} onClick={() => setGlobalError(null)}>
+            Clear
+          </Button>
+        </Box>
+      )}
 
       <motion.div
         style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}

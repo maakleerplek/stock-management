@@ -73,19 +73,23 @@ export async function loadImage(imageRelativePath: string | null): Promise<Image
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), IMAGE_LOAD_TIMEOUT);
 
+            console.debug(`[Image] Fetching ${proxiedUrl}`);
             const response = await fetch(proxiedUrl, {
                 method: 'GET',
-                credentials: 'include',
+                // Removed credentials: 'include' for better Firefox compatibility 
+                // when backend allow_credentials is False
                 signal: controller.signal,
             });
 
             clearTimeout(timeoutId);
 
             if (!response.ok) {
+                console.error(`[Image] HTTP error for ${cleanPath}: ${response.status}`);
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const contentType = response.headers.get('content-type') || '';
+            console.debug(`[Image] Content-Type: ${contentType}`);
 
             // Reject HTML responses (error pages, login redirects)
             if (contentType.includes('text/html')) {
