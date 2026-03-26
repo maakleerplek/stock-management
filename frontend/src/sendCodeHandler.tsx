@@ -58,6 +58,7 @@ async function apiCall<T>(
     body?: object,
 ): Promise<T | null> {
     const url = `${API_BASE_URL}${endpoint}`;
+    console.debug(`[API] ${method} ${url}`, body || '');
 
     try {
         const controller = new AbortController();
@@ -68,26 +69,27 @@ async function apiCall<T>(
             headers: { "Content-Type": "application/json" },
             body: body ? JSON.stringify(body) : undefined,
             signal: controller.signal,
+            cache: 'no-store',
         });
 
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-            const text = await response.text();
-            console.debug(`API error: ${method} ${endpoint} returned ${response.status} - ${text}`);
+            const text = await response.text().catch(() => 'No response text');
+            console.error(`[API] Error: ${method} ${endpoint} returned ${response.status} ${response.statusText} - ${text}`);
             return null;
         }
 
-        return await response.json() as T;
+        const data = await response.json() as T;
+        console.debug(`[API] Success: ${method} ${endpoint}`);
+        return data;
     } catch (error) {
         const err = error as Error;
         
         if (err.name === 'AbortError') {
-            console.error(`Request timeout: ${method} ${endpoint}`);
-        } else if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
-            console.error(`Network error: Backend may be offline. ${method} ${endpoint}`);
+            console.error(`[API] Timeout: ${method} ${endpoint}`);
         } else {
-            console.error(`Error during ${method} ${endpoint}: ${err.message}`);
+            console.error(`[API] Fetch failed for ${method} ${endpoint}:`, err);
         }
         
         return null;

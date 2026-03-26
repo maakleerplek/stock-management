@@ -52,18 +52,28 @@ export default function ItemList() {
     const fetchItems = async () => {
         setLoading(true);
         setError(null);
+        console.log('[ItemList] Fetching all items...');
         try {
-            const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_ALL_ITEMS));
+            const response = await fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_ALL_ITEMS), {
+                cache: 'no-store'
+            });
+            
             if (!response.ok) {
-                throw new Error('Failed to fetch items');
+                const errorText = await response.text().catch(() => 'No error text');
+                console.error(`[ItemList] Network error: ${response.status} ${response.statusText} - ${errorText}`);
+                throw new Error(`Failed to fetch items: ${response.status}`);
             }
+            
             const data = await response.json();
             if (data.status === 'ok') {
                 setItems(data.items);
+                console.log(`[ItemList] Loaded ${data.items.length} items`);
             } else {
+                console.error(`[ItemList] Data error: ${data.message}`);
                 throw new Error(data.message || 'Unknown error');
             }
         } catch (err) {
+            console.error('[ItemList] Critical error:', err);
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);

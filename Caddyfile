@@ -42,6 +42,7 @@
 # HTTP version for InvenTree (no TLS) - port 8442
 :{$INVENTREE_HTTP_PORT:8442} {
 	import log_common inventree-http
+    # ... rest of block
 
 	encode gzip
 
@@ -129,7 +130,7 @@ https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTR
 
 # HTTP version (no TLS) - for easier local development
 # Uses port 8080 for HTTP to avoid conflict with HTTPS on 8082
-http://stock.localhost:{$STOCK_HTTP_PORT}, http://{$SITE_IP}:{$STOCK_HTTP_PORT} {
+:{$STOCK_HTTP_PORT} {
 	import log_common stock-http
 	import common
 
@@ -173,7 +174,7 @@ http://stock.localhost:{$STOCK_HTTP_PORT}, http://{$SITE_IP}:{$STOCK_HTTP_PORT} 
 }
 
 # HTTPS version (with self-signed TLS)
-https://stock.localhost:{$STOCK_PORT}, https://{$SITE_IP}:{$STOCK_PORT} {
+:{$STOCK_PORT} {
 	tls internal
 	import log_common stock-https
 	import common

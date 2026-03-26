@@ -174,8 +174,11 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     }, 300);
   };
 
+  const isSecure = typeof window !== 'undefined' && window.isSecureContext;
+  const hasMediaDevices = typeof navigator !== 'undefined' && !!navigator.mediaDevices;
+
   return (
-    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
       <Card sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -352,6 +355,34 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
           </Box>
         </CardContent>
       </Card>
+
+      {/* Debug Info for Mobile troubleshooting */}
+      {(cameraError || !isScanning) && (
+        <Box sx={{ mt: 1, p: 1.5, bgcolor: 'action.hover', borderRadius: 2, border: '1px solid', borderColor: 'divider', width: '100%', maxWidth: 360 }}>
+          <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" gutterBottom>
+            Browser Diagnostics:
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: isSecure ? 'success.main' : 'error.main' }} />
+              <Typography variant="caption" color={isSecure ? 'text.secondary' : 'error.main'}>
+                Secure Context: {isSecure ? 'Yes' : 'No'}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: hasMediaDevices ? 'success.main' : 'error.main' }} />
+              <Typography variant="caption" color={hasMediaDevices ? 'text.secondary' : 'error.main'}>
+                Camera API: {hasMediaDevices ? 'Yes' : 'No'}
+              </Typography>
+            </Box>
+          </Box>
+          {!isSecure && (
+            <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>
+              Firefox requires HTTPS (port 8082) for camera access.
+            </Typography>
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

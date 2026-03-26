@@ -63,9 +63,10 @@ function AppContent() {
 
   const fetchCategoriesAndLocations = useCallback(async () => {
     try {
+      console.log('[App] Fetching categories and locations...');
       const [categoriesRes, locationsRes] = await Promise.all([
-        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES)),
-        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS)),
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_CATEGORIES), { cache: 'no-store' }),
+        fetch(createApiUrl(API_CONFIG.ENDPOINTS.GET_LOCATIONS), { cache: 'no-store' }),
       ]);
 
       // Handle categories response
@@ -73,13 +74,17 @@ function AppContent() {
         const categoriesData = await categoriesRes.json();
         if (categoriesData.status === 'ok') {
           setCategories(categoriesData.categories);
+          console.log(`[App] Loaded ${categoriesData.categories.length} categories`);
         } else {
           setCategories([]);
-          console.error(`Error fetching categories: ${categoriesData.message}`);
+          console.error(`[App] Error in categories data: ${categoriesData.message}`);
+          addToast(`Categories error: ${categoriesData.message}`, 'warning');
         }
       } else {
         setCategories([]);
-        console.error(`Network error fetching categories: ${categoriesRes.statusText}`);
+        const errorText = await categoriesRes.text().catch(() => 'No error text');
+        console.error(`[App] Network error fetching categories: ${categoriesRes.status} ${categoriesRes.statusText} - ${errorText}`);
+        addToast(`Failed to fetch categories: ${categoriesRes.status}`, 'error');
       }
 
       // Handle locations response
@@ -87,20 +92,36 @@ function AppContent() {
         const locationsData = await locationsRes.json();
         if (locationsData.status === 'ok') {
           setLocations(locationsData.locations);
+          console.log(`[App] Loaded ${locationsData.locations.length} locations`);
         } else {
           setLocations([]);
-          console.error(`Error fetching locations: ${locationsData.message}`);
+          console.error(`[App] Error in locations data: ${locationsData.message}`);
+          addToast(`Locations error: ${locationsData.message}`, 'warning');
         }
       } else {
         setLocations([]);
-        console.error(`Network error fetching locations: ${locationsRes.statusText}`);
+        const errorText = await locationsRes.text().catch(() => 'No error text');
+        console.error(`[App] Network error fetching locations: ${locationsRes.status} ${locationsRes.statusText} - ${errorText}`);
+        addToast(`Failed to fetch locations: ${locationsRes.status}`, 'error');
       }
     } catch (error) {
       setCategories([]);
       setLocations([]);
-      console.error('Error fetching categories and locations:', error);
+      console.error('[App] Critical error fetching categories and locations:', error);
+      addToast(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
     }
-  }, []);
+  }, [addToast]);
+
+  // Check for secure context (required for camera in Firefox)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+      if (isFirefox) {
+        console.warn('[App] Running in insecure context. Camera scanner will NOT work in Firefox.');
+        addToast('Firefox requires HTTPS or localhost for the camera scanner to work.', 'warning');
+      }
+    }
+  }, [addToast]);
 
   // Fetch categories and locations on component mount
   useEffect(() => {
