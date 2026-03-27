@@ -21,18 +21,12 @@ export const API_CONFIG = {
 } as const;
 
 // InvenTree Configuration
-// Temporarily pointing to HTTP port 8442 to resolve connection issues
-const getInvenTreeUrl = () => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    // Use HTTP port 8442 for InvenTree dashboard
-    return `http://${hostname}:8442/`;
-  }
-  return '/inventree/';
-};
-
+// Always use the same-origin /inventree/ proxy path so that:
+// - No mixed content issues (HTTP from HTTPS page)
+// - Works on all browsers/mobile without extra ports
+// - Stays on the same cert as the stock app
 export const INVENTREE_CONFIG = {
-  URL: getInvenTreeUrl(),
+  URL: '/inventree/',
 } as const;
 
 // Local Storage Keys

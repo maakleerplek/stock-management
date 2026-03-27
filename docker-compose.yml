@@ -81,7 +81,7 @@ services:
         env_file:
             - .env
         environment:
-            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost,${SITE_IP}:8442,${SITE_IP}:8443
+            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost,${SITE_IP}:8442,${SITE_IP}:8443,${TAILSCALE_IP},${TAILSCALE_IP}:8442,${TAILSCALE_IP}:8443
             INVENTREE_STRICT_URL_CHECK: ${INVENTREE_STRICT_URL_CHECK:-False}
         volumes:
             # Data volume must map to /home/inventree/data
@@ -128,6 +128,7 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/config:z
         environment:
             SITE_IP: ${SITE_IP}
+            TAILSCALE_IP: ${TAILSCALE_IP}
             STOCK_PORT: ${STOCK_PORT:-8082}
             INVENTREE_PORT: ${INVENTREE_PORT:-8443}
 

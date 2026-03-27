@@ -1,4 +1,5 @@
-import { Box, Button } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Logo from './logo';
 import LightOrDarkButton from './LightOrDarkButton';
@@ -19,22 +20,27 @@ interface HeaderProps {
 
 function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModalOpen, setAddCategoryModalOpen, setAddLocationModalOpen, onOpenInvenTree, onOpenInventory, isInventoryOpen }: HeaderProps) {
   const { isVolunteerMode, setIsVolunteerMode } = useVolunteer();
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
 
   const handleVolunteerToggle = () => {
     if (isVolunteerMode) {
-      if (window.confirm("Are you sure you want to exit Volunteer Mode?")) {
-        setIsVolunteerMode(false);
-        setAddPartFormModalOpen(false);
-        if (onOpenInventory && isInventoryOpen) {
-          onOpenInventory();
-        }
-      }
+      setExitConfirmOpen(true);
     } else {
       setVolunteerModalOpen(true);
     }
   };
 
+  const handleConfirmExit = () => {
+    setExitConfirmOpen(false);
+    setIsVolunteerMode(false);
+    setAddPartFormModalOpen(false);
+    if (onOpenInventory && isInventoryOpen) {
+      onOpenInventory();
+    }
+  };
+
   return (
+    <>
     <Box sx={{ 
       width: '100%', 
       backgroundColor: isVolunteerMode ? 'info.main' : 'background.paper', 
@@ -166,6 +172,22 @@ function Header({ theme, toggleTheme, setVolunteerModalOpen, setAddPartFormModal
         )}
       </Box>
     </Box>
+
+    <Dialog open={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} maxWidth="xs" fullWidth>
+      <DialogTitle>Exit Volunteer Mode</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Are you sure you want to exit Volunteer Mode?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setExitConfirmOpen(false)}>Cancel</Button>
+        <Button onClick={handleConfirmExit} variant="contained" color="error" autoFocus>
+          Exit
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 }
 

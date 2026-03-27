@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { Card, CardHeader, CardContent, Button, Typography, Box, CircularProgress, TextField, InputAdornment, IconButton, Alert } from '@mui/material';
-import { QrCode2, Stop, AddCircle, Refresh } from '@mui/icons-material';
+import {
+  Card, CardHeader, CardContent, Button, Typography, Box,
+  CircularProgress, TextField, InputAdornment, IconButton, Alert,
+  Select, MenuItem, FormControl, InputLabel,
+} from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
+import { QrCode2, Stop, AddCircle, Refresh, CameraAlt } from '@mui/icons-material';
 
 interface ScannerProps {
   onScan: (barcode: string) => void;
   compact?: boolean;
 }
+
+const CAMERA_STORAGE_KEY = 'preferredCameraDeviceId';
 
 function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
@@ -15,7 +22,9 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const [manualInput, setManualInput] = useState('');
   const [lastScanTime, setLastScanTime] = useState(0);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  const [scannerKey, setScannerKey] = useState(0); // Used to force remount scanner
+  const [scannerKey, setScannerKey] = useState(0);
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const loadingTimeoutRef = useRef<number | null>(null);
   const cameraTimeoutRef = useRef<number | null>(null);
@@ -23,39 +32,64 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   // Clear timeouts on unmount
   useEffect(() => {
     return () => {
-      if (loadingTimeoutRef.current) {
-        window.clearTimeout(loadingTimeoutRef.current);
-      }
-      if (cameraTimeoutRef.current) {
-        window.clearTimeout(cameraTimeoutRef.current);
-      }
+      if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
+      if (cameraTimeoutRef.current) window.clearTimeout(cameraTimeoutRef.current);
     };
   }, []);
 
-  // Auto-focus manual input on mount if not scanning
+  // Auto-focus manual input when not scanning
   useEffect(() => {
     if (!isScanning && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isScanning]);
 
+  // Enumerate cameras after permission is granted
+  const enumerateCameras = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      setCameras(videoDevices);
+
+      // Restore previously selected camera, or pick a sensible default
+      const saved = localStorage.getItem(CAMERA_STORAGE_KEY);
+      if (saved && videoDevices.some(d => d.deviceId === saved)) {
+        setSelectedCameraId(saved);
+      } else if (videoDevices.length > 0) {
+        // Prefer the last back camera listed — on Android this is usually the
+        // main (non-ultrawide) rear camera
+        const backCameras = videoDevices.filter(d =>
+          d.label.toLowerCase().includes('back') ||
+          d.label.toLowerCase().includes('rear') ||
+          d.label.toLowerCase().includes('environment')
+        );
+        const preferred = backCameras.length > 0
+          ? backCameras[backCameras.length - 1]
+          : videoDevices[0];
+        setSelectedCameraId(preferred.deviceId);
+      }
+    } catch (e) {
+      console.warn('[Scanner] Could not enumerate cameras:', e);
+    }
+  }, []);
+
   // Check camera permission proactively
   const checkCameraPermission = useCallback(async (): Promise<boolean> => {
     try {
-      // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setCameraError('Camera not supported on this device');
         return false;
       }
 
-      // Try to get camera permission
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+      // Request permission — this also populates device labels
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
       });
-      
-      // Release the stream immediately - we just wanted to check permission
       stream.getTracks().forEach(track => track.stop());
-      
+
+      // Now that we have permission, enumerate all cameras
+      await enumerateCameras();
+
       return true;
     } catch (error) {
       const err = error as Error;
@@ -70,11 +104,10 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
       }
       return false;
     }
-  }, []);
+  }, [enumerateCameras]);
 
   const handleScan = (text: string) => {
     const now = Date.now();
-    // Prevent double-scanning the same item too quickly (500ms cooldown)
     if (text === barcode && now - lastScanTime < 500) {
       console.log(`[Scanner] Ignored duplicate scan (cooldown): ${text}`);
       return;
@@ -84,8 +117,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
     setBarcode(text);
     setLastScanTime(now);
     onScan(text);
-    
-    // Visual & Haptic feedback
+
     if ('vibrate' in navigator) {
       navigator.vibrate(50);
     }
@@ -103,8 +135,6 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const handleError = (error: unknown) => {
     console.error('[Scanner] Hardware/Software error:', error);
     const err = error as Error;
-    
-    // Only show error if it's a real camera issue, not just "no code detected"
     if (err.message && !err.message.includes('No MultiFormat Readers')) {
       setCameraError(`Scanner error: ${err.message}`);
     }
@@ -113,25 +143,21 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const startScan = async () => {
     console.log('[Scanner] Initializing camera...');
     setCameraError(null);
-    
-    // Clear any existing timeouts
+
     if (loadingTimeoutRef.current) window.clearTimeout(loadingTimeoutRef.current);
     if (cameraTimeoutRef.current) window.clearTimeout(cameraTimeoutRef.current);
-    
+
     setIsLoading(true);
-    
-    // Check camera permission first
+
     const hasPermission = await checkCameraPermission();
     if (!hasPermission) {
       setIsLoading(false);
       return;
     }
-    
-    // Permission granted, start scanner
+
     setIsScanning(true);
-    setScannerKey(prev => prev + 1); // Force fresh scanner instance
-    
-    // Set a timeout to detect if camera doesn't start
+    setScannerKey(prev => prev + 1);
+
     cameraTimeoutRef.current = window.setTimeout(() => {
       if (isLoading) {
         console.warn('[Scanner] Camera initialization timeout');
@@ -139,8 +165,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
         setIsLoading(false);
       }
     }, 5000);
-    
-    // Normal loading delay
+
     loadingTimeoutRef.current = window.setTimeout(() => {
       setIsLoading(false);
       if (cameraTimeoutRef.current) {
@@ -152,14 +177,8 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
 
   const stopScan = () => {
     console.log('[Scanner] Stopping camera.');
-    if (loadingTimeoutRef.current) {
-      window.clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-    if (cameraTimeoutRef.current) {
-      window.clearTimeout(cameraTimeoutRef.current);
-      cameraTimeoutRef.current = null;
-    }
+    if (loadingTimeoutRef.current) { window.clearTimeout(loadingTimeoutRef.current); loadingTimeoutRef.current = null; }
+    if (cameraTimeoutRef.current) { window.clearTimeout(cameraTimeoutRef.current); cameraTimeoutRef.current = null; }
     setIsScanning(false);
     setIsLoading(false);
     setCameraError(null);
@@ -168,10 +187,35 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
   const retryCamera = () => {
     setCameraError(null);
     stopScan();
-    // Small delay before retrying
-    setTimeout(() => {
-      startScan();
-    }, 300);
+    setTimeout(() => { startScan(); }, 300);
+  };
+
+  // Switch camera while scanning — restarts the scanner with the new device
+  const handleCameraChange = (e: SelectChangeEvent<string>) => {
+    const deviceId = e.target.value;
+    setSelectedCameraId(deviceId);
+    localStorage.setItem(CAMERA_STORAGE_KEY, deviceId);
+
+    if (isScanning) {
+      // Force scanner remount with new device
+      setScannerKey(prev => prev + 1);
+    }
+  };
+
+  // Build the constraints for the scanner
+  const scannerConstraints: MediaTrackConstraints = selectedCameraId
+    ? { deviceId: { exact: selectedCameraId } }
+    : { facingMode: 'environment' };
+
+  // Human-readable camera label (fallback to index)
+  const cameraLabel = (device: MediaDeviceInfo, index: number) => {
+    if (device.label) {
+      // Trim long labels: "camera2 0, facing back (FULL)" → "Camera 0 (Back)"
+      return device.label.length > 35
+        ? device.label.substring(0, 33) + '…'
+        : device.label;
+    }
+    return `Camera ${index + 1}`;
   };
 
   const isSecure = typeof window !== 'undefined' && window.isSecureContext;
@@ -199,18 +243,18 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
           />
         )}
 
-        <CardContent sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          gap: { xs: 1, sm: 2 }, 
-          p: { xs: 1.5, sm: 2 }, 
-          pt: 0 
+        <CardContent sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: { xs: 1, sm: 2 },
+          p: { xs: 1.5, sm: 2 },
+          pt: 0
         }}>
           {/* Camera Error Alert */}
           {cameraError && (
-            <Alert 
-              severity="warning" 
+            <Alert
+              severity="warning"
               sx={{ width: '100%', mb: 1 }}
               action={
                 <IconButton size="small" onClick={retryCamera} color="inherit">
@@ -259,6 +303,32 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
             )}
           </Box>
 
+          {/* Camera selector — shown when multiple cameras are available */}
+          {cameras.length > 1 && (
+            <FormControl fullWidth size="small">
+              <InputLabel id="camera-select-label" sx={{ fontSize: '0.8rem' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <CameraAlt sx={{ fontSize: '0.9rem' }} />
+                  Camera
+                </Box>
+              </InputLabel>
+              <Select
+                labelId="camera-select-label"
+                id="camera-select"
+                value={selectedCameraId}
+                label="Camera"
+                onChange={handleCameraChange}
+                sx={{ fontSize: '0.8rem' }}
+              >
+                {cameras.map((device, index) => (
+                  <MenuItem key={device.deviceId} value={device.deviceId} sx={{ fontSize: '0.8rem' }}>
+                    {cameraLabel(device, index)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
           {isScanning && (
             <Box sx={{
               width: '100%',
@@ -300,9 +370,7 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
                     'itf',
                     'codabar'
                   ]}
-                  constraints={{
-                    facingMode: 'environment',
-                  }}
+                  constraints={scannerConstraints}
                   components={{
                     torch: true,
                     finder: true,
@@ -376,11 +444,6 @@ function BarcodeScanner({ onScan, compact = false }: ScannerProps) {
               </Typography>
             </Box>
           </Box>
-          {!isSecure && (
-            <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1, lineHeight: 1.2 }}>
-              Firefox requires HTTPS (port 8082) for camera access.
-            </Typography>
-          )}
         </Box>
       )}
     </Box>
