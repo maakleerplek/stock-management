@@ -9,9 +9,7 @@
  * - Set stock to absolute quantity
  */
 
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
+
 
 /**
  * Represents all data for a single inventory item
@@ -48,18 +46,14 @@ interface ApiResponse {
     item: ItemData;
 }
 
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
+
 
 import { API_CONFIG } from './constants';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 const API_ENDPOINTS = API_CONFIG.ENDPOINTS;
 
-// ============================================================================
-// INTERNAL API HELPER
-// ============================================================================
+
 
 async function apiCall<T>(
     endpoint: string,
@@ -104,9 +98,7 @@ async function apiCall<T>(
     }
 }
 
-// ============================================================================
-// API FUNCTIONS
-// ============================================================================
+
 
 /**
  * Fetch item data using a barcode or QR code

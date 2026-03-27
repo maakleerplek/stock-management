@@ -11,9 +11,7 @@ import type { SxProps, Theme } from '@mui/material/styles';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import { loadImage } from './imageHandler';
 
-// ============================================================================
-// COMPONENT PROPS
-// ============================================================================
+
 
 interface ImageDisplayProps {
     /** Relative path to the image (e.g., "media/part_images/abc.png") */
@@ -34,9 +32,7 @@ interface ImageDisplayProps {
     showPlaceholder?: boolean;
 }
 
-// ============================================================================
-// COMPONENT
-// ============================================================================
+
 
 /**
  * ImageDisplay Component
@@ -133,9 +129,7 @@ export default function ImageDisplay({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imagePath]); // Only re-run when imagePath changes
 
-    // ========================================================================
-    // RENDER STATES
-    // ========================================================================
+    // Render states
 
     // Loading state
     if (isLoading && showPlaceholder) {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import Logo from './logo';
+import Logo from './Logo';
 import LightOrDarkButton from './LightOrDarkButton';
 import { useVolunteer } from './VolunteerContext';
 import { INVENTREE_CONFIG } from './constants';

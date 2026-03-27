@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
-import Scanner from './barcodescanner';
-import Qrcode from './qrcode';
+import Scanner from './BarcodeScanner';
+import QrCode from './QrCode';
 import { handleSend, type ItemData } from './sendCodeHandler';
 import { useToast } from './ToastContext';
 
@@ -32,13 +32,16 @@ function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: Barco
       }
     } catch (error) {
       console.error('[ScannerContainer] Error processing scan:', error);
-      const err = error as Error;
       
       // Provide more helpful error messages
-      if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
-        addToast('Cannot connect to server. Please check your connection.', 'error');
+      if (error instanceof Error) {
+        if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+          addToast('Cannot connect to server. Please check your connection.', 'error');
+        } else {
+          addToast(`Scan failed: ${error.message}`, 'error');
+        }
       } else {
-        addToast(`Scan failed: ${err.message}`, 'error');
+        addToast('An unexpected error occurred during scan.', 'error');
       }
     } finally {
       setIsProcessing(false);
@@ -55,7 +58,7 @@ function BarcodeScannerContainer({ onItemScanned, checkoutResult = null }: Barco
         </Box>
       )}
 
-      {checkoutResult !== null && <Qrcode total={checkoutResult.total} description={checkoutResult.description} />}
+      {checkoutResult !== null && <QrCode total={checkoutResult.total} description={checkoutResult.description} />}
     </Box>
   );
 }

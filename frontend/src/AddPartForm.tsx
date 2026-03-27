@@ -24,7 +24,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
-import Scanner from './barcodescanner'; // Import the Barcode Scanner
+import Scanner from './BarcodeScanner'; // Import the Barcode Scanner
 
 // Define interfaces for common data structures
 export interface SelectOption {

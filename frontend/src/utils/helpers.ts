@@ -1,7 +1,7 @@
 // Utility functions for the frontend application
-
 import type { PartFormData } from '../AddPartForm';
-import { STORAGE_KEYS } from '../constants';
+
+import { STORAGE_KEYS, API_CONFIG } from '../constants';
 
 // Theme utilities
 export const getInitialTheme = (): 'light' | 'dark' => {
@@ -11,7 +11,7 @@ export const getInitialTheme = (): 'light' | 'dark' => {
 
 // API utilities
 export const createApiUrl = (endpoint: string, baseUrl?: string): string => {
-  const base = baseUrl || import.meta.env.VITE_BACKEND_URL || '/api';
+  const base = baseUrl || API_CONFIG.BASE_URL;
   return `${base}${endpoint}`;
 };
 

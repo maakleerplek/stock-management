@@ -8,7 +8,7 @@ import {
     DialogContentText,
     DialogActions,
 } from '@mui/material';
-import ShoppingCart, { type CartItem } from './shoppingcart';
+import ShoppingCart, { type CartItem } from './ShoppingCart';
 import { type ItemData, type ScanEvent, handleTakeItem, handleAddItem, handleSetItem } from './sendCodeHandler';
 import { useToast } from './ToastContext';
 import { useVolunteer } from './VolunteerContext';
