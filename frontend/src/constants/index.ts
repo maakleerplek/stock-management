@@ -24,10 +24,8 @@ export const API_CONFIG = {
 const getInvenTreeUrl = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    // Point directly to the standalone InvenTree port
-    const port = protocol === 'https:' ? '8443' : '8442';
-    return `${protocol}//${hostname}:${port}/`;
+    // Always use HTTPS on port 8443 as requested
+    return `https://${hostname}:8443/`;
   }
   return '/inventree/';
 };
