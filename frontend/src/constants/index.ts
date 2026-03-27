@@ -21,12 +21,19 @@ export const API_CONFIG = {
 } as const;
 
 // InvenTree Configuration
-// Always use the same-origin /inventree/ proxy path so that:
-// - No mixed content issues (HTTP from HTTPS page)
-// - Works on all browsers/mobile without extra ports
-// - Stays on the same cert as the stock app
+const getInvenTreeUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    // Point directly to the standalone InvenTree port
+    const port = protocol === 'https:' ? '8443' : '8442';
+    return `${protocol}//${hostname}:${port}/`;
+  }
+  return '/inventree/';
+};
+
 export const INVENTREE_CONFIG = {
-  URL: '/inventree/',
+  URL: getInvenTreeUrl(),
 } as const;
 
 // Local Storage Keys
