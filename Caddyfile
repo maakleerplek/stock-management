@@ -6,10 +6,10 @@
 	default_sni {$SITE_IP}
 }
 
-# Logging configuration for Caddy
+# Logging configuration for Caddy (standard Docker output)
 (log_common) {
 	log {
-		output file /var/log/caddy/{args[0]}.access.log
+		output stderr
 	}
 }
 
@@ -134,7 +134,7 @@
 }
 
 # =============================================================================
-# INVENTREE — HTTPS (8443) and HTTP (8442)
+# INVENTREE — HTTPS (8443)
 # =============================================================================
 
 https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTREE_PORT:8443}, https://{$TAILSCALE_IP}:{$INVENTREE_PORT:8443} {
@@ -143,23 +143,13 @@ https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTR
 	import inventree_proxy
 }
 
-http://{$SITE_IP}:8442, http://inventree.localhost:8442, http://{$TAILSCALE_IP}:8442 {
-	import log_common inventree-http
-	import inventree_proxy
-}
-
 # =============================================================================
-# CUSTOM STOCK MANAGEMENT APP — HTTPS (8082) and HTTP (8080)
+# CUSTOM STOCK MANAGEMENT APP — HTTPS (8082)
 # =============================================================================
 
 https://{$SITE_IP}:{$STOCK_PORT:8082}, https://stock.localhost:{$STOCK_PORT:8082}, https://{$TAILSCALE_IP}:{$STOCK_PORT:8082} {
 	tls internal
 	import log_common stock
-	import stock_proxy
-}
-
-http://{$SITE_IP}:8080, http://stock.localhost:8080, http://{$TAILSCALE_IP}:8080 {
-	import log_common stock-http
 	import stock_proxy
 }
 
