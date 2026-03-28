@@ -59,6 +59,7 @@ RUN echo 'server { \
     try_files $uri $uri/ /index.html; \
     } \
     location /health { \
+    access_log off; \
     return 200 "ok"; \
     add_header Content-Type text/plain; \
     } \

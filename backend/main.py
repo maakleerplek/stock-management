@@ -370,7 +370,7 @@ def get_categories() -> Dict[str, Any]:
     Returns a simplified list of category IDs and names for frontend dropdowns.
     """
     try:
-        categories = api.get("/part/category/")
+        categories = api.get("/part/category/?limit=0")
         category_list = [
             {"id": cat.get("pk"), "name": cat.get("name")}
             for cat in categories
@@ -389,7 +389,7 @@ def get_locations() -> Dict[str, Any]:
     Returns a simplified list of location IDs and names for frontend dropdowns.
     """
     try:
-        locations = api.get("/stock/location/")
+        locations = api.get("/stock/location/?limit=0")
         location_list = [
             {"id": loc.get("pk"), "name": loc.get("name")}
             for loc in locations

@@ -48,6 +48,7 @@ class InvenTreeClient:
         self.host_header = site_domain
 
         self.session = requests.Session()
+        self.session.verify = False
         self.session.headers.update(
             {
                 "Authorization": f"Token {token}",
@@ -613,9 +614,9 @@ def get_all_items() -> Dict[str, Any]:
         Dict containing a list of consolidated item details.
     """
     try:
-        # Fetch all stock items with part and location details
+        # Fetch all stock items with part and location details (limit=0 to get all without pagination limits)
         stock_items = api.get(
-            "/stock/?part_detail=true&location_detail=true&in_stock=true"
+            "/stock/?part_detail=true&location_detail=true&in_stock=true&limit=0"
         )
 
         if not stock_items:
