@@ -44,6 +44,8 @@ const handleSubmit = () => {
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
             handleSubmit();
         }
     };

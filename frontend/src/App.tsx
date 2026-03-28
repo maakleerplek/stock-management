@@ -313,7 +313,7 @@ function AppContent() {
               isInventoryOpen={currentPage === 'inventory'}
             />
             <Box sx={{ flex: 1, py: { xs: 2, sm: 4 } }}>
-              <Box sx={{ maxWidth: 'lg', mx: 'auto', px: 2 }}>
+              <Box sx={{ maxWidth: 'none', mx: 'auto', px: 2 }}>
                 {currentPage === 'inventory' ? (
                   <ItemList />
                 ) : (

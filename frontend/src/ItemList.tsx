@@ -47,7 +47,7 @@ export default function ItemList() {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(50);
 
     const fetchItems = async () => {
         setLoading(true);
@@ -109,7 +109,7 @@ export default function ItemList() {
     }
 
     return (
-        <Box sx={{ p: { xs: 0, sm: 2, md: 3 }, width: '100%', overflowX: 'hidden' }}>
+        <Box sx={{ p: { xs: 0, sm: 2, md: 3 }, width: '100%' }}>
             <Box sx={{ 
                 display: 'flex', 
                 flexDirection: { xs: 'column', md: 'row' },
