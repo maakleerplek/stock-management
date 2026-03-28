@@ -116,7 +116,9 @@ services:
             - backend
         ports:
             - ${INVENTREE_PORT:-8443}:8443
+            - 8442:8442
             - ${STOCK_PORT:-8082}:${STOCK_PORT:-8082}
+            - 8080:8080
         env_file:
             - .env
         volumes:
