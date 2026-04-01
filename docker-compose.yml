@@ -80,9 +80,6 @@ services:
             - inventree-cache
         env_file:
             - .env
-        environment:
-            INVENTREE_ALLOWED_HOSTS: inventree.localhost,${SITE_IP},localhost,${SITE_IP}:8442,${SITE_IP}:8443,${TAILSCALE_IP},${TAILSCALE_IP}:8442,${TAILSCALE_IP}:8443
-            INVENTREE_STRICT_URL_CHECK: ${INVENTREE_STRICT_URL_CHECK:-False}
         volumes:
             # Data volume must map to /home/inventree/data
             - ${INVENTREE_EXT_VOLUME}:/home/inventree/data:z
@@ -112,11 +109,9 @@ services:
         restart: always
         depends_on:
             - inventree-server
-            - frontend
-            - backend
         ports:
-            - ${INVENTREE_PORT:-8443}:8443
-            - ${STOCK_PORT:-8082}:${STOCK_PORT:-8082}
+            - ${INVENTREE_HTTP_PORT:-80}:80
+            - ${INVENTREE_HTTPS_PORT:-443}:443
         env_file:
             - .env
         volumes:
@@ -126,54 +121,3 @@ services:
             - ${INVENTREE_EXT_VOLUME}:/var/log:z
             - ${INVENTREE_EXT_VOLUME}:/data:z
             - ${INVENTREE_EXT_VOLUME}:/config:z
-        environment:
-            SITE_IP: ${SITE_IP}
-            TAILSCALE_IP: ${TAILSCALE_IP}
-            STOCK_PORT: ${STOCK_PORT:-8082}
-            INVENTREE_PORT: ${INVENTREE_PORT:-8443}
-
-    # =========================================================================
-    # Custom Stock Management Services
-    # =========================================================================
-
-    # Backend API (FastAPI)
-    backend:
-        build:
-            context: ./backend
-        container_name: stock-backend
-        depends_on:
-            - inventree-server
-        volumes:
-            - ./backend:/app:z
-        expose:
-            - "8001"
-        env_file:
-            - .env
-        environment:
-            - INVENTREE_URL=https://${SITE_IP}:8443
-            - SITE_DOMAIN=${SITE_IP}
-            - PYTHONUNBUFFERED=1
-        restart: unless-stopped
-
-    # Frontend (React/Vite served by nginx)
-    frontend:
-        build:
-            context: ./frontend
-            args:
-                VITE_BACKEND_URL: /api
-                # Note: VITE_INVENTREE_URL removed - InvenTree is now proxied via /inventree/
-                VITE_VOLUNTEER_PASSWORD: ${VITE_VOLUNTEER_PASSWORD:-volunteer}
-                VITE_LASER_PRICE_PER_MIN: ${VITE_LASER_PRICE_PER_MIN:-0.50}
-                VITE_PRINT_PRICE_PER_GRAM: ${VITE_PRINT_PRICE_PER_GRAM:-0.10}
-                VITE_CURRENCY: ${VITE_CURRENCY:-EUR}
-                VITE_PAYMENT_NAME: ${VITE_PAYMENT_NAME}
-                VITE_PAYMENT_IBAN: ${VITE_PAYMENT_IBAN}
-                VITE_DOCS_URL: ${VITE_DOCS_URL:-https://docs.inventree.org/en/stable/}
-                VITE_FEEDBACK_URL: ${VITE_FEEDBACK_URL}
-                VITE_GITHUB_URL: ${VITE_GITHUB_URL:-https://github.com/maakleerplek/stock-management}
-        container_name: stock-frontend
-        depends_on:
-            - backend
-        expose:
-            - "80"
-        restart: unless-stopped

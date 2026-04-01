@@ -1,19 +1,21 @@
-# Caddyfile for Stock Management System + InvenTree
-# Based on Standard InvenTree Caddyfile + Custom Stock App Additions
+# Example Caddyfile for InvenTree
+# The following environment variables may be used:
+# - INVENTREE_SITE_URL: The upstream URL of the InvenTree site (default: inventree.localhost)
+# - INVENTREE_SERVER: The internal URL of the InvenTree container (default: http://inventree-server:8000)
+#
+# Note that while this file is a good starting point, it may need to be modified to suit your specific requirements
+#
+# Ref to the Caddyfile documentation: https://caddyserver.com/docs/caddyfile
 
-# Global options
-{
-	default_sni {$SITE_IP}
-}
 
-# Logging configuration for Caddy (standard Docker output)
+# Logging configuration for Caddy
 (log_common) {
 	log {
-		output stderr
+		output file /var/log/caddy/{args[0]}.access.log
 	}
 }
 
-# CORS headers for static and media files served by InvenTree
+# CORS headers control (used for static and media files)
 (cors-headers) {
 	header Allow GET,HEAD,OPTIONS
 	header Access-Control-Allow-Origin *
@@ -27,23 +29,12 @@
 	}
 }
 
-# Common settings (compression + body size)
-(common) {
-	encode gzip
-	request_body {
-		max_size 100MB
-	}
-}
+# The default server address is configured in the .env file
+# If not specified, the proxy listens for all http/https traffic
+# If you need to listen on multiple addresses, or use a different port, you can modify this section directly
+{$INVENTREE_SITE_URL:"http://, https://"} {
+	import log_common inventree
 
-# CORS headers for the Stock App API endpoints
-(api-cors) {
-	header Access-Control-Allow-Origin *
-	header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-	header Access-Control-Allow-Headers "Content-Type, Authorization"
-}
-
-# Snippet for InvenTree proxy
-(inventree_proxy) {
 	encode gzip
 
 	request_body {
@@ -66,9 +57,11 @@
 		file_server
 
 		# Force download of media files (for security)
+		# Comment out this line if you do not want to force download
 		header Content-Disposition attachment
 
 		# Authentication is handled by the forward_auth directive
+		# This is required to ensure that media files are only accessible to authenticated users
 		forward_auth {$INVENTREE_SERVER:"http://inventree-server:8000"} {
 			uri /auth/
 		}
@@ -76,104 +69,9 @@
 
 	# All other requests are proxied to the InvenTree server
 	reverse_proxy {$INVENTREE_SERVER:"http://inventree-server:8000"} {
-		header_down -X-Frame-Options
-		header_down -Content-Security-Policy
-	}
-}
 
-# Snippet for Stock App proxy
-(stock_proxy) {
-	import common
-
-	# Backend API — OPTIONS preflight answered at site level
-	@api_preflight {
-		path /api/*
-		method OPTIONS
-	}
-	handle @api_preflight {
-		import api-cors
-		respond "" 204
-	}
-
-	handle_path /api/* {
-		import api-cors
-		reverse_proxy backend:8001
-	}
-
-	# InvenTree proxy — served at /inventree/ to avoid cross-origin issues
-	handle_path /inventree/static/* {
-		uri strip_prefix /inventree
-		root * /var/www/static
-		file_server
-	}
-
-	handle_path /inventree/media/* {
-		uri strip_prefix /inventree
-		root * /var/www/media
-		file_server
-	}
-
-	handle_path /inventree/* {
-		uri strip_prefix /inventree
-		reverse_proxy inventree-server:8000 {
-			header_up Host {http.request.host}
-			header_down -X-Frame-Options
-			header_down -Content-Security-Policy
-		}
-	}
-
-	# Redirect /inventree → /inventree/
-	handle /inventree {
-		redir /inventree/ permanent
-	}
-
-	# Frontend (default)
-	handle {
-		reverse_proxy frontend:80
-	}
-}
-
-# =============================================================================
-# INVENTREE — HTTPS (8443)
-# =============================================================================
-
-https://{$SITE_IP}:{$INVENTREE_PORT:8443}, https://inventree.localhost:{$INVENTREE_PORT:8443}, https://{$TAILSCALE_IP}:{$INVENTREE_PORT:8443} {
-	tls internal
-	import log_common inventree
-	import inventree_proxy
-}
-
-# =============================================================================
-# CUSTOM STOCK MANAGEMENT APP — HTTPS (8082)
-# =============================================================================
-
-https://{$SITE_IP}:{$STOCK_PORT:8082}, https://stock.localhost:{$STOCK_PORT:8082}, https://{$TAILSCALE_IP}:{$STOCK_PORT:8082} {
-	tls internal
-	import log_common stock
-	import stock_proxy
-}
-
-# =============================================================================
-# INTERNAL MEDIA SERVER (backend image proxy — no auth, internal only)
-# =============================================================================
-
-http://:8081 {
-	import log_common internal-media
-
-	# Serve media files without authentication
-	handle_path /media/* {
-		root * /var/www/media
-		file_server
-	}
-
-	# Serve static files without authentication
-	handle_path /static/* {
-		root * /var/www/static
-		file_server
-	}
-
-	# Health check
-	handle /health {
-		respond "ok" 200
+		# If you are running behind another proxy, you may need to specify 'trusted_proxies'
+		# Ref: https://caddyserver.com/docs/json/apps/http/servers/trusted_proxies/
+		# trusted_proxies ...
 	}
 }
