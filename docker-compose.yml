@@ -111,11 +111,11 @@ services:
             - inventree-server
         ports:
             - ${INVENTREE_HTTP_PORT:-80}:80
-            - ${INVENTREE_HTTPS_PORT:-443}:443
+
         env_file:
             - .env
         volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
+            - ./Caddyfile:/etc/caddy/Caddy  file:ro,z
             - ${INVENTREE_EXT_VOLUME}/static:/var/www/static:z
             - ${INVENTREE_EXT_VOLUME}/media:/var/www/media:z
             - ${INVENTREE_EXT_VOLUME}:/var/log:z
