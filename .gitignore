@@ -1,4 +1,4 @@
-inventree-data/*
-backend/venv/*
-frontend/node_modules/*
+inventree-data/
+backend/venv/
+frontend/node_modules/
 .env*
