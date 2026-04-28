@@ -52,8 +52,8 @@ services:
             - POSTGRES_PASSWORD=${INVENTREE_DB_PASSWORD:?You must provide the 'INVENTREE_DB_PASSWORD' variable in the .env file}
             - POSTGRES_DB=${INVENTREE_DB_NAME:?You must provide the 'INVENTREE_DB_NAME' variable in the .env file}
         volumes:
-            # Use Docker named volume for postgres data (avoids host permission issues)
-            - inventree-pgdb:/var/lib/postgresql/data/:z
+            # Map 'data' volume such that postgres database is stored externally
+            - ${INVENTREE_EXT_VOLUME:?You must specify the 'INVENTREE_EXT_VOLUME' variable in the .env file!}:/var/lib/postgresql/data/:z
         restart: unless-stopped
 
     # redis acts as database cache manager
@@ -111,17 +111,13 @@ services:
             - inventree-server
         ports:
             - ${INVENTREE_HTTP_PORT:-80}:80
-
+            - ${INVENTREE_HTTPS_PORT:-443}:443
         env_file:
             - .env
         volumes:
-            - ./Caddyfile:/etc/caddy/Caddy  file:ro,z
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
             - ${INVENTREE_EXT_VOLUME}/static:/var/www/static:z
             - ${INVENTREE_EXT_VOLUME}/media:/var/www/media:z
             - ${INVENTREE_EXT_VOLUME}:/var/log:z
             - ${INVENTREE_EXT_VOLUME}:/data:z
             - ${INVENTREE_EXT_VOLUME}:/config:z
-
-volumes:
-    inventree-pgdb:
-        name: inventree-pgdb
