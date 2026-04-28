@@ -1,61 +1,36 @@
-# Stock Management System
+# InvenTree Deployment
 
-A modern, responsive inventory management system with barcode scanning, shopping cart functionality, and integrated payment processing. Built with React, TypeScript, and Material-UI with a Python FastAPI backend.
+A production-ready [InvenTree](https://inventree.org/) inventory management system deployment using Docker Compose with PostgreSQL, Redis cache, and Caddy reverse proxy.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
-[![React](https://img.shields.io/badge/React-19.1-61dafb)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6)](https://www.typescriptlang.org/)
+[![InvenTree](https://img.shields.io/badge/InvenTree-Stable-green)](https://inventree.org/)
 
 ## Features
 
-### ✨ Core Functionality
-
-- **📱 Barcode Scanner** - Real-time barcode/QR code scanning with html5-qrcode
-- **🛒 Shopping Cart** - Add, remove, and manage inventory items
-- **💳 Payment Integration** - Integrated Payconiq QR payment system
-- **🎨 Modern UI** - Material-UI components with smooth animations
-- **🌓 Dark/Light Mode** - Theme switching with View Transitions API
-- **📱 Responsive Design** - Optimized for desktop, tablet, and mobile devices
-
-### 🎯 Enhanced UX
-
-- **✅ Toast Notifications** - Real-time feedback with success, error, warning, and info states
-- **🎬 Smooth Animations** - Bounce-in cart items, slide-out removal animations
-- **🏷️ Icon Integration** - Visual indicators throughout the interface
-- **📊 Professional Footer** - Quick links, system info, and branding
-- **⚡ Fast Performance** - Built with Vite for optimal performance
+- **📦 InvenTree** - Open-source inventory management system
+- **🗄️ PostgreSQL 17** - Reliable database backend
+- **⚡ Redis** - High-performance caching
+- **🔒 Caddy** - Automatic HTTPS with reverse proxy
+- **🐳 Docker Compose** - Simple deployment and management
+- **🌐 CORS Enabled** - Ready for frontend integrations
 
 ## Tech Stack
 
-### Frontend
-
-- **React 19.1** - UI framework
-- **TypeScript 5.8** - Type safety
-- **Material-UI (MUI) 5.15** - Component library
-- **Vite 7.1** - Build tool
-- **html5-qrcode 2.3.8** - Barcode/QR code scanning
-
-### Backend
-
-- **Python FastAPI** - High-performance API framework
-- **InvenTree** - Inventory management system
-- **PostgreSQL** - Database
-- **Caddy** - Reverse proxy & SSL
-
-### DevOps
-
+- **InvenTree** - Inventory management platform
+- **PostgreSQL 17** - Database
+- **Redis 7** - Cache manager
+- **Caddy** - Reverse proxy with automatic SSL
 - **Docker & Docker Compose** - Containerization
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.9+ (for backend development)
+- Docker & Docker Compose installed
+- Basic understanding of Docker containers
 
-### Using Docker (Recommended)
+### Installation
 
 1. **Clone the repository**
 
@@ -64,238 +39,200 @@ A modern, responsive inventory management system with barcode scanning, shopping
    cd stock-management
    ```
 
-2. **Start the application**
+2. **Configure environment**
+
+   Copy the example environment file and configure it:
 
    ```bash
-   docker compose up -d --build
+   cp .env.example .env
    ```
 
-3. **Access the application**
+   Edit `.env` and update the following important variables:
+   
+   - `INVENTREE_SITE_URL` - Your InvenTree URL (e.g., `https://10.72.3.141:8443`)
+   - `INVENTREE_ADMIN_USER` - Admin username
+   - `INVENTREE_ADMIN_PASSWORD` - Admin password  
+   - `INVENTREE_ADMIN_EMAIL` - Admin email
+   - `INVENTREE_DB_PASSWORD` - Database password (change from default!)
 
-   Based on the IP address configured in your `.env` file (e.g., `SITE_IP=10.72.3.141` and `INVENTREE_SITE_URL="https://10.72.3.141:8443"`), you can access the applications as follows:
+3. **Start InvenTree**
 
-   **Stock App:**
-   - `https://stock.localhost` (Locally)
-   - `https://<YOUR_SITE_IP>` (e.g., [https://10.72.3.141](https://10.72.3.141)) (Network)
+   ```bash
+   docker compose up -d
+   ```
 
-   **InvenTree:**
-   - Access via the exact URL defined in `INVENTREE_SITE_URL` (e.g., [https://10.72.3.141:8443](https://10.72.3.141:8443))
+4. **Access InvenTree**
 
-   > **Note:** Because these are local network addresses, your browser will likely show a warning about the connection not being private (`ERR_CERT_AUTHORITY_INVALID`). This is normal because Caddy generates its own local HTTPS certificates. You can safely click "Advanced" and then "Proceed" to bypass the warning.
+   Open your browser and navigate to the URL specified in `INVENTREE_SITE_URL`.
 
-### Local Development
-
-#### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-#### Backend
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-pip install -r requirements.txt
-python main.py
-```
+   > **Note:** If using a local IP address (e.g., `https://10.72.3.141:8443`), your browser will show a security warning because Caddy generates self-signed certificates for local development. This is normal - click "Advanced" and "Proceed" to continue.
 
 ## Project Structure
 
 ```
-gev/
-├── frontend/                    # React TypeScript application
-│   ├── src/
-│   │   ├── App.tsx             # Main app component
-│   │   ├── BarcodeScannerContainer.tsx
-│   │   ├── ShoppingWindow.tsx
-│   │   ├── AddPartForm.tsx
-│   │   ├── Header.tsx
-│   │   ├── Footer.tsx
-│   │   ├── ToastContext.tsx    # Notification system
-│   │   ├── VolunteerContext.tsx
-│   │   ├── theme.ts            # MUI theme config
-│   │   ├── sendCodeHandler.tsx # API communication
-│   │   └── assets/             # Images and SVGs
-│   ├── Dockerfile
-│   ├── package.json
-│   └── vite.config.ts
-│
-├── backend/                     # Python FastAPI backend
-│   ├── main.py                 # API server with endpoints
-│   ├── inventree_client.py     # InvenTree API client
-│   ├── test_backend.py
-│   ├── Dockerfile
-│   └── requirements.txt
-│
-├── inventree-configs/           # InvenTree configuration files
-│
-├── logs/                        # Application logs
-│
-├── docker-compose.yml          # Multi-container orchestration
+stock-management/
+├── docker-compose.yml          # Container orchestration
 ├── Caddyfile                   # Reverse proxy configuration
-├── README.md                   # Project documentation
-├── DEPLOYMENT_CHECKLIST.md
-├── BACKEND_PROTECTION.md
-└── Various IMAGE_*.md files    # Image system documentation
+├── .env                        # Environment variables (create from .env.example)
+├── .env.example                # Example environment configuration
+├── inventree-data/             # InvenTree persistent data
+├── inventree-configs/          # InvenTree configuration files
+├── Standard-Inventreesetup/    # Reference standard InvenTree setup
+├── logs/                       # Application logs
+└── README.md                   # This file
 ```
 
-## API Endpoints
+## Docker Services
 
-### Items
+The `docker-compose.yml` file defines the following services:
 
-- `POST /get-item-from-qr` - Fetch item by barcode/QR code
-- `GET /get-thumbnail/{part_id}` - Get item thumbnail image
-- `POST /take-item` - Remove item from stock (checkout)
+- **inventree-db** - PostgreSQL 17 database
+- **inventree-cache** - Redis 7 cache server
+- **inventree-server** - InvenTree web application
+- **inventree-worker** - Background task processor
+- **inventree-proxy** - Caddy reverse proxy
 
-### Request/Response Examples
+## Configuration
 
-**Scan Item:**
+### Environment Variables
+
+Key variables in `.env`:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `INVENTREE_TAG` | InvenTree version (stable/latest/x.x.x) | `stable` |
+| `INVENTREE_SITE_URL` | Public URL for InvenTree | `https://inventree.localhost` |
+| `INVENTREE_DB_USER` | Database username | `pguser` |
+| `INVENTREE_DB_PASSWORD` | Database password | **Change this!** |
+| `INVENTREE_ADMIN_USER` | Initial admin username | (optional) |
+| `INVENTREE_ADMIN_PASSWORD` | Initial admin password | (optional) |
+| `INVENTREE_CORS_ORIGIN_ALLOW_ALL` | Enable CORS for all origins | `True` |
+| `INVENTREE_HTTP_PORT` | HTTP port for Caddy | `80` |
+| `INVENTREE_HTTPS_PORT` | HTTPS port for Caddy | `443` |
+
+For a complete list of configuration options, see the [InvenTree documentation](https://docs.inventree.org/en/stable/start/config/).
+
+### CORS Configuration
+
+This deployment has CORS enabled (`INVENTREE_CORS_ORIGIN_ALLOW_ALL=True`) to allow frontend applications to communicate with the InvenTree API. If you need more restrictive CORS settings, modify this variable in your `.env` file.
+
+## Usage
+
+### Managing Containers
 
 ```bash
-curl -X POST http://localhost:8001/get-item-from-qr \
-  -H "Content-Type: application/json" \
-  -d '{"qr_id": "ABC123"}'
+# Start all services
+docker compose up -d
+
+# Stop all services
+docker compose down
+
+# View logs
+docker compose logs -f
+
+# View logs for specific service
+docker compose logs -f inventree-server
+
+# Restart a service
+docker compose restart inventree-server
+
+# Check service status
+docker compose ps
 ```
 
-**Checkout:**
+### Updating InvenTree
+
+To update to a new version of InvenTree:
+
+1. Change `INVENTREE_TAG` in `.env` (e.g., `INVENTREE_TAG=0.16.0`)
+2. Pull the new image and restart:
 
 ```bash
-curl -X POST http://localhost:8001/take-item \
-  -H "Content-Type: application/json" \
-  -d '{"itemId": 5, "quantity": 2}'
+docker compose pull
+docker compose up -d
 ```
 
-## Features in Detail
+### Backup and Restore
 
-### 🎨 UI/UX Enhancements
-
-- **Animated Cart Items** - Items bounce in when added, slide out when removed
-- **Icon Buttons** - Visual indicators for scanner, payment, and actions
-- **Professional Footer** - Company info, quick links, and system status
-- **Toast Notifications** - Non-intrusive alerts for user feedback
-- **Theme Support** - Auto-detect system preference or manual toggle
-
-### 📱 Mobile Optimization
-
-- Touch-friendly button sizes
-- Responsive grid layout
-- Optimized for landscape and portrait modes
-- Fast barcode scanning on mobile devices
-
-### ♿ Accessibility
-
-- WCAG 2.1 compliant colors
-- Semantic HTML structure
-- Keyboard navigation support
-- ARIA labels on interactive elements
-
-### Theme Customization
-
-Edit `frontend/src/theme.ts` to modify:
-
-- Primary and secondary colors
-- Typography settings
-- Component styling
-- Dark/light mode palettes
-
-## Development
-
-### Running Tests
+**Backup:**
 
 ```bash
-cd frontend
-npm run test
+# Backup database
+docker exec inventree-db pg_dump -U pguser inventree > backup.sql
+
+# Backup data volume
+tar -czf inventree-data-backup.tar.gz ./inventree-data/
 ```
 
-### Linting
+**Restore:**
 
 ```bash
-cd frontend
-npm run lint
-```
+# Restore database
+cat backup.sql | docker exec -i inventree-db psql -U pguser inventree
 
-### Building for Production
-
-```bash
-cd frontend
-npm run build
+# Restore data volume
+tar -xzf inventree-data-backup.tar.gz
 ```
 
 ## Troubleshooting
 
-### Docker Issues
+### Container won't start
 
 ```bash
-# Check container status
-docker compose ps
+# Check logs
+docker compose logs
 
-# View logs
-docker compose logs -f frontend
-docker compose logs -f backend
-
-# Restart containers
-docker compose restart
+# Verify environment variables
+docker compose config
 ```
 
-### Frontend Not Connecting to Backend
+### Database connection issues
 
-1. Verify `VITE_BACKEND_URL` is set correctly
-2. Ensure backend is running: `docker compose ps`
-3. Check CORS settings in backend `main.py`
-4. Check browser console for detailed errors
+1. Ensure `inventree-db` container is running: `docker compose ps`
+2. Check database credentials in `.env`
+3. View database logs: `docker compose logs inventree-db`
 
-### Barcode Scanner Not Working
+### Permission issues with volumes
 
-1. Ensure HTTPS is enabled (required by browsers)
-2. Grant camera permission in browser
-3. Check browser compatibility (needs getUserMedia support)
-4. Test with different QR codes
+```bash
+# Fix permissions on inventree-data directory
+sudo chown -R 1000:1000 ./inventree-data/
+```
 
-## Performance Tips
+### Cannot access InvenTree web interface
 
-- Use Docker for consistent environment
-- Enable browser caching for static assets
-- Compress images for item thumbnails
-- Use CDN for media files in production
+1. Check if all containers are running: `docker compose ps`
+2. Verify `INVENTREE_SITE_URL` in `.env`
+3. Check Caddy logs: `docker compose logs inventree-proxy`
+4. Ensure firewall allows traffic on configured ports
 
-## Contributing
+## Security Considerations
 
-Contributions are welcome! Please follow these steps:
+- **Change default passwords** - Update `INVENTREE_DB_PASSWORD` and admin credentials
+- **Use strong passwords** - Especially for production deployments
+- **Enable HTTPS** - Caddy provides automatic HTTPS with Let's Encrypt
+- **Regular backups** - Schedule automated backups of database and data volumes
+- **Update regularly** - Keep InvenTree and Docker images up to date
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Development
 
-### Code Standards
+For local development with custom frontend applications:
 
-- Use TypeScript for type safety
-- Follow Material-UI component patterns
-- Add tests for new features
-- Update documentation
+1. InvenTree API is accessible at the URL specified in `INVENTREE_SITE_URL`
+2. CORS is enabled by default for all origins
+3. Generate API tokens in InvenTree: Settings → API Tokens
+4. Use the token in your frontend application to authenticate API requests
 
-## Roadmap
+## Related Repositories
 
-- Android mobile app if possible
-- Using feedback from users to improve the webapp
+- **Frontend**: [Stock-management-frontend](https://github.com/maakleerplek/Stock-management-frontend) - React/TypeScript frontend for InvenTree
 
-### Current Status ✅
+## Documentation
 
-- ✅ Barcode scanning
-- ✅ Item display and management
-- ✅ Item removal (checkout)
-- ✅ Shopping cart feature
-- ✅ Payment integration (Payconiq)
-- ✅ Mobile responsiveness
-- ✅ Dark/Light theme
-- ✅ Toast notifications
-
-### Planned Features 🚀
+- [InvenTree Documentation](https://docs.inventree.org/)
+- [InvenTree GitHub](https://github.com/inventree/InvenTree)
+- [Caddy Documentation](https://caddyserver.com/docs/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
 
 ## License
 
@@ -305,18 +242,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For issues, questions, or suggestions:
 
-- Create an [Issue](https://github.com/maakleerplek/stock-management/issues)
-- Start a [Discussion](https://github.com/maakleerplek/stock-management/discussions)
-- Contact: [Maakleerplek VZW](https://maakleerplek.be)
+- InvenTree Issues: [GitHub Issues](https://github.com/inventree/InvenTree/issues)
+- InvenTree Community: [Discussion Forum](https://github.com/inventree/InvenTree/discussions)
+- Deployment Issues: Create an issue in this repository
 
 ## Acknowledgments
 
-- [InvenTree](https://inventree.org/) - Inventory management system
-- [Material-UI](https://mui.com/) - Component library
-- [React](https://react.dev/) - JavaScript library
-- [FastAPI](https://fastapi.tiangolo.com/) - Backend framework
-- [html5-qrcode](https://github.com/mebjas/html5-qrcode) - QR code scanning
+- [InvenTree](https://inventree.org/) - Open-source inventory management
+- [PostgreSQL](https://www.postgresql.org/) - Database system
+- [Redis](https://redis.io/) - Cache manager
+- [Caddy](https://caddyserver.com/) - Modern web server
 
 ---
 
-\*\*Made with ❤️ by [Maakleerplek VZW](https://maakleerplek.be) | High Tech Lab
+**Deployed by [Maakleerplek VZW](https://maakleerplek.be) | High Tech Lab**
