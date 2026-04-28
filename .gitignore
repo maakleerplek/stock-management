@@ -2,3 +2,4 @@ inventree-data/*
 backend/venv/*
 frontend/node_modules/*
 backend/.python-version
+.env
